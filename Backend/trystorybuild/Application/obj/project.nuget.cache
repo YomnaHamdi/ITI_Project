@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "05YgXnTIg3M=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\hemaa\\Downloads\\tryproject\\code\\Backend\\trystorybuild\\Application\\Application.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\hemaa\\.nuget\\packages\\microsoft.extensions.ai.abstractions\\10.6.0\\microsoft.extensions.ai.abstractions.10.6.0.nupkg.sha512",
+    "C:\\Users\\hemaa\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.8\\microsoft.extensions.dependencyinjection.abstractions.10.0.8.nupkg.sha512",
+    "C:\\Users\\hemaa\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\10.0.8\\microsoft.extensions.logging.abstractions.10.0.8.nupkg.sha512"
+  ],
+  "logs": []
+}

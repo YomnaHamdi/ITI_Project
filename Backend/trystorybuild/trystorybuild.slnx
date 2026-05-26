@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="workflow.json" />
+  </Folder>
+  <Project Path="Application/Application.csproj" Id="0ad2302e-2188-461b-89ff-41b46f331166" />
+  <Project Path="Domain/Domain.csproj" Id="262c4011-f08f-4be1-a07c-f230efe22136" />
+  <Project Path="Infrastructure/Infrastructure.csproj" Id="5f131bac-9522-411e-8129-250db5747535" />
+  <Project Path="storybuild.API/storybuild.API.csproj" />
+</Solution>
