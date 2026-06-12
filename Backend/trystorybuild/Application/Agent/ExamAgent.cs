@@ -125,18 +125,34 @@ namespace Application.Agent
             int total = exam.Questions.Count;
             double score = total > 0 ? Math.Round((double)correct / total * 100.0, 1) : 0;
 
-            if (exam.StoryId.HasValue && !string.IsNullOrWhiteSpace(request.ChildName))
+            if (!string.IsNullOrWhiteSpace(request.ChildName))
             {
-                await progressRepository.SaveAsync(new StudentProgress
+                if (exam.StoryId.HasValue)
                 {
-                    StoryId         = exam.StoryId.Value,
-                    ChildName       = request.ChildName,
-                    TotalQuestions  = total,
-                    CorrectAnswers  = correct,
-                    ScorePercentage = score,
-                    ExamCompleted   = true,
-                    CurrentPage     = 3
-                });
+                    await progressRepository.SaveAsync(new StudentProgress
+                    {
+                        StoryId         = exam.StoryId.Value,
+                        ChildName       = request.ChildName,
+                        TotalQuestions  = total,
+                        CorrectAnswers  = correct,
+                        ScorePercentage = score,
+                        ExamCompleted   = true,
+                        CurrentPage     = 3
+                    });
+                }
+                else if (exam.LessonId.HasValue)
+                {
+                    await progressRepository.SaveAsync(new StudentProgress
+                    {
+                        LessonId        = exam.LessonId.Value,
+                        ChildName       = request.ChildName,
+                        TotalQuestions  = total,
+                        CorrectAnswers  = correct,
+                        ScorePercentage = score,
+                        ExamCompleted   = true,
+                        CurrentPage     = 1
+                    });
+                }
             }
 
             logger.LogInformation("[ExamAgent] Score: {C}/{T} = {S}%", correct, total, score);

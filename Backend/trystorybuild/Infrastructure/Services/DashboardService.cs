@@ -20,9 +20,8 @@ namespace Infrastructure.Services
 
             var examHistory = await BuildExamHistoryAsync(name);
             var writingAttempts = await db.WritingAttempts.Where(w => w.ChildName == name).ToListAsync();
-            var storiesCompleted = await db.StudentProgress
-                .Join(db.Stories, p => p.StoryId, s => s.Id, (p, s) => new { p, s })
-                .CountAsync(x => x.p.ChildName == name && x.p.ExamCompleted);
+            var storiesCompleted  = progress.Count(p => p.StoryId.HasValue  && p.ExamCompleted);
+            var lessonsCompleted  = progress.Count(p => p.LessonId.HasValue && p.ExamCompleted);
             var avgScore = progress.Any(p => p.ExamCompleted)
                 ? progress.Where(p => p.ExamCompleted).Average(p => p.ScorePercentage) : 0;
             var accepted = writingAttempts.Count(w => w.IsAccepted);
@@ -32,7 +31,7 @@ namespace Infrastructure.Services
 
             return new StudentDashboardDto(
                 name, stars, storiesCompleted,
-                progress.Count(p => p.ExamCompleted),
+                lessonsCompleted,
                 progress.Count(p => p.ExamCompleted),
                 Math.Round(avgScore, 1),
                 writingAttempts.Count, accepted,
@@ -116,34 +115,42 @@ namespace Infrastructure.Services
 
         private async Task<List<ExamHistoryDto>> BuildExamHistoryAsync(string name)
         {
-            return await db.StudentProgress
+            var items = await db.StudentProgress
                 .Where(p => p.ChildName == name && p.ExamCompleted)
                 .Include(p => p.Story)
+                .Include(p => p.Lesson)
                 .OrderByDescending(p => p.LastUpdatedAt)
                 .Take(10)
-                .Select(p => new ExamHistoryDto(
-                    p.Story.Title,
-                    p.ScorePercentage,
-                    p.CorrectAnswers,
-                    p.TotalQuestions,
-                    p.LastUpdatedAt))
                 .ToListAsync();
+
+            return items.Select(p => new ExamHistoryDto(
+                p.Story?.Title ?? p.Lesson?.Title ?? "امتحان",
+                p.ScorePercentage, p.CorrectAnswers, p.TotalQuestions, p.LastUpdatedAt))
+                .ToList();
         }
 
         private async Task<List<RecentActivityDto>> BuildRecentActivityAsync(string name)
         {
             var activities = new List<RecentActivityDto>();
-            var exams = await db.StudentProgress
+
+            var progressItems = await db.StudentProgress
                 .Where(p => p.ChildName == name && p.ExamCompleted)
-                .Join(db.Stories, p => p.StoryId, s => s.Id,
-                    (p, s) => new RecentActivityDto("exam", s.Title, p.ScorePercentage, null, p.LastUpdatedAt))
+                .Include(p => p.Story)
+                .Include(p => p.Lesson)
                 .ToListAsync();
+
+            foreach (var p in progressItems)
+            {
+                var title = p.Story?.Title ?? p.Lesson?.Title ?? "امتحان";
+                activities.Add(new RecentActivityDto("exam", title, p.ScorePercentage, null, p.LastUpdatedAt));
+            }
+
             var writings = await db.WritingAttempts
                 .Where(w => w.ChildName == name)
                 .Select(w => new RecentActivityDto(
                     "writing", w.ExpectedSentence, w.SimilarityScore, w.IsAccepted, w.AttemptedAt))
                 .ToListAsync();
-            activities.AddRange(exams);
+
             activities.AddRange(writings);
             return activities.OrderByDescending(a => a.Date).Take(15).ToList();
         }
@@ -168,8 +175,8 @@ namespace Infrastructure.Services
         private async Task<List<TopContentDto>> BuildTopStoriesAsync()
         {
             return await db.StudentProgress
-                .Where(p => p.ExamCompleted)
-                .GroupBy(p => p.StoryId)
+                .Where(p => p.ExamCompleted && p.StoryId.HasValue)
+                .GroupBy(p => p.StoryId!.Value)
                 .Select(g => new { StoryId = g.Key, Count = g.Count(), AvgScore = g.Average(p => p.ScorePercentage) })
                 .OrderByDescending(x => x.Count).Take(5)
                 .Join(db.Stories, x => x.StoryId, s => s.Id,

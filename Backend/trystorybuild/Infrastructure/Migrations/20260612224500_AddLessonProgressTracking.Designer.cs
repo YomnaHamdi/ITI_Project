@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260612224500_AddLessonProgressTracking")]
+    partial class AddLessonProgressTracking
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,7 +44,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("StoryId");
 
-                    b.ToTable("Exams", (string)null);
+                    b.ToTable("Exams");
                 });
 
             modelBuilder.Entity("Domain.Entities.KnowledgeDocument", b =>
@@ -84,7 +87,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("KnowledgeDocuments", (string)null);
+                    b.ToTable("KnowledgeDocuments");
                 });
 
             modelBuilder.Entity("Domain.Entities.Lesson", b =>
@@ -123,7 +126,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("Level", "Letter");
 
-                    b.ToTable("Lessons", (string)null);
+                    b.ToTable("Lessons");
                 });
 
             modelBuilder.Entity("Domain.Entities.LessonPage", b =>
@@ -158,7 +161,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("LessonId");
 
-                    b.ToTable("LessonPages", (string)null);
+                    b.ToTable("LessonPages");
                 });
 
             modelBuilder.Entity("Domain.Entities.Parent", b =>
@@ -168,7 +171,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Parents", (string)null);
+                    b.ToTable("Parents");
                 });
 
             modelBuilder.Entity("Domain.Entities.PdfDocument", b =>
@@ -211,7 +214,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("Level", "Letter");
 
-                    b.ToTable("PdfDocuments", (string)null);
+                    b.ToTable("PdfDocuments");
                 });
 
             modelBuilder.Entity("Domain.Entities.PdfPage", b =>
@@ -247,7 +250,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("PdfDocumentId");
 
-                    b.ToTable("PdfPages", (string)null);
+                    b.ToTable("PdfPages");
                 });
 
             modelBuilder.Entity("Domain.Entities.PlacementQuestion", b =>
@@ -288,7 +291,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PlacementQuestions", (string)null);
+                    b.ToTable("PlacementQuestions");
                 });
 
             modelBuilder.Entity("Domain.Entities.Question", b =>
@@ -340,7 +343,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("ExamId");
 
-                    b.ToTable("Questions", (string)null);
+                    b.ToTable("Questions");
                 });
 
             modelBuilder.Entity("Domain.Entities.Story", b =>
@@ -377,7 +380,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Stories", (string)null);
+                    b.ToTable("Stories");
                 });
 
             modelBuilder.Entity("Domain.Entities.StoryPage", b =>
@@ -414,7 +417,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("StoryId");
 
-                    b.ToTable("StoryPages", (string)null);
+                    b.ToTable("StoryPages");
                 });
 
             modelBuilder.Entity("Domain.Entities.Student", b =>
@@ -477,7 +480,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Students", (string)null);
+                    b.ToTable("Students");
                 });
 
             modelBuilder.Entity("Domain.Entities.StudentAnswer", b =>
@@ -509,7 +512,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("StudentAnswers", (string)null);
+                    b.ToTable("StudentAnswers");
                 });
 
             modelBuilder.Entity("Domain.Entities.StudentProgress", b =>
@@ -553,7 +556,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("StoryId");
 
-                    b.ToTable("StudentProgress", (string)null);
+                    b.ToTable("StudentProgress");
                 });
 
             modelBuilder.Entity("Domain.Entities.Teacher", b =>
@@ -570,7 +573,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Teachers", (string)null);
+                    b.ToTable("Teachers");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>
@@ -611,7 +614,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("Domain.Entities.WritingAttempt", b =>
@@ -656,7 +659,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("LessonPageId");
 
-                    b.ToTable("WritingAttempts", (string)null);
+                    b.ToTable("WritingAttempts");
                 });
 
             modelBuilder.Entity("Domain.Entities.Exam", b =>

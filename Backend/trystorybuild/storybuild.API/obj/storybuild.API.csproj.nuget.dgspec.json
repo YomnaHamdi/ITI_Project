@@ -751,6 +751,9 @@
           }
         },
         "warningProperties": {
+          "noWarn": [
+            "NU1603"
+          ],
           "warnAsError": [
             "NU1605"
           ]
@@ -807,7 +810,7 @@
             },
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",
-              "version": "[8.3.2, )"
+              "version": "[8.4.0, )"
             },
             "Tesseract": {
               "target": "Package",
@@ -1152,6 +1155,9 @@
           }
         },
         "warningProperties": {
+          "noWarn": [
+            "NU1603"
+          ],
           "warnAsError": [
             "NU1605"
           ]

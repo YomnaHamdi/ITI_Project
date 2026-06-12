@@ -25,10 +25,6 @@ namespace Infrastructure.Data
              .IsRequired(false)
              .OnDelete(DeleteBehavior.ClientSetNull);
 
-            b.HasMany(s => s.Progress)
-             .WithOne(p => p.Story)
-             .HasForeignKey(p => p.StoryId)
-             .OnDelete(DeleteBehavior.Cascade);
         }
     }
 
@@ -146,7 +142,20 @@ namespace Infrastructure.Data
         {
             b.HasKey(p => p.Id);
             b.Property(p => p.ChildName).HasMaxLength(100).IsRequired();
-            b.HasIndex(p => new { p.StoryId, p.ChildName }).IsUnique();
+            b.Property(p => p.StoryId).IsRequired(false);
+            b.Property(p => p.LessonId).IsRequired(false);
+
+            b.HasOne(p => p.Story)
+             .WithMany(s => s.Progress)
+             .HasForeignKey(p => p.StoryId)
+             .IsRequired(false)
+             .OnDelete(DeleteBehavior.ClientSetNull);
+
+            b.HasOne(p => p.Lesson)
+             .WithMany()
+             .HasForeignKey(p => p.LessonId)
+             .IsRequired(false)
+             .OnDelete(DeleteBehavior.ClientSetNull);
         }
     }
 

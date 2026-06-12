@@ -41,6 +41,15 @@ namespace Infrastructure.Repositories
                     .Include(s => s.Pages)
                     .OrderByDescending(s => s.CreatedAt)
                     .ToListAsync();
+
+            public async Task<bool> DeleteAsync(Guid id)
+            {
+                var story = await db.Stories.FindAsync(id);
+                if (story is null) return false;
+                db.Stories.Remove(story);
+                await db.SaveChangesAsync();
+                return true;
+            }
         }
 
         // ── Lesson Repository (PDF-imported lessons) ───────────────────────────────────
@@ -152,19 +161,25 @@ namespace Infrastructure.Repositories
         {
             public async Task<StudentProgress> SaveAsync(StudentProgress progress)
             {
-                var existing = await db.StudentProgress
-                    .FirstOrDefaultAsync(p => p.StoryId == progress.StoryId && p.ChildName == progress.ChildName);
+                StudentProgress? existing = null;
+
+                if (progress.StoryId.HasValue)
+                    existing = await db.StudentProgress
+                        .FirstOrDefaultAsync(p => p.StoryId == progress.StoryId && p.ChildName == progress.ChildName);
+                else if (progress.LessonId.HasValue)
+                    existing = await db.StudentProgress
+                        .FirstOrDefaultAsync(p => p.LessonId == progress.LessonId && p.ChildName == progress.ChildName);
 
                 if (existing is null)
                     db.StudentProgress.Add(progress);
                 else
                 {
-                    existing.CurrentPage = progress.CurrentPage;
-                    existing.CorrectAnswers = progress.CorrectAnswers;
-                    existing.TotalQuestions = progress.TotalQuestions;
+                    existing.CurrentPage     = progress.CurrentPage;
+                    existing.CorrectAnswers  = progress.CorrectAnswers;
+                    existing.TotalQuestions  = progress.TotalQuestions;
                     existing.ScorePercentage = progress.ScorePercentage;
-                    existing.ExamCompleted = progress.ExamCompleted;
-                    existing.LastUpdatedAt = DateTime.UtcNow;
+                    existing.ExamCompleted   = progress.ExamCompleted;
+                    existing.LastUpdatedAt   = DateTime.UtcNow;
                 }
 
                 await db.SaveChangesAsync();
@@ -174,6 +189,10 @@ namespace Infrastructure.Repositories
             public async Task<StudentProgress?> GetAsync(Guid storyId, string childName) =>
                 await db.StudentProgress
                     .FirstOrDefaultAsync(p => p.StoryId == storyId && p.ChildName == childName);
+
+            public async Task<StudentProgress?> GetByLessonAsync(Guid lessonId, string childName) =>
+                await db.StudentProgress
+                    .FirstOrDefaultAsync(p => p.LessonId == lessonId && p.ChildName == childName);
         }
 
         public class WritingAttemptRepository(AppDbContext db) : IWritingAttemptRepository

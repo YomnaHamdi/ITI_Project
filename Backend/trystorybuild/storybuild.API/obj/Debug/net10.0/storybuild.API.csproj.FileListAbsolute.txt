@@ -216,4 +216,3 @@ C:\Users\hemaa\Downloads\tryproject\code\Backend\trystorybuild\storybuild.API\bi
 C:\Users\hemaa\Downloads\tryproject\code\Backend\trystorybuild\storybuild.API\bin\Debug\net10.0\UglyToad.PdfPig.Fonts.dll
 C:\Users\hemaa\Downloads\tryproject\code\Backend\trystorybuild\storybuild.API\bin\Debug\net10.0\UglyToad.PdfPig.Tokenization.dll
 C:\Users\hemaa\Downloads\tryproject\code\Backend\trystorybuild\storybuild.API\bin\Debug\net10.0\UglyToad.PdfPig.Tokens.dll
-C:\Users\hemaa\Downloads\tryproject\code\Backend\trystorybuild\storybuild.API\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt

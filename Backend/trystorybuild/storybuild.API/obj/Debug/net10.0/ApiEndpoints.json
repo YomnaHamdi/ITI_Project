@@ -89,6 +89,37 @@
   },
   {
     "ContainingType": "storybuild.API.Controllers.AdminController",
+    "Method": "CreateSchool",
+    "RelativePath": "api/admin/schools",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "req",
+        "Type": "storybuild.API.Controllers.CreateSchoolRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      },
+      {
+        "Type": "Microsoft.AspNetCore.Mvc.ProblemDetails",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 400
+      }
+    ]
+  },
+  {
+    "ContainingType": "storybuild.API.Controllers.AdminController",
     "Method": "GetSubscriptionStats",
     "RelativePath": "api/admin/subscriptions/stats",
     "HttpMethod": "GET",

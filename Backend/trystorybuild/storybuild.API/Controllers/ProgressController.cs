@@ -20,7 +20,7 @@ namespace storybuild.API.Controllers
                 return Ok(new ProgressResponse(storyId, childName, 1, 0, 0, 0, false));
 
             return Ok(new ProgressResponse(
-                progress.StoryId,
+                progress.StoryId ?? storyId,
                 progress.ChildName,
                 progress.CurrentPage,
                 progress.TotalQuestions,

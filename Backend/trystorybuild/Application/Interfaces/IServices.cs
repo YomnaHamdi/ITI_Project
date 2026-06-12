@@ -63,6 +63,7 @@ namespace Application.Interfaces
         Task<Story> SaveAsync(Story story);
         Task<Story?> GetByIdAsync(Guid id);
         Task<List<Story>> GetAllAsync();
+        Task<bool> DeleteAsync(Guid id);
     }
 
     // ── Lesson Repository ──────────────────────────────────────────────────────────
@@ -87,6 +88,7 @@ namespace Application.Interfaces
     {
         Task<StudentProgress> SaveAsync(StudentProgress progress);
         Task<StudentProgress?> GetAsync(Guid storyId, string childName);
+        Task<StudentProgress?> GetByLessonAsync(Guid lessonId, string childName);
     }
 
     public interface IWritingAttemptRepository

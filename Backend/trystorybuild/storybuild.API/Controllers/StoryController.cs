@@ -46,6 +46,17 @@ namespace storybuild.API.Controllers
             var stories = await storyRepository.GetAllAsync();
             return Ok(stories.Select(StoryAgent.MapToResponse).ToList());
         }
+
+        /// <summary>Delete a story by ID.</summary>
+        [HttpDelete("{id:guid}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var deleted = await storyRepository.DeleteAsync(id);
+            if (!deleted) return NotFound(new { error = "القصة غير موجودة." });
+            return NoContent();
+        }
     }
 
 }

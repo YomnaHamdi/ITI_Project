@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "FFfrujlzK9Y=",
+  "dgSpecHash": "F/Mw9FQ+MRY=",
   "success": true,
   "projectFilePath": "C:\\Users\\hemaa\\Downloads\\tryproject\\code\\Backend\\trystorybuild\\Infrastructure\\Infrastructure.csproj",
   "expectedPackageFiles": [
@@ -89,18 +89,5 @@
     "C:\\Users\\hemaa\\.nuget\\packages\\uglytoad.pdfpig.tokenization\\1.7.0-custom-5\\uglytoad.pdfpig.tokenization.1.7.0-custom-5.nupkg.sha512",
     "C:\\Users\\hemaa\\.nuget\\packages\\uglytoad.pdfpig.tokens\\1.7.0-custom-5\\uglytoad.pdfpig.tokens.1.7.0-custom-5.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "NU1603",
-      "level": "Warning",
-      "message": "Infrastructure depends on System.IdentityModel.Tokens.Jwt (>= 8.3.2) but System.IdentityModel.Tokens.Jwt 8.3.2 was not found. System.IdentityModel.Tokens.Jwt 8.4.0 was resolved instead.",
-      "projectPath": "C:\\Users\\hemaa\\Downloads\\tryproject\\code\\Backend\\trystorybuild\\Infrastructure\\Infrastructure.csproj",
-      "warningLevel": 1,
-      "filePath": "C:\\Users\\hemaa\\Downloads\\tryproject\\code\\Backend\\trystorybuild\\Infrastructure\\Infrastructure.csproj",
-      "libraryId": "System.IdentityModel.Tokens.Jwt",
-      "targetGraphs": [
-        "net10.0"
-      ]
-    }
-  ]
+  "logs": []
 }
