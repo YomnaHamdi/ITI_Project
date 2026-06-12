@@ -24,11 +24,11 @@ namespace Application.Agent
     ///  Step 4 → return GenerateStoryResponse to the controller
     /// </summary>
     public sealed class StoryAgent(
-        IChatClient chatClient,
-        IStoryGeneratorService storyGenerator,
-        IImageGenerationService imageGenerator,
-        IStoryRepository storyRepository,
-        ILogger<StoryAgent> logger)
+     IStoryGeneratorService storyGenerator,
+     IJudgeService judgeService,
+     IImageGenerationService imageGenerator,
+     IStoryRepository storyRepository,
+     ILogger<StoryAgent> logger)
     {
         public async Task<GenerateStoryResponse> RunAsync(GenerateStoryRequest request)
         {
@@ -36,31 +36,35 @@ namespace Application.Agent
                 "=== StoryAgent START | child:{Child} char:{Char} theme:{Theme} ===",
                 request.ChildName, request.Character, request.Theme);
 
-            // ── STEP 1: Generate Arabic story text via Qwen2.5:1.5b ───────────────
-            logger.LogInformation("[Agent] Step 1 — Calling Qwen2.5:1.5b for Arabic story...");
+            // Step 1: Generate Arabic story via Qwen2.5:1.5b
+            logger.LogInformation("[StoryAgent] Step 1 — Calling Qwen2.5 for Arabic story...");
             var aiOutput = await storyGenerator.GenerateAsync(
                 request.ChildName, request.Character, request.Theme);
 
-            logger.LogInformation("[Agent] Step 1 DONE — title: \"{Title}\"", aiOutput.Title);
+            // Step 2: Judge validates child safety
+            logger.LogInformation("[StoryAgent] Step 2 — Running JudgeAgent...");
+            var sentences = aiOutput.Pages.Select(p => p.Sentence).ToList();
+            var imagePrompts = aiOutput.Pages.Select(p => p.ImagePrompt).ToList();
+            var judgeResult = await judgeService.ValidateAsync(aiOutput.Title, sentences, imagePrompts);
+            logger.LogInformation("[StoryAgent] Judge: approved={Ok} reason={Reason}",
+                judgeResult.IsApproved, judgeResult.Reason);
 
-            // ── STEP 2: Build domain entity ────────────────────────────────────────
+            // Step 3: Build story entity
             var story = new Story
             {
                 ChildName = request.ChildName,
                 Character = request.Character,
                 Theme = request.Theme,
-                Title = aiOutput.Title
+                Title = aiOutput.Title,
+                IsApproved = judgeResult.IsApproved
             };
 
-            // ── STEP 3: Generate images via ComfyUI (sequential to avoid overload) ─
-            logger.LogInformation("[Agent] Step 2 — Sending image prompts to ComfyUI...");
+            // Step 4: Generate images via ComfyUI (sequential — one GPU)
+            logger.LogInformation("[StoryAgent] Step 3 — Generating {Count} images via ComfyUI...",
+                aiOutput.Pages.Count);
 
             foreach (var page in aiOutput.Pages.OrderBy(p => p.PageNumber))
             {
-                logger.LogInformation(
-                    "[Agent] Generating image {Page}/3 | prompt: {Prompt}",
-                    page.PageNumber, page.ImagePrompt);
-
                 var fileName = $"{story.Id}_page{page.PageNumber}.png";
                 var imageUrl = await imageGenerator.GenerateImageAsync(page.ImagePrompt, fileName);
 
@@ -68,29 +72,35 @@ namespace Application.Agent
                 {
                     StoryId = story.Id,
                     PageNumber = page.PageNumber,
-                    Sentence = page.Sentence,     // Arabic sentence for display
-                    ImagePrompt = page.ImagePrompt,  // English prompt (for audit/debug)
-                    ImagePath = imageUrl           // returned by ComfyUI
+                    Sentence = page.Sentence,
+                    ImagePrompt = page.ImagePrompt,
+                    ImagePath = imageUrl,
+                    IsUnlocked = true  // AI stories have no writing gate
                 });
 
-                logger.LogInformation("[Agent] Page {Page} image saved: {Url}", page.PageNumber, imageUrl);
+                logger.LogInformation("[StoryAgent] Page {N} image saved: {Url}", page.PageNumber, imageUrl);
             }
 
-            // ── STEP 4: Persist to SQL Server ─────────────────────────────────────
-            logger.LogInformation("[Agent] Step 3 — Saving story to database...");
+            // Step 5: Persist
             await storyRepository.SaveAsync(story);
+            logger.LogInformation("=== StoryAgent COMPLETE | storyId:{Id} ===", story.Id);
 
-            // ── STEP 5: Return response ────────────────────────────────────────────
-            var response = new GenerateStoryResponse(
-                story.Id,
+            return MapToResponse(story);
+        }
+
+        public static GenerateStoryResponse MapToResponse(Story story) =>
+            new(story.Id,
                 story.Title,
+                story.IsApproved,
                 story.Pages
                      .OrderBy(p => p.PageNumber)
-                     .Select(p => new StoryPageResponse(p.PageNumber, p.Sentence, p.ImagePath))
+                     .Select(p => new StoryPageDto(
+                         p.Id,
+                         p.PageNumber,
+                         p.Sentence,
+                         p.ImagePath,
+                         p.IsUnlocked
+                        ))
                      .ToList());
-
-            logger.LogInformation("=== StoryAgent COMPLETE | storyId: {Id} ===", story.Id);
-            return response;
-        }
     }
 }

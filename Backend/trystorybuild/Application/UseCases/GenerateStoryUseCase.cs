@@ -65,11 +65,20 @@ namespace Application.UseCases
             // 6. Build and return the API response
             // imageUrl is already the correct path — no re-wrapping needed
             var pageResponses = story.Pages
-                .OrderBy(p => p.PageNumber)
-                .Select(p => new StoryPageResponse(p.PageNumber, p.Sentence, p.ImagePath))
-                .ToList();
+    .OrderBy(p => p.PageNumber)
+    .Select(p => new StoryPageDto(
+        p.Id,
+        p.PageNumber,
+        p.Sentence,
+        p.ImagePath,
+        p.IsUnlocked))
+    .ToList();
 
-            return new GenerateStoryResponse(story.Id, story.Title, pageResponses);
+            return new GenerateStoryResponse(
+                story.Id,
+                story.Title,
+                story.IsApproved,
+                pageResponses);
         }
     }
 }

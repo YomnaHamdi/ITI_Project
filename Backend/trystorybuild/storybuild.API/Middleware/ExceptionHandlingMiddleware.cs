@@ -7,37 +7,27 @@ namespace storybuild.API.Middleware
     {
         public async Task InvokeAsync(HttpContext context)
         {
-            try
-            {
-                await next(context);
-            }
+            try { await next(context); }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Unhandled exception for {Method} {Path}", context.Request.Method, context.Request.Path);
-                await WriteErrorResponseAsync(context, ex);
+                logger.LogError(ex, "Unhandled: {Method} {Path}", context.Request.Method, context.Request.Path);
+                await WriteErrorAsync(context, ex);
             }
         }
 
-        private static async Task WriteErrorResponseAsync(HttpContext context, Exception ex)
+        private static async Task WriteErrorAsync(HttpContext ctx, Exception ex)
         {
-            context.Response.ContentType = "application/json";
-
-            var (statusCode, message) = ex switch
+            ctx.Response.ContentType = "application/json";
+            var (code, msg) = ex switch
             {
                 InvalidOperationException => (HttpStatusCode.UnprocessableEntity, ex.Message),
                 ArgumentException => (HttpStatusCode.BadRequest, ex.Message),
-                _ => (HttpStatusCode.InternalServerError, "حدث خطأ أثناء إنشاء القصة. يرجى المحاولة مرة أخرى.")
+                TimeoutException => (HttpStatusCode.GatewayTimeout, "انتهت مهلة إنشاء الصورة. حاول مرة أخرى."),
+                _ => (HttpStatusCode.InternalServerError, "حدث خطأ في الخادم.")
             };
-
-            context.Response.StatusCode = (int)statusCode;
-
-            var body = JsonSerializer.Serialize(new
-            {
-                error = message,
-                statusCode = (int)statusCode
-            });
-
-            await context.Response.WriteAsync(body);
+            ctx.Response.StatusCode = (int)code;
+            await ctx.Response.WriteAsync(JsonSerializer.Serialize(new { error = msg, statusCode = (int)code }));
         }
     }
+
 }

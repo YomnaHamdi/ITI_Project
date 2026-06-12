@@ -14,65 +14,49 @@ namespace Infrastructure.AI
     IChatClient chatClient,
     ILogger<QwenStoryGeneratorService> logger) : IStoryGeneratorService
     {
-        private static readonly JsonSerializerOptions JsonOptions = new()
-        {
-            PropertyNameCaseInsensitive = true
-        };
+        private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
 
         public async Task<AiStoryOutput> GenerateAsync(string childName, string character, string theme)
         {
             var messages = new List<ChatMessage>
         {
-            new(ChatRole.System, StoryPrompts.SystemPrompt),
-            new(ChatRole.User,   StoryPrompts.BuildUserPrompt(childName, character, theme))
+            new(ChatRole.System, AgentPrompts.StorySystemPrompt),
+            new(ChatRole.User,   AgentPrompts.StoryUserPrompt(childName, character, theme))
         };
 
-            logger.LogInformation(
-                "Generating story — child: {Child}, character: {Char}, theme: {Theme}",
-                childName, character, theme);
-
-            // GetResponseAsync returns ChatResponse; .Text aggregates all content blocks
+            logger.LogInformation("[Qwen-Story] Sending prompt to Qwen2.5:1.5b...");
             var response = await chatClient.GetResponseAsync(messages);
-            var rawText = response.Text ?? string.Empty;
+            var raw = response.Text ?? string.Empty;
 
-            logger.LogDebug("Raw AI response: {Response}", rawText);
+            logger.LogDebug("[Qwen-Story] Raw response: {Raw}", raw);
 
-            var cleanJson = StripCodeFences(rawText);
+            var json = StripCodeFences(raw);
 
             try
             {
-                var output = JsonSerializer.Deserialize<AiStoryOutput>(cleanJson, JsonOptions)
-                    ?? throw new InvalidOperationException("AI returned a null story object.");
+                var output = JsonSerializer.Deserialize<AiStoryOutput>(json, JsonOpts)
+                    ?? throw new InvalidOperationException("Null deserialization result.");
 
                 if (output.Pages.Count != 3)
-                    throw new InvalidOperationException(
-                        $"Expected exactly 3 pages but the AI returned {output.Pages.Count}.");
+                    throw new InvalidOperationException($"Expected 3 pages, got {output.Pages.Count}.");
 
                 return output;
             }
             catch (JsonException ex)
             {
-                logger.LogError(ex, "JSON parse failed.\nRaw:\n{Raw}", rawText);
-                throw new InvalidOperationException("AI response was not valid JSON.", ex);
+                logger.LogError(ex, "[Qwen-Story] JSON parse failed.\nRaw:\n{Raw}", raw);
+                throw new InvalidOperationException("AI story response was not valid JSON.", ex);
             }
         }
 
-        /// <summary>
-        /// Removes ```json ... ``` or ``` ... ``` fences some models add around JSON.
-        /// </summary>
         private static string StripCodeFences(string text)
         {
             var t = text.Trim();
             if (!t.StartsWith("```")) return t;
-
-            var newlineIdx = t.IndexOf('\n');
-            if (newlineIdx < 0) return t;
-
-            var closingIdx = t.LastIndexOf("```");
-            if (closingIdx > newlineIdx)
-                return t[(newlineIdx + 1)..closingIdx].Trim();
-
-            return t;
+            var nl = t.IndexOf('\n');
+            if (nl < 0) return t;
+            var end = t.LastIndexOf("```");
+            return end > nl ? t[(nl + 1)..end].Trim() : t;
         }
     }
 

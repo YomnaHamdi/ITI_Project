@@ -17,3 +17,8 @@ C:\Users\hemaa\Downloads\tryproject\code\Backend\trystorybuild\Infrastructure\ob
 C:\Users\hemaa\Downloads\tryproject\code\Backend\trystorybuild\Infrastructure\obj\Debug\net10.0\Infrastructure.pdb
 C:\Users\hemaa\Downloads\tryproject\code\Backend\trystorybuild\Infrastructure\obj\Debug\net10.0\Infrastructure.genruntimeconfig.cache
 C:\Users\hemaa\Downloads\tryproject\code\Backend\trystorybuild\Infrastructure\obj\Debug\net10.0\ref\Infrastructure.dll
+C:\Users\hemaa\Downloads\tryproject\code\Backend\trystorybuild\Infrastructure\obj\Debug\net10.0\Infrastructure.sourcelink.json
+C:\Users\hemaa\Downloads\tryproject\code\Backend\trystorybuild\Infrastructure\bin\Debug\net10.0\x86\leptonica-1.82.0.dll
+C:\Users\hemaa\Downloads\tryproject\code\Backend\trystorybuild\Infrastructure\bin\Debug\net10.0\x86\tesseract50.dll
+C:\Users\hemaa\Downloads\tryproject\code\Backend\trystorybuild\Infrastructure\bin\Debug\net10.0\x64\leptonica-1.82.0.dll
+C:\Users\hemaa\Downloads\tryproject\code\Backend\trystorybuild\Infrastructure\bin\Debug\net10.0\x64\tesseract50.dll
