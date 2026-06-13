@@ -1,0 +1,7 @@
+.vs/
+bin/
+obj/
+
+appsettings.Development.json
+
+wwwroot/images/

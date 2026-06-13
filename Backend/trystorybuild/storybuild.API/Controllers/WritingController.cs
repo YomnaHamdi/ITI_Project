@@ -1,4 +1,4 @@
-﻿using Application.Agent;
+using Application.Agent;
 using Application.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,12 +9,13 @@ namespace storybuild.API.Controllers
     [Route("api/writing")]
     public class WritingController(WritingCorrectionAgent writingAgent) : ControllerBase
     {
+        // ── Lesson-based evaluation (existing flow) ───────────────────────────────
         [HttpPost("evaluate")]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(WritingCorrectionResponse), 200)]
         public async Task<IActionResult> Evaluate(
-            [FromForm] Guid lessonId,       // was storyId
-            [FromForm] Guid lessonPageId,   // was storyPageId
+            [FromForm] Guid lessonId,
+            [FromForm] Guid lessonPageId,
             [FromForm] string childName,
             IFormFile image)
         {
@@ -35,6 +36,22 @@ namespace storybuild.API.Controllers
             var result = await writingAgent.EvaluateAsync(lessonPageId, lessonId, childName, image);
             return Ok(result);
         }
+
+        // ── Standalone canvas evaluation (new) ────────────────────────────────────
+        [HttpPost("canvas")]
+        [ProducesResponseType(typeof(WritingCorrectionResponse), 200)]
+        public async Task<IActionResult> EvaluateCanvas([FromBody] CanvasEvaluationRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.ImageBase64))
+                return BadRequest(new { error = "الرجاء توفير صورة الكتابة (base64)." });
+
+            if (string.IsNullOrWhiteSpace(request.ExpectedText))
+                return BadRequest(new { error = "الرجاء توفير الجملة المطلوبة." });
+
+            var result = await writingAgent.EvaluateDirectAsync(request.ImageBase64, request.ExpectedText);
+            return Ok(result);
+        }
     }
 
+    public record CanvasEvaluationRequest(string ImageBase64, string ExpectedText);
 }

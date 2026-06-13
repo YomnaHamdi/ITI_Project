@@ -1,5 +1,7 @@
 using Application.DTOs;
 using Application.Interfaces;
+using Application.Mapping;
+using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +11,11 @@ namespace storybuild.API.Controllers;
 
 [ApiController]
 [Route("api/admin")]
-public class AdminController(IPdfImportService pdfImportService, AppDbContext db, IAuthService authService) : ControllerBase
+public class AdminController(
+    IPdfImportService pdfImportService,
+    ILessonRepository lessonRepository,
+    AppDbContext db,
+    IAuthService authService) : ControllerBase
 {
     // ── Import PDF book ────────────────────────────────────────────────────────
     [HttpPost("import-book")]
@@ -20,6 +26,7 @@ public class AdminController(IPdfImportService pdfImportService, AppDbContext db
         [FromForm] int level,
         [FromForm] string letter,
         [FromForm] string letterName,
+        [FromForm] string? title,
         IFormFile pdfFile,
         CancellationToken ct)
     {
@@ -35,7 +42,8 @@ public class AdminController(IPdfImportService pdfImportService, AppDbContext db
         try
         {
             var lesson = await pdfImportService.ImportBookAsync(
-                level, letter.Trim(), letterName.Trim(), pdfFile, ct);
+                level, letter.Trim(), letterName.Trim(),
+                title?.Trim() ?? string.Empty, pdfFile, ct);
             return Ok(new ImportBookResponse(
                 lesson.Id, lesson.Title, lesson.Level,
                 lesson.Letter, lesson.LetterName, lesson.Pages.Count));
@@ -44,6 +52,109 @@ public class AdminController(IPdfImportService pdfImportService, AppDbContext db
         {
             return BadRequest(new { error = ex.Message });
         }
+    }
+
+    // ── Get all books (admin, paginated) ─────────────────────────────────────
+    [HttpGet("books")]
+    [ProducesResponseType(typeof(AdminBooksPageDto), 200)]
+    public async Task<IActionResult> GetAllBooks(
+        [FromQuery] int? level,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 9)
+    {
+        var all = await lessonRepository.GetAllAsync(level);
+        var total = all.Count;
+        var items = all
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(LessonMapper.ToSummary)
+            .ToList();
+
+        return Ok(new AdminBooksPageDto(
+            items, total, page, pageSize,
+            (int)Math.Ceiling((double)total / pageSize)));
+    }
+
+    // ── Delete book ────────────────────────────────────────────────────────────
+    [HttpDelete("books/{id:guid}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> DeleteBook(Guid id)
+    {
+        var deleted = await lessonRepository.DeleteAsync(id);
+        return deleted ? NoContent() : NotFound(new { error = "الكتاب غير موجود." });
+    }
+
+    // ── Update page sentence ────────────────────────────────────────────────────
+    [HttpPatch("books/{bookId:guid}/pages/{pageId:guid}/sentence")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> UpdatePageSentence(
+        Guid bookId, Guid pageId,
+        [FromBody] UpdatePageSentenceRequest req)
+    {
+        if (string.IsNullOrWhiteSpace(req.Sentence))
+            return BadRequest(new { error = "الجملة لا يمكن أن تكون فارغة." });
+
+        var updated = await lessonRepository.UpdatePageSentenceAsync(pageId, req.Sentence.Trim());
+        return updated ? Ok(new { message = "تم تحديث الجملة." }) : NotFound(new { error = "الصفحة غير موجودة." });
+    }
+
+    // ── Create manual book ─────────────────────────────────────────────────────
+    [HttpPost("books/manual")]
+    [ProducesResponseType(typeof(ImportBookResponse), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> CreateManualBook([FromBody] CreateManualBookRequest req)
+    {
+        if (req.Level is < 1 or > 4)
+            return BadRequest(new { error = "المستوى يجب أن يكون بين 1 و 4." });
+        if (string.IsNullOrWhiteSpace(req.Title))
+            return BadRequest(new { error = "يرجى إدخال عنوان الكتاب." });
+        if (req.Pages is null || req.Pages.Count == 0)
+            return BadRequest(new { error = "يرجى إضافة صفحة واحدة على الأقل." });
+        if (req.Pages.Count > 3)
+            return BadRequest(new { error = "الحد الأقصى 3 صفحات لكل كتاب." });
+
+        var lessonId = Guid.NewGuid();
+        var lesson = new Lesson
+        {
+            Id         = lessonId,
+            Level      = req.Level,
+            Letter     = req.Letter.Trim(),
+            LetterName = req.LetterName.Trim(),
+            Title      = req.Title.Trim()
+        };
+
+        for (var i = 0; i < req.Pages.Count; i++)
+        {
+            var pageNumber = i + 1;
+            lesson.Pages.Add(new LessonPage
+            {
+                LessonId    = lessonId,
+                PageNumber  = pageNumber,
+                Sentence    = req.Pages[i].Sentence.Trim(),
+                ImagePath   = string.Empty,
+                IsCoverPage = pageNumber == 1,
+                IsUnlocked  = pageNumber <= 2
+            });
+        }
+
+        var saved = await lessonRepository.CreateManualAsync(lesson);
+        return Ok(new ImportBookResponse(
+            saved.Id, saved.Title, saved.Level,
+            saved.Letter, saved.LetterName, saved.Pages.Count));
+    }
+
+    // ── Get book detail (admin) ────────────────────────────────────────────────
+    [HttpGet("books/{id:guid}")]
+    [ProducesResponseType(typeof(LessonDetailResponse), 200)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> GetBookDetail(Guid id)
+    {
+        var lesson = await lessonRepository.GetByIdAsync(id);
+        if (lesson is null)
+            return NotFound(new { error = "الكتاب غير موجود." });
+        return Ok(LessonMapper.ToDetail(lesson));
     }
 
     // ── AI Settings ────────────────────────────────────────────────────────────
@@ -65,7 +176,6 @@ public class AdminController(IPdfImportService pdfImportService, AppDbContext db
     [ProducesResponseType(200)]
     public IActionResult SaveAiSettings([FromBody] JsonElement settings)
     {
-        // Settings are applied in-memory; persist to config file in a full implementation
         return Ok(settings);
     }
 

@@ -1,0 +1,18 @@
+# Secret config — never commit real API keys
+appsettings.Development.json
+appsettings.*.local.json
+
+# Build output
+bin/
+obj/
+
+# VS / Rider
+.vs/
+*.user
+*.suo
+.idea/
+
+# Uploaded files (runtime-generated)
+Uploads/
+wwwroot/images/
+wwwroot/uploads/

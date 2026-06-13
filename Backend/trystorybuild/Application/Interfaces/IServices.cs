@@ -53,6 +53,7 @@ namespace Application.Interfaces
             int level,
             string letter,
             string letterName,
+            string title,
             IFormFile pdfFile,
             CancellationToken ct = default);
     }
@@ -72,6 +73,10 @@ namespace Application.Interfaces
         Task<Lesson> SaveAsync(Lesson lesson);
         Task<Lesson?> GetByIdAsync(Guid id);
         Task<List<Lesson>> GetByLevelAsync(int level);
+        Task<List<Lesson>> GetAllAsync(int? level = null);
+        Task<bool> DeleteAsync(Guid id);
+        Task<bool> UpdatePageSentenceAsync(Guid pageId, string sentence);
+        Task<Lesson> CreateManualAsync(Lesson lesson);
     }
 
     // ── Other Repositories ─────────────────────────────────────────────────────────

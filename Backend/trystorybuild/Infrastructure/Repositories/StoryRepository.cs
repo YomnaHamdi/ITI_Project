@@ -106,6 +106,41 @@ namespace Infrastructure.Repositories
                     .Where(l => l.Level == level)
                     .OrderBy(l => l.Letter)
                     .ToListAsync();
+
+            public async Task<List<Lesson>> GetAllAsync(int? level = null)
+            {
+                var query = db.Lessons.Include(l => l.Pages).AsQueryable();
+                if (level.HasValue)
+                    query = query.Where(l => l.Level == level.Value);
+                return await query.OrderBy(l => l.Level).ThenBy(l => l.Letter).ToListAsync();
+            }
+
+            public async Task<bool> DeleteAsync(Guid id)
+            {
+                var lesson = await db.Lessons
+                    .Include(l => l.Pages).ThenInclude(p => p.WritingAttempts)
+                    .FirstOrDefaultAsync(l => l.Id == id);
+                if (lesson is null) return false;
+                db.Lessons.Remove(lesson);
+                await db.SaveChangesAsync();
+                return true;
+            }
+
+            public async Task<bool> UpdatePageSentenceAsync(Guid pageId, string sentence)
+            {
+                var page = await db.Set<LessonPage>().FirstOrDefaultAsync(p => p.Id == pageId);
+                if (page is null) return false;
+                page.Sentence = sentence;
+                await db.SaveChangesAsync();
+                return true;
+            }
+
+            public async Task<Lesson> CreateManualAsync(Lesson lesson)
+            {
+                db.Lessons.Add(lesson);
+                await db.SaveChangesAsync();
+                return lesson;
+            }
         }
 
         // ── Exam Repository ────────────────────────────────────────────────────────────

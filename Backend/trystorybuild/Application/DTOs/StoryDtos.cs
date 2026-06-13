@@ -127,6 +127,25 @@ namespace Application.DTOs
         bool IsAccepted,
         string Message);
 
+    // ── Admin Book Management ──────────────────────────────────────────────────────
+    public record AdminBooksPageDto(
+        List<LessonSummaryDto> Items,
+        int TotalCount,
+        int Page,
+        int PageSize,
+        int TotalPages);
+
+    public record ManualPageDto(string Sentence);
+
+    public record CreateManualBookRequest(
+        string Title,
+        string LetterName,
+        string Letter,
+        int Level,
+        List<ManualPageDto> Pages);
+
+    public record UpdatePageSentenceRequest(string Sentence);
+
     // ── Progress ───────────────────────────────────────────────────────────────────
     public record ProgressResponse(
         Guid StoryId,

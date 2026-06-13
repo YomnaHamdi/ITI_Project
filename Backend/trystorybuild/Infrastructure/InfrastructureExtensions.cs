@@ -33,6 +33,12 @@ namespace Infrastructure
             {
                 client.Timeout = TimeSpan.FromSeconds(120);
             });
+
+            // ── Gemini API ────────────────────────────────────────────────────────
+            services.AddHttpClient("Gemini", client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(60);
+            });
             services.AddSingleton<IChatClient>(sp =>
             {
                 var client = new OllamaApiClient(ollamaEndpoint, ollamaModel);
