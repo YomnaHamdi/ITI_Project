@@ -12,10 +12,10 @@ obj/
 appsettings.Development.json
 appsettings.*.local.json
 
-# Runtime-generated uploads
-wwwroot/images/
-wwwroot/uploads/
-wwwroot/rag-docs/
+# Runtime-generated uploads (match at any depth)
+**/wwwroot/images/
+**/wwwroot/uploads/
+**/wwwroot/rag-docs/
 
 # Angular
 Frontend/story-app/.angular/

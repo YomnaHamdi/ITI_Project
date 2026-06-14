@@ -15,7 +15,13 @@ namespace Infrastructure.Rag
         private readonly RagSettings _cfg = settings.Value;
         private string? _collectionId;
 
-        // ── Base path helpers (ChromaDB 0.6+ multi-tenant API) ─────────────────
+        // ── Base path helpers (ChromaDB 0.6+ multi-tenant API / Chroma Cloud) ──
+        private void SetAuthHeader()
+        {
+            if (!string.IsNullOrWhiteSpace(_cfg.ChromaApiKey))
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Chroma-Token", _cfg.ChromaApiKey);
+        }
+
         private string ColBase =>
             $"{_cfg.ChromaEndpoint}/api/v2/tenants/{_cfg.ChromaTenant}/databases/{_cfg.ChromaDatabase}/collections";
 
@@ -23,6 +29,7 @@ namespace Infrastructure.Rag
 
         public async Task EnsureCollectionAsync()
         {
+            SetAuthHeader();
             // Ensure tenant exists
             await EnsureTenantAsync();
             // Ensure database exists

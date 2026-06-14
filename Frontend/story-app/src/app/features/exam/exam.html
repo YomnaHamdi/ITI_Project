@@ -41,7 +41,7 @@
               <div>
                 <p class="fw-700 mb-0 small">{{ q.text }}</p>
                 @if (!fb.isCorrect) {
-                  <p class="small mb-0" style="color:#E53E3E">الإجابة الصحيحة: <strong>{{ fb.correctAnswer }}</strong></p>
+                  <p class="small mb-0" style="color:#E53E3E">الإجابة الصحيحة: <strong>{{ getCorrectAnswerDisplay(q, fb.correctAnswer) }}</strong></p>
                 }
               </div>
             </div>
@@ -96,14 +96,14 @@
           <!-- Matching -->
           @if (q.type === 1) {
             <div class="d-flex flex-column gap-2">
-              @for (pair of getPairs(q); track pair.left) {
+              @for (pair of getPairs(q); track $index; let pi = $index) {
                 <div class="d-flex align-items-center gap-2">
                   <span class="fw-800" style="min-width:80px">{{ pair.left }}</span>
                   <span style="color:var(--primary)">↔</span>
-                  <select class="form-select fw-700" (change)="selectMatch(q.questionId, pair.left, $any($event.target).value)">
+                  <select class="form-select fw-700" (change)="selectMatch(q.questionId, pi, $any($event.target).value)">
                     <option value="">اختر...</option>
                     @for (p2 of getPairs(q); track p2.right) {
-                      <option [value]="p2.right" [selected]="getMatchedRight(q.questionId, pair.left) === p2.right">{{ p2.right }}</option>
+                      <option [value]="p2.right" [selected]="getMatchedRight(q.questionId, pi) === p2.right">{{ p2.right }}</option>
                     }
                   </select>
                 </div>

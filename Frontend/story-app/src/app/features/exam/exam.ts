@@ -99,9 +99,9 @@ export class Exam implements OnInit {
     } catch { return []; }
   }
 
-  selectMatch(qId: string, left: string, right: string): void {
+  selectMatch(qId: string, pairIndex: number, right: string): void {
     if (this.result()) return;
-    this.matchSelections.update(m => { const n = new Map(m); n.set(`${qId}:${left}`, right); return n; });
+    this.matchSelections.update(m => { const n = new Map(m); n.set(`${qId}:${pairIndex}`, right); return n; });
     this.syncMatchAnswer(qId);
   }
 
@@ -109,17 +109,18 @@ export class Exam implements OnInit {
     const q = this.exam()?.questions.find(x => x.questionId === qId);
     if (!q) return;
     const pairs = this.getPairs(q);
-    const arr   = pairs.map(p => ({
+    const arr   = pairs.map((p, i) => ({
       left:  p.left,
-      right: this.matchSelections().get(`${qId}:${p.left}`) ?? ''
+      right: this.matchSelections().get(`${qId}:${i}`) ?? ''
     }));
     if (arr.every(a => a.right)) {
-      this.answers.update(m => { const n = new Map(m); n.set(qId, JSON.stringify(arr)); return n; });
+      // Backend expects a flat string[] of right-side values (not objects)
+      this.answers.update(m => { const n = new Map(m); n.set(qId, JSON.stringify(arr.map(a => a.right))); return n; });
     }
   }
 
-  getMatchedRight(qId: string, left: string): string {
-    return this.matchSelections().get(`${qId}:${left}`) ?? '';
+  getMatchedRight(qId: string, pairIndex: number): string {
+    return this.matchSelections().get(`${qId}:${pairIndex}`) ?? '';
   }
 
   // ── DragDrop ─────────────────────────────────────────────────────────────────
@@ -214,6 +215,35 @@ export class Exam implements OnInit {
 
   getFeedback(qId: string) {
     return this.result()?.feedback.find(f => f.questionId === qId);
+  }
+
+  getCorrectAnswerDisplay(q: QuestionDto, correctAnswer: string): string {
+    // MCQ: resolve letter key → option text
+    if (q.type === QuizType.MCQ) {
+      const map: Record<string, string | undefined> = {
+        A: q.optionA, B: q.optionB, C: q.optionC, D: q.optionD
+      };
+      return map[correctAnswer] ?? correctAnswer;
+    }
+
+    // Matching / Ordering: parse JSON → display readable Arabic
+    if (q.type === QuizType.Matching || q.type === QuizType.Ordering) {
+      try {
+        const parsed = JSON.parse(correctAnswer);
+        if (Array.isArray(parsed)) {
+          if (parsed.length > 0 && typeof parsed[0] === 'object') {
+            // [{left, right}] pairs
+            return (parsed as { left: string; right: string }[])
+              .map(p => `${p.right}`)
+              .join('، ');
+          }
+          // string[]
+          return (parsed as string[]).join(' ← ');
+        }
+      } catch { /* show as-is */ }
+    }
+
+    return correctAnswer;
   }
 
   optionClass(qId: string, opt: string): string {

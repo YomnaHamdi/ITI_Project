@@ -10,13 +10,13 @@ using System.Text;
 namespace Application.Agent
 {
     /// <summary>
-    /// StoryAgent orchestrates the full pipeline using Microsoft.Extensions.AI:
+    /// StoryAgent orchestrates the full pipeline:
     ///
-    ///  Step 1 → IChatClient (Qwen2.5:1.5b via Ollama)
+    ///  Step 1 → IStoryGeneratorService (Gemini 2.5 Flash)
     ///           → Arabic story JSON  (sentences in Arabic, imagePrompts in English)
     ///
-    ///  Step 2 → IImageGenerationService (ComfyUI workflow.json)
-    ///           → one PNG per page
+    ///  Step 2 → IImageGenerationService (Cloudflare FLUX)
+    ///           → exactly 3 images (one per page, hard cap)
     ///
     ///  Step 3 → IStoryRepository (SQL Server via EF Core)
     ///           → persist everything
@@ -59,13 +59,15 @@ namespace Application.Agent
                 IsApproved = judgeResult.IsApproved
             };
 
-            // Step 4: Generate images via ComfyUI (sequential — one GPU)
-            logger.LogInformation("[StoryAgent] Step 3 — Generating {Count} images via ComfyUI...",
-                aiOutput.Pages.Count);
+            // Step 4: Generate images via Cloudflare (hard cap: 3 images per story)
+            const int MaxImages = 3;
+            var pagesToRender = aiOutput.Pages.OrderBy(p => p.PageNumber).Take(MaxImages).ToList();
+            logger.LogInformation("[StoryAgent] Step 3 — Generating {Count} images via Cloudflare...",
+                pagesToRender.Count);
 
-            foreach (var page in aiOutput.Pages.OrderBy(p => p.PageNumber))
+            foreach (var page in pagesToRender)
             {
-                var fileName = $"{story.Id}_page{page.PageNumber}.png";
+                var fileName = $"{story.Id}_page{page.PageNumber}.jpg";
                 var imageUrl = await imageGenerator.GenerateImageAsync(page.ImagePrompt, fileName);
 
                 story.Pages.Add(new StoryPage

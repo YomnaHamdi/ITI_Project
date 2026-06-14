@@ -12,7 +12,8 @@ namespace Application.Prompts
         - استخدم مفردات بسيطة جداً
         - لا عنف، لا مخيف، لا محتوى غير لائق
         - اكتب الجمل بالعربية الفصحى البسيطة
-        - وصف الصورة يجب أن يكون بالإنجليزية، كرتونية وملونة
+        - حقل imagePrompt يجب أن يكون باللغة الإنجليزية فقط — ممنوع استخدام أي كلمة عربية فيه
+        - imagePrompt يجب أن يبدأ بـ: "cartoon style, bright colors, child-friendly,"
 
         أعد فقط JSON صحيح بدون أي نص إضافي:
         {
@@ -21,7 +22,7 @@ namespace Application.Prompts
             {
               "pageNumber": 1,
               "sentence": "جملة عربية قصيرة",
-              "imagePrompt": "cartoon style, child-friendly English image description"
+              "imagePrompt": "cartoon style, bright colors, child-friendly, [English description of the scene]"
             }
           ]
         }
