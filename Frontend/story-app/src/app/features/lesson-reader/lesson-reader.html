@@ -1,0 +1,129 @@
+<div class="reader-page" dir="rtl">
+
+  @if (isLoading()) {
+    <div class="full-loader">
+      <div class="loader-spinner"></div>
+      <p>جارٍ تحميل الدرس...</p>
+    </div>
+  }
+
+  @if (lesson(); as l) {
+
+    <header class="reader-topbar">
+      <button class="topbar-btn" type="button" (click)="goBack()">› رجوع</button>
+      <div class="topbar-center">
+        <h1 class="topbar-title">{{ l.title || l.letterName }}</h1>
+        <span class="topbar-page">صفحة {{ pageNum() }} من {{ totalPages() }}</span>
+      </div>
+      <button class="audio-btn" [class.playing]="isPlaying()" type="button" (click)="playAudio()">
+        🔊
+        @if (isPlaying()) { <span class="pulse-ring"></span> }
+      </button>
+    </header>
+
+    <div class="reader-progress">
+      <div class="progress-fill" [style.width.%]="progressPct()"></div>
+    </div>
+
+    <!-- Scrollable body -->
+    <div class="reader-body">
+
+      <main class="content-panel card">
+        @if (activePage(); as page) {
+
+          <!-- Image — tall -->
+          <div class="content-image-wrap">
+            @if (page.imageUrl || page.imagePath) {
+              <img class="content-img" [class.visible]="imageLoaded()"
+                [src]="imageUrl(page.imageUrl || page.imagePath)"
+                (load)="onImgLoad()" alt="" />
+            } @else {
+              <div class="placeholder-img amiri">{{ l.letter || '📖' }}</div>
+            }
+          </div>
+
+          <!-- Sentence + listen -->
+          <div class="sentence-area">
+            <p class="sentence-text amiri">{{ page.sentence }}</p>
+            <button class="btn btn-primary read-aloud-btn" type="button" (click)="playAudio()">
+              🔊 {{ isPlaying() ? 'إيقاف' : 'استمع' }}
+            </button>
+          </div>
+
+          <!-- Writing panel -->
+          <div class="writing-panel">
+            <div class="wp-header">
+              <span class="wp-title">✏️ اكتب الجملة بنفسك</span>
+              <div class="wp-tools">
+                <button class="tool-btn" [class.active]="tool() === 'pencil'"
+                  type="button" (click)="tool.set('pencil')" title="قلم">✏️</button>
+                <button class="tool-btn" [class.active]="tool() === 'eraser'"
+                  type="button" (click)="tool.set('eraser')" title="ممحاة">🧹</button>
+                <button class="tool-btn" type="button" (click)="clearCanvas()" title="مسح الكل">🗑️</button>
+              </div>
+            </div>
+            <div class="canvas-wrap">
+              <canvas #drawingCanvas width="900" height="200" class="draw-canvas"></canvas>
+            </div>
+
+            <!-- Check button -->
+            <div class="check-row">
+              <button class="check-btn"
+                type="button"
+                (click)="checkWriting()"
+                [disabled]="!hasDrawing() || isChecking()">
+                @if (isChecking()) {
+                  <span class="check-spinner"></span> جارٍ التحقق...
+                } @else {
+                  ✅ تحقق من كتابتك
+                }
+              </button>
+            </div>
+
+            <!-- Feedback banner -->
+            @if (checkResult(); as r) {
+              <div class="check-feedback" [class.check-accepted]="r.isAccepted" [class.check-rejected]="!r.isAccepted">
+                <div class="check-fb-top">
+                  <span class="check-icon">{{ r.isAccepted ? '🌟' : '💪' }}</span>
+                  <div class="check-fb-body">
+                    <div class="check-fb-row">
+                      <span class="check-fb-msg">{{ r.message }}</span>
+                      <span class="check-fb-score">{{ r.similarityScore | number:'1.0-0' }}٪</span>
+                    </div>
+                    @if (!r.isAccepted && r.extractedText) {
+                      <div class="check-fb-detail">
+                        <span class="check-fb-label">كتبت:</span>
+                        <span class="check-fb-val amiri">{{ r.extractedText }}</span>
+                      </div>
+                    }
+                    <div class="check-fb-detail">
+                      <span class="check-fb-label">الجملة الصحيحة:</span>
+                      <span class="check-fb-val amiri">{{ r.expectedSentence }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Navigation -->
+          <div class="nav-row">
+            <button class="nav-arrow next" type="button" (click)="next()">
+              @if (isLast()) { إنهاء الدرس } @else { التالي } ‹
+            </button>
+            <div class="page-dots">
+              @for (p of pageDotsArr(); track p) {
+                <span class="page-dot" [class.active]="p === pageNum()"></span>
+              }
+            </div>
+            <button class="nav-arrow prev" type="button"
+              (click)="prev()" [disabled]="isFirst()">
+              › السابق
+            </button>
+          </div>
+
+        }
+      </main>
+    </div>
+  }
+</div>

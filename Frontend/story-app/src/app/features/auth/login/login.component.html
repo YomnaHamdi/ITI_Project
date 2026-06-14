@@ -1,0 +1,153 @@
+<div class="login-shell" dir="rtl">
+
+  <!-- ── Brand panel (desktop left) ─────────────────────────────────────── -->
+  <div class="brand-panel d-none d-md-flex">
+    <div class="brand-content">
+      <div class="brand-logo-wrap">
+        <span class="brand-logo-icon">📚</span>
+      </div>
+      <h1 class="brand-name">لُغتي</h1>
+      <p class="brand-tagline">منصة تعلّم اللغة العربية<br>للأطفال بطريقة ممتعة وتفاعلية</p>
+      <div class="brand-decorations">
+        <span class="float-star s1">⭐</span>
+        <span class="float-star s2">🌟</span>
+        <span class="float-star s3">✨</span>
+      </div>
+      <div class="brand-badges">
+        <span class="brand-badge">📖 قصص ذكية</span>
+        <span class="brand-badge">✏️ تمارين تفاعلية</span>
+        <span class="brand-badge">🏆 نجوم ومكافآت</span>
+      </div>
+    </div>
+    <!-- decorative circles -->
+    <div class="deco-circle deco-1"></div>
+    <div class="deco-circle deco-2"></div>
+    <div class="deco-circle deco-3"></div>
+  </div>
+
+  <!-- ── Form panel ─────────────────────────────────────────────────────── -->
+  <div class="form-panel">
+    <div class="form-wrap">
+
+      <!-- Mobile-only logo -->
+      <div class="d-flex d-md-none align-items-center justify-content-center gap-2 mb-4">
+        <div class="mobile-logo">📚</div>
+        <span class="fw-800" style="font-size:22px;color:var(--primary)">لُغتي</span>
+      </div>
+
+      @if (error()) {
+        <div class="alert alert-danger py-2 small fw-semibold rounded-3">⚠️ {{ error() }}</div>
+      }
+
+      <!-- ── idle: enter username/email ─────────────────────────────────── -->
+      @if (flow() === 'idle') {
+        <div class="animate-fade-up">
+          <h2 class="form-heading">أهلاً بك! 👋</h2>
+          <p class="form-sub">أدخل البريد الإلكتروني للمعلم أو ولي الأمر،<br>أو اسم المستخدم للطالب</p>
+
+          <div class="field-group">
+            <label class="field-label">اسم المستخدم / البريد الإلكتروني</label>
+            <input class="form-control form-control-lg" type="text"
+              placeholder="اكتب هنا..."
+              [(ngModel)]="studentUsername"
+              (keyup.enter)="checkUsername()" />
+          </div>
+
+          <button class="btn btn-primary w-100 rounded-pill py-3 fw-800 fs-6 mt-2"
+            type="button" (click)="checkUsername()"
+            [disabled]="!studentUsername.trim()">
+            متابعة ›
+          </button>
+
+          <div class="divider-row">
+            <span class="divider-line"></span>
+            <span class="divider-text">جديد هنا؟</span>
+            <span class="divider-line"></span>
+          </div>
+
+          <a routerLink="/auth/register"
+            class="btn btn-outline-primary w-100 rounded-pill py-3 fw-800 fs-6 text-decoration-none d-block text-center">
+            إنشاء حساب جديد
+          </a>
+        </div>
+      }
+
+      <!-- ── adult: email + password ───────────────────────────────────── -->
+      @if (flow() === 'adult') {
+        <div class="animate-fade-up">
+          <button class="back-btn" type="button" (click)="backToUsername()">
+            ‹ رجوع
+          </button>
+          <h2 class="form-heading">تسجيل الدخول 🔐</h2>
+          <p class="form-sub">مرحباً بعودتك! أدخل بياناتك للمتابعة</p>
+
+          <div class="field-group">
+            <label class="field-label">البريد الإلكتروني</label>
+            <input class="form-control form-control-lg" type="email"
+              [(ngModel)]="adultForm.email"
+              placeholder="example@email.com" dir="ltr" />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">كلمة المرور</label>
+            <div class="input-group input-group-lg">
+              <input class="form-control" [type]="adultForm.showPassword ? 'text' : 'password'"
+                [(ngModel)]="adultForm.password"
+                placeholder="كلمة المرور"
+                (keyup.enter)="submitAdult()" />
+              <button class="btn btn-outline-secondary" type="button"
+                (click)="adultForm.showPassword = !adultForm.showPassword">
+                {{ adultForm.showPassword ? '🙈' : '👁️' }}
+              </button>
+            </div>
+          </div>
+
+          <button class="btn btn-primary w-100 rounded-pill py-3 fw-800 fs-6 mt-2"
+            type="button" (click)="submitAdult()" [disabled]="isLoading()">
+            @if (isLoading()) { <span>⏳ جارٍ التحقق...</span> } @else { تسجيل الدخول }
+          </button>
+        </div>
+      }
+
+      <!-- ── student: image PIN ─────────────────────────────────────────── -->
+      @if (flow() === 'student') {
+        <div class="animate-fade-up">
+          <button class="back-btn" type="button" (click)="backToUsername()">
+            ‹ رجوع
+          </button>
+          <h2 class="form-heading">مرحباً {{ studentUsername }}! 🌟</h2>
+          <p class="form-sub">اختر رمز الصورة السري (1 أو 2 رمز)</p>
+
+          <div class="image-pin-grid">
+            @for (img of imageOptions; track img.id) {
+              <button class="img-pin-btn" [class.selected]="pinSelected(img.id)"
+                type="button" (click)="togglePin(img.id)">
+                <span class="img-emoji">{{ img.emoji }}</span>
+                @if (pinSelected(img.id)) {
+                  <span class="img-order">{{ pinOrder(img.id) }}</span>
+                }
+              </button>
+            }
+          </div>
+
+          @if (selectedPins().length > 0) {
+            <div class="pin-preview">
+              <span class="small fw-bold text-muted">رمزك المختار:</span>
+              @for (id of selectedPins(); track $index) {
+                <span style="font-size:24px">{{ imageOptions[id - 1].emoji }}</span>
+              }
+            </div>
+          }
+
+          <button class="btn btn-primary w-100 rounded-pill py-3 fw-800 fs-6 mt-3"
+            type="button" (click)="submitStudentPin()"
+            [disabled]="selectedPins().length < 1 || isLoading()">
+            @if (isLoading()) { <span>⏳ جارٍ التحقق...</span> } @else { دخول 🚀 }
+          </button>
+        </div>
+      }
+
+    </div>
+  </div>
+
+</div>

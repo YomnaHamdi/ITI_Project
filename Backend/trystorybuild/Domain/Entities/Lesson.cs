@@ -1,7 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Domain.Entities
 {
     public class Lesson
@@ -14,6 +10,13 @@ namespace Domain.Entities
         public string CoverImagePath { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        // Generation metadata
+        public Guid? CreatorId { get; set; }
+        public string CreatorRole { get; set; } = "Admin"; // Admin | Teacher | Student
+        public bool IsGenerated { get; set; } = false;
+        public string PromptText { get; set; } = string.Empty;
+
         public List<LessonPage> Pages { get; set; } = new();
+        public List<LessonAssignment> Assignments { get; set; } = new();
     }
 }

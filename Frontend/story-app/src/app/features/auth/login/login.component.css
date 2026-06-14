@@ -1,0 +1,205 @@
+/* ── Shell layout ─────────────────────────────────────────────────────────── */
+.login-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── Brand panel ──────────────────────────────────────────────────────────── */
+.brand-panel {
+  width: 45%;
+  flex-shrink: 0;
+  background: var(--primary-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand-logo-wrap {
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 52px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.15);
+  backdrop-filter: blur(4px);
+}
+
+.brand-name {
+  font-size: 52px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  text-shadow: 0 2px 12px rgba(0,0,0,.15);
+  letter-spacing: 1px;
+}
+
+.brand-tagline {
+  font-size: 17px;
+  color: rgba(255,255,255,.88);
+  line-height: 1.7;
+  font-weight: 600;
+  margin: 0;
+}
+
+.brand-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.brand-badge {
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.25);
+  color: #fff;
+  border-radius: 999px;
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  backdrop-filter: blur(4px);
+}
+
+/* Floating stars */
+.brand-decorations { position: relative; height: 0; width: 100%; }
+.float-star {
+  position: absolute;
+  font-size: 28px;
+  animation: float 3s ease-in-out infinite;
+  opacity: 0.85;
+}
+.s1 { top: -160px; left: -120px; animation-delay: 0s; }
+.s2 { top: -200px; right: -100px; animation-delay: 1s; }
+.s3 { top: -120px; right: -60px; animation-delay: 2s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(10deg); }
+}
+
+/* Decorative circles */
+.deco-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,.07);
+}
+.deco-1 { width: 380px; height: 380px; bottom: -120px; left: -100px; }
+.deco-2 { width: 260px; height: 260px; top: -80px;  right: -70px; }
+.deco-3 { width: 140px; height: 140px; top: 50%;    left: 10%; transform: translateY(-50%); background: rgba(255,255,255,.05); }
+
+/* ── Form panel ───────────────────────────────────────────────────────────── */
+.form-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background: var(--bg-base);
+  overflow-y: auto;
+}
+
+.form-wrap {
+  width: 100%;
+  max-width: 420px;
+}
+
+.form-heading {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+.form-sub {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.field-group {
+  margin-bottom: 16px;
+}
+
+.field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+/* ── Divider row ──────────────────────────────────────────────────────────── */
+.divider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+}
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: #E5E7EB;
+}
+.divider-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ── Back button ──────────────────────────────────────────────────────────── */
+.back-btn {
+  background: none;
+  border: none;
+  font-family: 'Cairo', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 16px;
+  transition: color .2s;
+}
+.back-btn:hover { color: var(--primary); }
+
+/* ── Mobile logo ──────────────────────────────────────────────────────────── */
+.mobile-logo {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--primary-gradient);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 4px 16px rgba(244,120,138,.35);
+}
+
+/* ── PIN preview ──────────────────────────────────────────────────────────── */
+.pin-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(244,120,138,.06);
+  border: 1.5px solid rgba(244,120,138,.15);
+  border-radius: 14px;
+  padding: 12px 20px;
+  margin-top: 12px;
+}
+
+/* ── Input focus ring ─────────────────────────────────────────────────────── */
+.form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(244,120,138,.18);
+}

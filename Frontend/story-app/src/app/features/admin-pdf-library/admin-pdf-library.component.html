@@ -1,0 +1,300 @@
+<div class="container-fluid min-vh-100" dir="rtl" style="background:var(--bg-base);padding:1.5rem">
+
+  <!-- Toast message -->
+  @if (message()) {
+    <div class="alert fw-semibold text-center rounded-3 mb-3"
+         [class.alert-success]="isSuccess()"
+         [class.alert-danger]="!isSuccess()">
+      {{ message() }}
+    </div>
+  }
+
+  <!-- Header -->
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <span style="font-size:32px">📚</span>
+    <div>
+      <h4 class="mb-0 fw-bold">مكتبة ملفات PDF</h4>
+      <small class="text-muted">رفع الكتب التعليمية → استخراج الصفحات → توليد التضمينات</small>
+    </div>
+  </div>
+
+  <!-- Stats bar -->
+  @if (stats()) {
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="card text-center p-3">
+          <div class="fs-2 fw-bold" style="color:var(--primary)">{{ stats()!.totalPdfs }}</div>
+          <small class="text-muted">ملف PDF</small>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card text-center p-3">
+          <div class="fs-2 fw-bold text-info">{{ stats()!.totalPages }}</div>
+          <small class="text-muted">صفحة مستخرجة</small>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card text-center p-3">
+          <div class="fs-2 fw-bold text-success">{{ stats()!.totalEmbedded }}</div>
+          <small class="text-muted">تضمين في Chroma</small>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card text-center p-3">
+          <div class="fs-6 fw-semibold text-secondary">
+            {{ stats()!.lastUpdated ? (stats()!.lastUpdated! | date:'d MMM y') : '—' }}
+          </div>
+          <small class="text-muted">آخر تحديث</small>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="row g-4">
+
+    <!-- ── Upload panel ──────────────────────────────────────────────────── -->
+    <div class="col-12 col-lg-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3">📤 رفع كتاب PDF</h6>
+
+          <!-- File picker -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">اختر ملف PDF</label>
+            <input type="file" class="form-control" accept=".pdf"
+                   (change)="onFileSelected($event)" [disabled]="isLoading()" />
+            @if (selectedFile) {
+              <div class="mt-1 small text-success">
+                ✓ {{ selectedFile.name }}
+                ({{ (selectedFile.size / 1024 / 1024 | number:'1.1-1') }} MB)
+              </div>
+            }
+          </div>
+
+          <!-- Letter selector -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">الحرف</label>
+            <div class="d-flex flex-wrap gap-1">
+              @for (l of arabicLetters; track l) {
+                <button class="letter-btn"
+                        [class.active]="uploadLetter === l"
+                        (click)="uploadLetter = l"
+                        [disabled]="isLoading()"
+                        type="button">{{ l }}</button>
+              }
+            </div>
+          </div>
+
+          <!-- Level selector -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">المستوى</label>
+            <div class="d-flex gap-2">
+              @for (lvl of [1,2,3,4]; track lvl) {
+                <button class="btn btn-sm rounded-3 fw-bold flex-fill"
+                        [class.btn-primary]="uploadLevel === lvl"
+                        [class.btn-outline-secondary]="uploadLevel !== lvl"
+                        (click)="uploadLevel = lvl"
+                        [disabled]="isLoading()"
+                        type="button">{{ lvl }}</button>
+              }
+            </div>
+          </div>
+
+          <button class="btn btn-primary w-100 rounded-pill fw-bold"
+                  (click)="upload()" [disabled]="isLoading() || !selectedFile" type="button">
+            @if (isLoading()) {
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              جارٍ المعالجة...
+            } @else {
+              📤 رفع واستخراج الصفحات
+            }
+          </button>
+
+          <div class="alert alert-info mt-3 small mb-0 p-2">
+            <strong>ملاحظة:</strong> يتم استخراج النص مباشرة من PDF (بدون OCR)
+            وتحويل كل صفحة إلى صورة تلقائياً.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PDF list ───────────────────────────────────────────────────────── -->
+    <div class="col-12 col-lg-8">
+      <div class="card">
+        <div class="card-body p-0">
+
+          @if (docs().length === 0) {
+            <div class="text-center py-5 text-muted">
+              <div style="font-size:48px">📂</div>
+              <p class="mt-2">لا توجد ملفات PDF بعد. ارفع أول كتاب!</p>
+            </div>
+          } @else {
+            <div class="table-responsive">
+              <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>العنوان</th>
+                    <th>الحرف</th>
+                    <th>المستوى</th>
+                    <th>الصفحات</th>
+                    <th>التضمينات</th>
+                    <th>التاريخ</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (doc of docs(); track doc.id) {
+                    <tr>
+                      <td class="fw-semibold">{{ doc.title }}</td>
+                      <td>
+                        <span class="badge rounded-pill"
+                              style="background:var(--primary);font-size:16px;padding:4px 12px">
+                          {{ doc.letter }}
+                        </span>
+                      </td>
+                      <td>
+                        <span class="badge bg-secondary rounded-pill">{{ doc.level }}</span>
+                      </td>
+                      <td>{{ doc.pageCount }}</td>
+                      <td>
+                        <!-- Progress bar -->
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="progress flex-grow-1" style="height:8px;min-width:60px">
+                            <div class="progress-bar"
+                                 [class.bg-success]="doc.embeddingsGenerated"
+                                 [class.bg-warning]="!doc.embeddingsGenerated && doc.embeddedPageCount > 0"
+                                 [class.bg-secondary]="doc.embeddedPageCount === 0"
+                                 [style.width.%]="embedProgress(doc)">
+                            </div>
+                          </div>
+                          <small class="text-muted text-nowrap">
+                            {{ doc.embeddedPageCount }}/{{ doc.pageCount }}
+                          </small>
+                        </div>
+                      </td>
+                      <td>
+                        <small class="text-muted">{{ doc.uploadedAt | date:'d/M/y' }}</small>
+                      </td>
+                      <td>
+                        <div class="d-flex gap-1 justify-content-end">
+                          <!-- View pages -->
+                          <button class="btn btn-sm btn-outline-primary rounded-3"
+                                  (click)="loadDetail(doc.id)" title="عرض الصفحات" type="button">
+                            <i class="bi bi-eye"></i>
+                          </button>
+                          <!-- Generate embeddings -->
+                          @if (!doc.embeddingsGenerated) {
+                            <button class="btn btn-sm btn-outline-success rounded-3"
+                                    (click)="embed(doc.id)"
+                                    [disabled]="embeddingId() === doc.id"
+                                    title="توليد التضمينات" type="button">
+                              @if (embeddingId() === doc.id) {
+                                <span class="spinner-border spinner-border-sm"></span>
+                              } @else {
+                                <i class="bi bi-cpu"></i>
+                              }
+                            </button>
+                          } @else {
+                            <span class="btn btn-sm btn-success rounded-3 disabled">
+                              <i class="bi bi-check-circle-fill"></i>
+                            </span>
+                          }
+                          <!-- Delete -->
+                          <button class="btn btn-sm btn-outline-danger rounded-3"
+                                  (click)="deleteDoc(doc.id, doc.title)"
+                                  title="حذف" type="button">
+                            <i class="bi bi-trash3"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /row -->
+
+</div><!-- /container -->
+
+<!-- ── Detail modal (pages gallery) ────────────────────────────────────────── -->
+@if (detailDoc()) {
+  <div class="detail-panel" (click)="closeDetail()">
+    <div class="detail-inner" (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <h5 class="fw-bold mb-1">{{ detailDoc()!.title }}</h5>
+          <div class="d-flex gap-2">
+            <span class="badge rounded-pill"
+                  style="background:var(--primary)">{{ detailDoc()!.letter }}</span>
+            <span class="badge bg-secondary rounded-pill">مستوى {{ detailDoc()!.level }}</span>
+            <span class="badge bg-info rounded-pill text-dark">
+              {{ detailDoc()!.pageCount }} صفحة
+            </span>
+            @if (detailDoc()!.embeddingsGenerated) {
+              <span class="badge bg-success rounded-pill">✓ مضمّن</span>
+            }
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary rounded-3"
+                (click)="closeDetail()" type="button">✕</button>
+      </div>
+
+      <!-- Pages grid -->
+      @if (detailLoading()) {
+        <div class="text-center py-4">
+          <span class="spinner-border text-primary"></span>
+        </div>
+      } @else {
+        <div class="row g-3">
+          @for (page of detailDoc()!.pages; track page.id) {
+            <div class="col-6 col-sm-4 col-md-3">
+              <div class="card h-100 overflow-hidden">
+                <img [src]="imageUrl(page.imageUrl)" [alt]="page.sentence"
+                     class="page-thumb" loading="lazy" />
+                <div class="card-body p-2 text-center">
+                  <div class="sentence-badge mb-1">{{ page.sentence || '—' }}</div>
+                  <div class="d-flex justify-content-between align-items-center mt-1">
+                    <small class="text-muted">صفحة {{ page.pageNumber }}</small>
+                    @if (page.isEmbedded) {
+                      <span class="badge bg-success rounded-pill" style="font-size:10px">✓</span>
+                    } @else {
+                      <span class="badge bg-warning rounded-pill text-dark" style="font-size:10px">
+                        لم يُضمَّن
+                      </span>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Embed button in detail -->
+      @if (!detailDoc()!.embeddingsGenerated) {
+        <div class="text-center mt-4">
+          <button class="btn btn-success rounded-pill px-4 fw-bold"
+                  (click)="embed(detailDoc()!.id)"
+                  [disabled]="embeddingId() === detailDoc()!.id"
+                  type="button">
+            @if (embeddingId() === detailDoc()!.id) {
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              جارٍ توليد التضمينات...
+            } @else {
+              🧠 توليد التضمينات لهذا الكتاب
+            }
+          </button>
+        </div>
+      }
+
+    </div><!-- /detail-inner -->
+  </div><!-- /detail-panel -->
+}

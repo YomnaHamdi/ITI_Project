@@ -1,0 +1,102 @@
+<div class="d-flex min-vh-100" dir="rtl" style="background:var(--bg-base)">
+  <app-admin-sidebar />
+  <main class="flex-grow-1 p-4 d-flex flex-column gap-4" style="overflow-y:auto">
+
+    <h1 class="fw-800 mb-0" style="font-size:24px">🤖 إعدادات الذكاء الاصطناعي</h1>
+
+    @if (isLoading()) {
+      <div class="d-flex justify-content-center py-5">
+        <div class="spinner-border" style="color:var(--primary);width:44px;height:44px" role="status"></div>
+      </div>
+    }
+
+    @if (!isLoading()) {
+      <div class="row g-3">
+
+        <!-- Model settings -->
+        <div class="col-md-6">
+          <div class="card p-4 h-100 d-flex flex-column gap-3">
+            <h5 class="fw-800 mb-0">إعدادات النموذج</h5>
+            <div class="d-flex flex-column gap-1">
+              <label class="fw-700 small">النموذج</label>
+              <select class="form-select fw-600" [value]="settings().model" (change)="patch('model', $any($event.target).value)">
+                @for (opt of modelOptions; track opt) {
+                  <option [value]="opt">{{ opt }}</option>
+                }
+              </select>
+            </div>
+            <div class="d-flex flex-column gap-1">
+              <label class="fw-700 small">درجة الإبداع (Temperature): {{ settings().temperature }}</label>
+              <input type="range" class="form-range" min="0" max="1" step="0.05"
+                [value]="settings().temperature"
+                (input)="patch('temperature', +$any($event.target).value)" />
+            </div>
+            <div class="d-flex flex-column gap-1">
+              <label class="fw-700 small">أقصى عدد رموز (Max Tokens)</label>
+              <input type="number" class="form-control fw-600" [value]="settings().maxTokens"
+                (input)="patch('maxTokens', +$any($event.target).value)" />
+            </div>
+          </div>
+        </div>
+
+        <!-- RAG settings -->
+        <div class="col-md-6">
+          <div class="card p-4 h-100 d-flex flex-column gap-3">
+            <h5 class="fw-800 mb-0">إعدادات RAG</h5>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="fw-700 small">تفعيل RAG</span>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch"
+                  [checked]="settings().ragEnabled"
+                  (change)="patch('ragEnabled', $any($event.target).checked)" />
+              </div>
+            </div>
+            <div class="d-flex flex-column gap-1">
+              <label class="fw-700 small">عدد النتائج المسترجعة (Top K): {{ settings().ragTopK }}</label>
+              <input type="range" class="form-range" min="1" max="20" step="1"
+                [value]="settings().ragTopK"
+                (input)="patch('ragTopK', +$any($event.target).value)" />
+            </div>
+          </div>
+        </div>
+
+        <!-- System Prompt -->
+        <div class="col-12">
+          <div class="card p-4 d-flex flex-column gap-3">
+            <h5 class="fw-800 mb-0">الرسالة النظامية (System Prompt)</h5>
+            <textarea class="form-control fw-600" rows="6" style="line-height:1.6;resize:vertical"
+              [value]="settings().systemPrompt"
+              (input)="patch('systemPrompt', $any($event.target).value)"></textarea>
+          </div>
+        </div>
+
+        <!-- Length limits -->
+        <div class="col-md-6">
+          <div class="card p-4 h-100 d-flex flex-column gap-3">
+            <h5 class="fw-800 mb-0">حدود الطول</h5>
+            <div class="d-flex flex-column gap-1">
+              <label class="fw-700 small">أقصى طول قصة (كلمات)</label>
+              <input type="number" class="form-control fw-600" [value]="settings().storyMaxLength"
+                (input)="patch('storyMaxLength', +$any($event.target).value)" />
+            </div>
+            <div class="d-flex flex-column gap-1">
+              <label class="fw-700 small">أقصى طول درس (كلمات)</label>
+              <input type="number" class="form-control fw-600" [value]="settings().lessonMaxLength"
+                (input)="patch('lessonMaxLength', +$any($event.target).value)" />
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      @if (error()) { <p class="small fw-700 mb-0" style="color:#EF4444">{{ error() }}</p> }
+      @if (saved()) { <p class="small fw-700 mb-0" style="color:#22C55E">✅ تم الحفظ بنجاح!</p> }
+
+      <button class="btn btn-primary rounded-pill fw-800 align-self-start px-4"
+        [disabled]="isSaving()" (click)="save()">
+        @if (isSaving()) { جارٍ الحفظ... } @else { حفظ الإعدادات }
+      </button>
+    }
+
+  </main>
+</div>

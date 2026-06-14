@@ -1,0 +1,168 @@
+<div dir="rtl" style="min-height:100vh;background:var(--bg-base);padding:16px">
+  @if (isLoading()) { <app-simple-loading message="جارٍ تحضير الامتحان..." /> }
+  @if (error())     { <app-error-toast [message]="error()!" (dismissed)="error.set(null)" /> }
+
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between mb-4" style="max-width:700px;margin:0 auto">
+    <button class="btn btn-outline-secondary rounded-pill fw-700" (click)="goStory()">
+      ← {{ isLessonExam ? 'درس' : 'القصة' }}
+    </button>
+    <h1 class="fw-800 mb-0" style="font-size:clamp(18px,4vw,24px);color:var(--primary)">
+      {{ isLessonExam ? '📝 أسئلة الدرس' : '📝 امتحان القصة' }}
+    </h1>
+    <div style="width:90px"></div>
+  </div>
+
+  <!-- Result view -->
+  @if (result(); as res) {
+    <div class="card mx-auto text-center p-4 animate-pop" style="max-width:500px">
+      <div style="font-size:56px" class="mb-2">{{ scoreEmoji() }}</div>
+      <h2 class="fw-800 mb-3">نتيجتك</h2>
+      <div class="d-flex align-items-center justify-content-center rounded-circle mx-auto mb-3"
+           style="width:110px;height:110px;background:var(--primary-gradient);box-shadow:0 8px 24px rgba(244,120,138,.4)">
+        <span class="fw-800 text-white" style="font-size:28px">{{ res.scorePercentage | number:'1.0-0' }}٪</span>
+      </div>
+      <!-- Stars -->
+      <div class="d-flex justify-content-center gap-2 mb-2">
+        @for (s of starsArr; track s) {
+          <span style="font-size:38px;transition:all .4s ease"
+                [style.filter]="s <= starsCount() ? 'none' : 'grayscale(100%) opacity(.25)'">⭐</span>
+        }
+      </div>
+      <p class="fw-700 text-muted mb-4">{{ res.correctAnswers }} من {{ res.totalQuestions }} إجابات صحيحة</p>
+
+      <div class="d-flex flex-column gap-2 mb-4 text-end">
+        @for (q of exam()!.questions; track q.questionId) {
+          @if (getFeedback(q.questionId); as fb) {
+            <div class="d-flex gap-2 align-items-start p-3 rounded-3"
+                 [style.border]="fb.isCorrect ? '1.5px solid #86EFAC' : '1.5px solid #FC8181'"
+                 [style.background]="fb.isCorrect ? '#F0FFF4' : '#FFF5F5'">
+              <span class="flex-shrink-0" style="font-size:16px">{{ fb.isCorrect ? '✅' : '❌' }}</span>
+              <div>
+                <p class="fw-700 mb-0 small">{{ q.text }}</p>
+                @if (!fb.isCorrect) {
+                  <p class="small mb-0" style="color:#E53E3E">الإجابة الصحيحة: <strong>{{ fb.correctAnswer }}</strong></p>
+                }
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <div class="d-flex gap-2 justify-content-center flex-wrap">
+        <button class="btn btn-outline-primary rounded-pill fw-800 px-4" (click)="goStory()">
+          {{ isLessonExam ? '📚 قائمة الدروس' : '📖 العودة للقصة' }}
+        </button>
+        <button class="btn btn-primary rounded-pill fw-800 px-4" (click)="goHome()">
+          🏠 {{ isLessonExam ? 'لوحة التحكم' : 'درس جديد' }}
+        </button>
+      </div>
+    </div>
+
+  } @else if (exam(); as e) {
+
+    <!-- Questions -->
+    <div class="d-flex flex-column gap-3 pb-4 mx-auto" style="max-width:700px">
+      @for (q of e.questions; track q.questionId) {
+        <div class="card p-4" [style.border]="getAnswer(q.questionId) ? '2px solid #C3DAFE' : '2px solid transparent'">
+
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="fw-800 small" style="color:var(--primary)">السؤال {{ q.questionNumber }}</span>
+            <span class="badge rounded-pill fw-700"
+              style="background:#EEF2FF;color:#667EEA;font-size:11px">
+              {{ q.type === 0 ? 'اختيار' : q.type === 1 ? 'مطابقة' : q.type === 2 ? 'سحب' : 'ترتيب' }}
+            </span>
+          </div>
+          <p class="fw-800 mb-3" style="font-size:18px;line-height:1.5">{{ q.text }}</p>
+
+          <!-- MCQ -->
+          @if (q.type === 0) {
+            <div class="d-flex flex-column gap-2">
+              @for (opt of [{key:'A', label:q.optionA},{key:'B', label:q.optionB},{key:'C', label:q.optionC},{key:'D', label:q.optionD}]; track opt.key) {
+                @if (opt.label) {
+                  <button class="d-flex align-items-center gap-2 w-100 p-3 rounded-3 fw-700 text-end"
+                    [ngClass]="optionClass(q.questionId, opt.key)"
+                    (click)="selectAnswer(q.questionId, opt.key)"
+                    style="font-size:15px;cursor:pointer">
+                    <span class="d-flex align-items-center justify-content-center rounded-circle fw-800 flex-shrink-0"
+                      style="width:28px;height:28px;background:rgba(102,126,234,.15);font-size:13px">{{ opt.key }}</span>
+                    {{ opt.label }}
+                  </button>
+                }
+              }
+            </div>
+          }
+
+          <!-- Matching -->
+          @if (q.type === 1) {
+            <div class="d-flex flex-column gap-2">
+              @for (pair of getPairs(q); track pair.left) {
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fw-800" style="min-width:80px">{{ pair.left }}</span>
+                  <span style="color:var(--primary)">↔</span>
+                  <select class="form-select fw-700" (change)="selectMatch(q.questionId, pair.left, $any($event.target).value)">
+                    <option value="">اختر...</option>
+                    @for (p2 of getPairs(q); track p2.right) {
+                      <option [value]="p2.right" [selected]="getMatchedRight(q.questionId, pair.left) === p2.right">{{ p2.right }}</option>
+                    }
+                  </select>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- DragDrop -->
+          @if (q.type === 2) {
+            @if (getDragSentence(q)) {
+              <p class="fw-700 mb-2 p-3 rounded-3" style="background:#EEF2FF;font-size:16px;color:#4338CA">
+                {{ getDragSentence(q) }}
+              </p>
+            }
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              @for (word of getDragWords(q); track word) {
+                <span class="badge rounded-pill fw-700 px-3 py-2"
+                  style="background:var(--primary-gradient);font-size:14px;cursor:grab"
+                  draggable="true" (dragstart)="onDragStart(word)">{{ word }}</span>
+              }
+            </div>
+            <div class="rounded-3 d-flex align-items-center justify-content-center"
+              style="min-height:56px;border:2.5px dashed var(--primary);background:#F8FAFF"
+              [style.border-style]="getAnswer(q.questionId) ? 'solid' : 'dashed'"
+              (dragover)="onDragOver($event)" (drop)="onDrop(q.questionId)">
+              @if (getAnswer(q.questionId)) {
+                <span class="fw-800" style="font-size:17px;color:var(--primary)">{{ getAnswer(q.questionId) }}</span>
+              } @else {
+                <span class="text-muted small fw-600">اسحب الإجابة هنا</span>
+              }
+            </div>
+          }
+
+          <!-- Ordering -->
+          @if (q.type === 3) {
+            <p class="small fw-700 text-muted mb-2">رتّب الكلمات بالترتيب الصحيح:</p>
+            <div class="d-flex flex-column gap-2">
+              @for (word of getOrderItems(q.questionId); track word; let wi = $index) {
+                <div class="d-flex align-items-center gap-2 p-2 rounded-3"
+                     style="background:#F8FAFF;border:2px solid #E0E7FF">
+                  <button class="btn btn-sm rounded fw-800 px-2 py-1"
+                    style="background:#EEF2FF;border:1px solid #C3DAFE;color:#667EEA"
+                    (click)="moveItem(q.questionId, wi, wi - 1)" [disabled]="wi === 0">▲</button>
+                  <span class="flex-grow-1 fw-800">{{ word }}</span>
+                  <button class="btn btn-sm rounded fw-800 px-2 py-1"
+                    style="background:#EEF2FF;border:1px solid #C3DAFE;color:#667EEA"
+                    (click)="moveItem(q.questionId, wi, wi + 1)" [disabled]="wi === getOrderItems(q.questionId).length - 1">▼</button>
+                </div>
+              }
+            </div>
+          }
+
+        </div>
+      }
+
+      <button class="btn btn-primary w-100 rounded-pill fw-800 py-3" style="font-size:18px"
+        (click)="submitExam()" [disabled]="!allAnswered()">
+        {{ allAnswered() ? '✅ تسليم الامتحان' : 'أجب على جميع الأسئلة أولاً' }}
+      </button>
+    </div>
+  }
+</div>

@@ -1,7 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Domain.Entities
 {
     public class LessonPage
@@ -11,6 +7,7 @@ namespace Domain.Entities
         public int PageNumber { get; set; }
         public string Sentence { get; set; } = string.Empty;
         public string ImagePath { get; set; } = string.Empty;
+        public string ImagePrompt { get; set; } = string.Empty;
         public bool IsCoverPage { get; set; } = false;
         public bool IsUnlocked { get; set; } = false;
 

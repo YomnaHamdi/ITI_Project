@@ -1,0 +1,259 @@
+<div dir="rtl" style="background:var(--bg-base);min-height:100vh">
+  <app-navbar />
+
+  <div class="container-xl pt-4 pb-5">
+
+    <!-- Header row: child tabs + add button -->
+    <div class="d-flex align-items-center flex-wrap gap-2 mb-4">
+      @for (name of childNames(); track name) {
+        <button class="btn rounded-pill fw-bold d-flex align-items-center gap-2 px-4"
+          [class.btn-primary]="activeChild() === name"
+          [class.btn-outline-secondary]="activeChild() !== name"
+          (click)="selectChild(name)">
+          <span>👤</span>{{ name }}
+        </button>
+      }
+      <div class="ms-auto d-flex gap-2">
+        <button class="btn btn-primary rounded-pill fw-bold d-flex align-items-center gap-2 px-4 shadow-sm"
+                (click)="addChild()">
+          <i class="bi bi-person-plus-fill"></i> إضافة طفل
+        </button>
+        <button class="btn btn-outline-danger rounded-pill fw-bold px-4" (click)="logout()">
+          🚪 خروج
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick nav cards -->
+    <div class="row g-3 mb-4">
+      @for (nav of [
+        { icon:'👨‍👧‍👦', label:'إدارة الأطفال',    sub:'عرض وتعديل حسابات أطفالك',       route:'/parent/children',       color:'#F4788A' },
+        { icon:'🔔',     label:'الإشعارات',        sub:'آخر أنشطة أطفالك',                route:'/parent/notifications',   color:'#8B5CF6' }
+      ]; track nav.route) {
+        <div class="col-sm-6 col-md-3">
+          <a [routerLink]="nav.route" class="card text-decoration-none d-flex flex-row align-items-center gap-3 p-3 h-100">
+            <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                 [style.background]="nav.color + '18'" style="width:48px;height:48px;font-size:22px">{{ nav.icon }}</div>
+            <div>
+              <div class="fw-800" style="font-size:14px" [style.color]="nav.color">{{ nav.label }}</div>
+              <div class="text-muted" style="font-size:12px">{{ nav.sub }}</div>
+            </div>
+          </a>
+        </div>
+      }
+    </div>
+
+    <!-- Empty state when no children yet -->
+    @if (!isLoading() && childNames().length === 0) {
+      <div class="card text-center py-5 px-4 mx-auto" style="max-width:460px">
+        <div style="font-size:56px" class="mb-3">👨‍👧</div>
+        <h4 class="fw-800 mb-2">لم تُضِف أي أطفال بعد</h4>
+        <p class="text-muted mb-4">أضف طفلك الأول لتتابع تقدّمه في القراءة والدروس.</p>
+        <button class="btn btn-primary rounded-pill px-5 py-2 fw-bold" (click)="addChild()">
+          <i class="bi bi-plus-circle me-2"></i>إضافة طفل
+        </button>
+      </div>
+    }
+
+    @if (isLoading()) {
+      <div class="d-flex justify-content-center py-5">
+        <div class="spinner-border" style="color:var(--primary);width:44px;height:44px" role="status"></div>
+      </div>
+    }
+
+    @if (error()) {
+      <div class="alert alert-danger fw-bold">{{ error() }}</div>
+    }
+
+    @if (data(); as d) {
+
+      <!-- Stat cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="card p-4 text-center d-flex flex-column align-items-center gap-2 h-100">
+            <span style="font-size:28px">📚</span>
+            <span class="fw-800 fs-3" style="color:var(--primary)">{{ d.storiesRead }}</span>
+            <span class="small fw-semibold text-muted">قصص مكتملة</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card p-4 text-center d-flex flex-column align-items-center gap-2 h-100">
+            <span style="font-size:28px">⭐</span>
+            <span class="fw-800 fs-3" style="color:var(--primary)">{{ d.stars }}</span>
+            <span class="small fw-semibold text-muted">نجمات مكتسبة</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card p-4 text-center d-flex flex-column align-items-center gap-2 h-100">
+            <span style="font-size:28px">📝</span>
+            <span class="fw-800 fs-3" style="color:var(--primary)">{{ d.lessonsCompleted }}</span>
+            <span class="small fw-semibold text-muted">دروس مكتملة</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card p-4 text-center d-flex flex-column align-items-center gap-2 h-100">
+            <span style="font-size:28px">📊</span>
+            <span class="fw-800 fs-3" style="color:var(--primary)">{{ (d.avgScore ?? 0) | number:'1.0-0' }}٪</span>
+            <span class="small fw-semibold text-muted">متوسط الأداء</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assignments + Skills -->
+      <div class="row g-3 mb-4">
+
+        <!-- Assignments -->
+        <div class="col-md-6">
+          <div class="card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-800 mb-0">📋 الدروس المُعيَّنة</h5>
+              <span class="badge rounded-pill fw-bold" style="background:#EDE9FE;color:#7C3AED;font-size:12px">
+                {{ (d.recentAssignments ?? []).length }} واجب
+              </span>
+            </div>
+            <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+              @for (a of (d.recentAssignments ?? []); track a.id) {
+                <li class="d-flex align-items-center gap-2 p-2 rounded-3"
+                    style="background:#F9FAFB;font-size:14px">
+                  <span style="font-size:16px;flex-shrink:0">📚</span>
+                  <span class="fw-semibold flex-grow-1">{{ a.lessonTitle }}</span>
+                  <span class="small text-muted">{{ a.assignedAt | date:'d/M' }}</span>
+                </li>
+              }
+              @if ((d.recentAssignments ?? []).length === 0) {
+                <li class="text-muted small text-center py-2">لا توجد واجبات حالياً</li>
+              }
+            </ul>
+          </div>
+        </div>
+
+        <!-- Skills -->
+        <div class="col-md-6">
+          <div class="card p-4 h-100">
+            <h5 class="fw-800 mb-3">🎯 مستوى المهارات</h5>
+            <div class="d-flex flex-column gap-3">
+              @for (s of (d.skillBars ?? []); track s.label) {
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fw-bold small flex-shrink-0" style="width:130px">{{ s.label }}</span>
+                  <div class="flex-grow-1 rounded-pill overflow-hidden" style="height:10px;background:#F3F4F6">
+                    <div class="h-100 rounded-pill" style="transition:width .6s ease"
+                         [style.width.%]="s.pct" [style.background]="skillColor(s.pct)"></div>
+                  </div>
+                  <span class="small fw-800" style="width:36px;text-align:left" [style.color]="skillColor(s.pct)">{{ s.pct }}٪</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Weekly Chart + Level -->
+      <div class="row g-3 mb-4">
+
+        <!-- Weekly activity -->
+        <div class="col-md-8">
+          <div class="card p-4 h-100">
+            <h5 class="fw-800 mb-3">📈 النشاط الأسبوعي</h5>
+            <div class="d-flex gap-2 align-items-end" style="height:120px;overflow-x:auto">
+              @for (day of weekDays; track day; let i = $index) {
+                <div class="d-flex flex-column align-items-center gap-1 flex-shrink-0" style="min-width:36px">
+                  <div class="d-flex align-items-end gap-1" style="height:100px">
+                    <div class="rounded-top" style="width:20px;min-height:4px;background:var(--primary-gradient);border-radius:4px 4px 0 0;transition:height .6s"
+                         [style.height.%]="barH(weekActivity()[i] ?? 0)"></div>
+                  </div>
+                  <span class="fw-bold" style="font-size:11px;color:var(--text-muted)">{{ day.slice(0,3) }}</span>
+                </div>
+              }
+            </div>
+            <div class="d-flex gap-4 mt-2 small fw-bold">
+              <span style="color:var(--primary)">■ أنشطة الأسبوع</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Level -->
+        <div class="col-md-4">
+          <div class="card p-4 h-100">
+            <h5 class="fw-800 mb-3">🏆 مستوى التعلم</h5>
+            <div class="d-flex flex-column gap-3">
+              <span class="badge rounded-pill px-4 py-2 fw-800 align-self-start" style="background:var(--primary);font-size:14px">
+                {{ d.performanceLevel ?? 'مبتدئ' }}
+              </span>
+              <div class="rounded-pill overflow-hidden" style="height:14px;background:#F3F4F6">
+                <div class="h-100 rounded-pill" style="background:var(--primary);transition:width .8s ease"
+                     [style.width.%]="d.avgScore ?? 0"></div>
+              </div>
+              <span class="fw-800 fs-5" style="color:var(--primary)">{{ (d.avgScore ?? 0) | number:'1.0-0' }}٪</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- In-progress lessons -->
+      <div class="mb-4">
+        <h4 class="fw-800 mb-3">📖 دروس قيد التقدم</h4>
+        @if ((d.inProgressLessons ?? []).length === 0) {
+          <p class="text-muted small">لا توجد دروس قيد التقدم حالياً.</p>
+        }
+        <div class="d-flex gap-3 overflow-auto pb-2">
+          @for (b of (d.inProgressLessons ?? []); track b.id) {
+            <div class="card p-3 d-flex flex-column align-items-center gap-2 flex-shrink-0 text-center"
+                 style="min-width:160px;border:none;background:#FFE4E8">
+              @if (b.coverImageUrl) {
+                <img [src]="b.coverImageUrl" alt="{{ b.title }}" style="width:80px;height:80px;object-fit:cover;border-radius:12px" />
+              } @else {
+                <span style="font-size:36px">📘</span>
+              }
+              <span class="fw-800" style="font-size:14px">{{ b.title }}</span>
+              <button class="btn btn-primary btn-sm rounded-pill w-100" (click)="continueLesson(b.id)">أكمل</button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Achievements -->
+      <div>
+        <h4 class="fw-800 mb-3">🏅 الإنجازات</h4>
+        <div class="d-flex gap-2 flex-wrap">
+          @for (a of achievements(); track a.label) {
+            <span class="badge rounded-pill px-3 py-2 fw-bold"
+                  style="background:#FFF7ED;border:1px solid #FED7AA;color:#92400E;font-size:14px">
+              {{ a.icon }} {{ a.label }}
+            </span>
+          }
+        </div>
+      </div>
+
+    }
+  </div>
+
+  <!-- Floating add-student button (always visible) -->
+  <button class="fab-add-child" (click)="addChild()" title="إضافة طفل جديد">
+    <i class="bi bi-person-plus-fill" style="font-size:22px"></i>
+  </button>
+</div>
+
+<style>
+.fab-add-child {
+  position: fixed;
+  bottom: 28px;
+  left: 28px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--primary-gradient, linear-gradient(135deg,#F4788A,#C084FC));
+  color: #fff;
+  border: none;
+  box-shadow: 0 6px 20px rgba(244,120,138,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1050;
+  transition: transform .2s, box-shadow .2s;
+}
+.fab-add-child:hover { transform: scale(1.1); box-shadow: 0 8px 28px rgba(244,120,138,.6); }
+.fab-add-child:active { transform: scale(0.95); }
+</style>

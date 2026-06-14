@@ -1,0 +1,71 @@
+<app-navbar />
+<div class="lessons-home" dir="rtl">
+  <div class="page-container">
+
+    <div class="page-header">
+      <h1>الدروس ✏️</h1>
+      <p>اختر فئة لبدء التعلم</p>
+    </div>
+
+    <!-- Level filter tabs -->
+    <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
+      <span class="fw-bold text-muted small">المستوى:</span>
+      @for (lv of [1, 2, 3]; track lv) {
+        <button class="btn btn-sm rounded-pill fw-bold px-3"
+          [class.btn-primary]="studentLevel() === lv"
+          [class.btn-outline-secondary]="studentLevel() !== lv"
+          (click)="changeLevel(lv)">
+          {{ lv === 1 ? '🌱 مبتدئ' : lv === 2 ? '📗 متوسط' : '🌟 متقدم' }}
+        </button>
+      }
+    </div>
+
+    <div class="cat-grid">
+      @for (cat of categories; track cat.key) {
+        <div class="cat-card card">
+          <div class="cat-icon-wrap" [style.background]="cat.color">
+            <span class="cat-icon">{{ cat.icon }}</span>
+          </div>
+          <div class="cat-body">
+            <div>
+              <h3>{{ cat.label }}</h3>
+              <p>{{ cat.sublabel }}</p>
+            </div>
+            <div>
+              <div class="cat-prog-row">
+                <span>{{ cat.progress }}٪</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" [style.width.%]="cat.progress"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (isLoading()) {
+      <div class="loader-row">⏳ جارٍ تحميل الدروس...</div>
+    } @else if (lessons().length > 0) {
+      <div class="lessons-section">
+        <h2>جميع الدروس</h2>
+        <div class="lessons-grid">
+          @for (lesson of lessons(); track lesson.id) {
+            <div class="lesson-card card" (click)="openLesson(lesson.id)">
+              <div class="lc-top">
+                <span class="lc-letter amiri">{{ lesson.letter || '📖' }}</span>
+                <span class="lc-level-badge">M{{ lesson.level }}</span>
+              </div>
+              <div class="lc-body">
+                <h4>{{ lesson.title || lesson.letterName }}</h4>
+                <p>{{ lesson.pages?.length || lesson.pageCount || 0 }} صفحة</p>
+                <button class="btn btn-primary lc-btn" type="button">ابدأ الدرس</button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+  </div>
+</div>

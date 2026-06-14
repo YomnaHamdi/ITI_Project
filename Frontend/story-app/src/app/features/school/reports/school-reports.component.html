@@ -1,0 +1,119 @@
+<div dir="rtl" style="min-height:100vh;background:var(--bg-base)">
+  <app-navbar />
+
+  <div class="container" style="max-width:1000px;padding-top:88px;padding-bottom:60px">
+
+    <!-- School nav tabs -->
+    <nav style="display:flex;gap:6px;margin-bottom:28px;background:var(--bg-card);padding:7px;border-radius:14px;border:1.5px solid rgba(244,120,138,.08)">
+      <a routerLink="/school/dashboard" routerLinkActive="school-nav-active" [routerLinkActiveOptions]="{exact:true}"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        🏠 لوحة المدرسة
+      </a>
+      <a routerLink="/school/teachers" routerLinkActive="school-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        👩‍🏫 المعلمون
+      </a>
+      <a routerLink="/school/classrooms" routerLinkActive="school-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        🏫 الفصول
+      </a>
+      <a routerLink="/school/reports" routerLinkActive="school-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        📊 التقارير
+      </a>
+    </nav>
+
+    <div style="margin-bottom:24px">
+      <h2 style="font-size:24px;font-weight:900;margin:0">📊 تقارير المدرسة</h2>
+      <p style="color:var(--text-muted);font-size:13px;margin-top:4px">نظرة شاملة على أداء المدرسة</p>
+    </div>
+
+    @if (isLoading()) {
+      <div style="text-align:center;padding:60px;color:var(--text-muted)">جارٍ التحميل…</div>
+    } @else if (data()) {
+
+      <!-- KPI row -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:28px">
+        @for (kpi of [
+          { icon:'👨‍🎓', val: data()!.totalStudents,  label:'إجمالي الطلاب',     color:'#F4788A' },
+          { icon:'👩‍🏫', val: data()!.totalTeachers,   label:'إجمالي المعلمين',   color:'#8B5CF6' },
+          { icon:'✅',   val: data()!.activeThisWeek,  label:'نشط هذا الأسبوع',  color:'#22C55E' },
+          { icon:'📊',   val: data()!.avgSchoolScore,    label:'متوسط درجات المدرسة %', color:'#F59E0B' }
+        ]; track kpi.label) {
+          <div style="background:var(--bg-card);border-radius:16px;padding:20px;text-align:center;border:1.5px solid rgba(244,120,138,.08)">
+            <div style="font-size:30px">{{ kpi.icon }}</div>
+            <div [style.color]="kpi.color" style="font-size:30px;font-weight:900">{{ kpi.val | number:'1.0-0' }}</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:4px">{{ kpi.label }}</div>
+          </div>
+        }
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+
+        <!-- Performance bands chart -->
+        @if ((data()?.performanceBands?.length ?? 0) > 0) {
+          <div style="background:var(--bg-card);border-radius:18px;padding:22px;border:1.5px solid rgba(244,120,138,.08)">
+            <h5 style="font-weight:800;margin-bottom:18px">مستوى الأداء</h5>
+            @for (band of data()!.performanceBands; track band.band) {
+              <div style="margin-bottom:12px">
+                <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:4px">
+                  <span>{{ band.band }}</span>
+                  <span [style.color]="bandColor(band.band)">{{ band.count }} طالب</span>
+                </div>
+                <div style="height:10px;background:#F3F4F6;border-radius:99px;overflow:hidden">
+                  <div [style.width.%]="barWidth(band.count)" [style.background]="bandColor(band.band)"
+                       style="height:100%;border-radius:99px;transition:.5s"></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Top content -->
+        @if ((data()?.topContent?.length ?? 0) > 0) {
+          <div style="background:var(--bg-card);border-radius:18px;padding:22px;border:1.5px solid rgba(244,120,138,.08)">
+            <h5 style="font-weight:800;margin-bottom:16px">🏆 أكثر المحتوى استخداماً</h5>
+            @for (c of data()!.topContent; track c.title) {
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6">
+                <span style="font-weight:700;font-size:13px">{{ c.title }}</span>
+                <div style="text-align:left">
+                  <div style="font-size:12px;font-weight:800;color:var(--primary)">{{ c.completionCount }} مرة</div>
+                  <div style="font-size:11px;color:var(--text-muted)">{{ c.avgScore | number:'1.0-0' }}%</div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+
+      <!-- Recent activity -->
+      @if ((data()?.recentActivities?.length ?? 0) > 0) {
+        <div style="background:var(--bg-card);border-radius:18px;padding:22px;border:1.5px solid rgba(244,120,138,.08)">
+          <h5 style="font-weight:800;margin-bottom:16px">🕑 النشاط الأخير</h5>
+          @for (act of data()!.recentActivities; track act.occurredAt) {
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6;font-size:13px">
+              <div>
+                <span style="font-weight:800;color:var(--primary)">{{ act.childName }}</span>
+                <span style="font-weight:700"> — {{ act.title }}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px">
+                @if (act.score != null) {
+                  <span style="font-weight:800" [style.color]="act.score >= 80 ? '#22C55E' : act.score >= 50 ? '#F59E0B' : '#EF4444'">
+                    {{ act.score | number:'1.0-0' }}%
+                  </span>
+                }
+                <span style="font-size:11px;color:var(--text-muted)">{{ formatDate(act.occurredAt) }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+    }
+  </div>
+</div>
+
+<style>
+  .school-nav-active { background: var(--primary-gradient) !important; color: #fff !important; }
+</style>

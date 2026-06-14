@@ -1,0 +1,42 @@
+<app-navbar />
+<div dir="rtl" style="min-height:100vh;background:var(--bg-base);padding:88px 16px 40px;display:flex;flex-direction:column;align-items:center;gap:24px">
+
+  @if (isLoading()) {
+    <p class="fw-700 text-muted mt-5" style="font-size:18px">⏳ جارٍ تحضير الأسئلة...</p>
+  } @else {
+
+    <!-- Progress -->
+    <div style="width:100%;max-width:640px">
+      <div class="d-flex justify-content-between fw-700 small text-muted mb-2">
+        <span>🖊️ اختبار القصة</span>
+        <span>السؤال {{ currentIdx() + 1 }} من {{ total() }}</span>
+      </div>
+      <div class="rounded-pill overflow-hidden" style="height:10px;background:#F3E8FF">
+        <div class="h-100 rounded-pill" style="background:var(--primary);transition:width .4s ease" [style.width.%]="progress()"></div>
+      </div>
+    </div>
+
+    @if (currentQ(); as q) {
+      <div class="card w-100 p-4 pt-5 d-flex flex-column align-items-center gap-4 position-relative animate-fade-up" style="max-width:640px">
+        <!-- Audio button -->
+        <button class="btn rounded-circle position-absolute fw-700"
+          style="top:-22px;right:28px;width:48px;height:48px;background:var(--primary-gradient);border:none;font-size:20px;box-shadow:0 4px 14px rgba(244,120,138,.35)"
+          type="button">🔊</button>
+
+        <h2 class="fw-700 text-center mb-0" style="font-size:22px">{{ q.text }}</h2>
+
+        <!-- 2×2 options -->
+        <div class="quiz-options-grid w-100">
+          @for (opt of q.options; track opt.key) {
+            <button [class]="optionClass(opt.key)" type="button" (click)="selectAnswer(opt.key)"
+              class="quiz-opt d-flex flex-column align-items-center gap-2 p-4 rounded-4 fw-700">
+              <span style="font-size:40px">{{ opt.emoji }}</span>
+              <span style="font-size:18px">{{ opt.label }}</span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+  }
+</div>

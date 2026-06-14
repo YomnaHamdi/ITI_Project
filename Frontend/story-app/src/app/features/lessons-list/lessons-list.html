@@ -1,0 +1,73 @@
+<div class="min-vh-100" dir="rtl" style="background:linear-gradient(160deg,#fff5f8,#fff0f8);padding:1rem 1.5rem 2rem">
+
+  @if (isLoading()) {
+    <app-loading message="جارٍ تحميل الدروس..." />
+  }
+
+  @if (error()) {
+    <app-error-toast [message]="error()!" (dismissed)="error.set(null)" />
+  }
+
+  <header class="d-flex align-items-center justify-content-between mb-4"
+          style="max-width:900px;margin-right:auto;margin-left:auto">
+    <button class="btn btn-light rounded-circle fw-700 d-flex align-items-center justify-content-center"
+            style="width:40px;height:40px" type="button" (click)="goHome()">🏠</button>
+    <h1 class="fw-800 mb-0" style="font-size:1.5rem;color:#2d2d6b">📚 دروس الحروف</h1>
+    <button class="btn btn-outline-secondary rounded-pill btn-sm fw-700" type="button" (click)="goAdmin()">📥 استيراد</button>
+  </header>
+
+  <div class="d-flex gap-2 flex-wrap mb-4" style="max-width:900px;margin-right:auto;margin-left:auto">
+    @for (lvl of levels; track lvl.value) {
+      <button
+        class="btn rounded-pill fw-700"
+        [class.btn-primary]="level() === lvl.value"
+        [class.btn-outline-secondary]="level() !== lvl.value"
+        type="button"
+        (click)="selectLevel(lvl.value)">
+        {{ lvl.label }}
+      </button>
+    }
+  </div>
+
+  @if (lessons().length === 0 && !isLoading()) {
+    <div class="d-flex flex-column align-items-center gap-3 py-5 text-muted fw-700"
+         style="max-width:900px;margin:auto">
+      <span style="font-size:4rem">📭</span>
+      <p>لا توجد دروس في هذا المستوى بعد.</p>
+      <button class="btn btn-primary rounded-pill fw-800 px-4" type="button" (click)="goAdmin()">
+        📥 استيراد كتاب جديد
+      </button>
+    </div>
+  } @else {
+    <div class="row g-3" style="max-width:900px;margin-right:auto;margin-left:auto">
+      @for (lesson of lessons(); track lesson.id) {
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="card h-100 overflow-hidden lesson-card"
+               (click)="openLesson(lesson)" role="button" tabindex="0">
+
+            <div class="position-relative d-flex align-items-center justify-content-center p-2"
+                 style="background:#fff0f5;min-height:120px">
+              @if (lesson.coverImageUrl) {
+                <img [src]="lesson.coverImageUrl" [alt]="lesson.letterName"
+                     style="max-height:120px;object-fit:contain" class="img-fluid" />
+              } @else {
+                <span style="font-size:3.5rem;font-weight:800;color:#e07090">{{ lesson.letter }}</span>
+              }
+              <span class="badge position-absolute top-0 start-0 m-2"
+                    style="background:#e040a0">L{{ lesson.level }}</span>
+            </div>
+
+            <div class="card-body p-3 d-flex flex-column align-items-center gap-1 text-center">
+              <h3 class="fw-800 mb-0" style="font-size:1rem;color:#2d2d6b">{{ lesson.letterName }}</h3>
+              <div class="small">⭐ ⭐ ⭐</div>
+              <p class="small text-muted fw-600 mb-0">{{ lesson.pageCount }} صفحات</p>
+              <button class="btn btn-primary rounded-pill fw-800 w-100 btn-sm mt-2" type="button">واصل</button>
+            </div>
+
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+</div>

@@ -1,0 +1,68 @@
+<div dir="rtl" style="min-height:100vh;background:var(--bg-base);display:flex">
+
+  <app-admin-sidebar />
+
+  <main style="flex:1;padding:32px 24px;max-width:1100px">
+
+    <h2 style="font-size:24px;font-weight:900;margin-bottom:6px">📖 إدارة القصص</h2>
+    <p style="color:var(--text-muted);font-size:13px;margin-bottom:24px">{{ stories().length }} قصة في النظام</p>
+
+    <!-- Filters bar -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center">
+      <input type="text" [value]="searchTerm()" (input)="setSearch($any($event.target).value)"
+             placeholder="بحث بعنوان القصة…"
+             style="flex:1;min-width:200px;padding:9px 14px;border-radius:12px;border:1.5px solid rgba(244,120,138,.2);font-size:13px;font-family:'Cairo',sans-serif;background:var(--bg-card)" />
+
+      @for (opt of [['all','الكل'],['approved','مُعتمدة'],['pending','قيد المراجعة']]; track opt[0]) {
+        <button (click)="setFilter($any(opt[0]))"
+                [style.background]="filter() === opt[0] ? 'var(--primary-gradient)' : 'var(--bg-card)'"
+                [style.color]="filter() === opt[0] ? '#fff' : 'var(--text-muted)'"
+                style="border:none;padding:8px 16px;border-radius:99px;font-size:13px;font-weight:800;cursor:pointer;transition:.2s">
+          {{ opt[1] }}
+        </button>
+      }
+    </div>
+
+    @if (isLoading()) {
+      <div style="text-align:center;padding:60px;color:var(--text-muted)">جارٍ التحميل…</div>
+    } @else if (filtered().length === 0) {
+      <div style="text-align:center;padding:60px">
+        <div style="font-size:56px;margin-bottom:12px">📭</div>
+        <p style="font-weight:800;color:var(--text-muted)">لا توجد قصص مطابقة</p>
+      </div>
+    } @else {
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px">
+        @for (story of filtered(); track story.id) {
+          <div style="background:var(--bg-card);border-radius:18px;overflow:hidden;border:1.5px solid rgba(244,120,138,.08)">
+            @if (coverImage(story)) {
+              <img [src]="coverImage(story)" [alt]="story.title" style="width:100%;height:130px;object-fit:cover" />
+            } @else {
+              <div style="width:100%;height:130px;background:linear-gradient(135deg,#1E1B4B,#312E81);display:flex;align-items:center;justify-content:center;font-size:44px">📖</div>
+            }
+            <div style="padding:16px">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+                <h5 style="font-weight:800;font-size:14px;margin:0;line-height:1.4;flex:1">{{ story.title }}</h5>
+                <span [style.background]="story.isApproved ? 'rgba(34,197,94,.12)' : 'rgba(245,158,11,.12)'"
+                      [style.color]="story.isApproved ? '#16A34A' : '#D97706'"
+                      style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px;white-space:nowrap;margin-right:6px">
+                  {{ story.isApproved ? '✓ مُعتمدة' : '⏳ مراجعة' }}
+                </span>
+              </div>
+              <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">{{ pageCount(story) }} صفحات</p>
+              <div style="display:flex;gap:8px">
+                <a [href]="'/books/' + story.id + '/read'"
+                   style="flex:1;text-align:center;padding:7px 0;border-radius:10px;background:rgba(244,120,138,.08);color:var(--primary);text-decoration:none;font-size:12px;font-weight:800">
+                  معاينة
+                </a>
+                <button (click)="deleteStory(story.id)"
+                        style="flex:1;padding:7px 0;border-radius:10px;background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;font-size:12px;font-weight:800;cursor:pointer;font-family:'Cairo',sans-serif">
+                  حذف
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </main>
+</div>

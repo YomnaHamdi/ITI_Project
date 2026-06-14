@@ -1,0 +1,207 @@
+<div class="d-flex min-vh-100" dir="rtl">
+
+  <!-- ── Sidebar (desktop) ───────────────────────────────────────────────── -->
+  <aside class="d-none d-lg-flex flex-column gap-3 bg-white p-3 border-start flex-shrink-0" style="width:240px;position:sticky;top:0;height:100vh;overflow-y:auto;border-color:rgba(244,120,138,.1)!important">
+    <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background:rgba(244,120,138,.05)">
+      <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+           style="width:52px;height:52px;background:linear-gradient(135deg,#FFE4E8,#F3E8FF);font-size:26px">🦁</div>
+      <div>
+        <div class="fw-800">{{ data()?.childName || nameInput || 'الطالب' }}</div>
+        <span class="badge rounded-pill mt-1" style="background:var(--primary);font-size:11px">
+          المستوى {{ state.currentUser()?.level ?? (data() ? 1 : '—') }}
+        </span>
+      </div>
+    </div>
+    <nav class="d-flex flex-column gap-1 flex-grow-1">
+      @for (item of navItems; track item.route) {
+        <a class="sidebar-link d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none fw-bold"
+           [routerLink]="item.route" routerLinkActive="active">
+          <span style="font-size:18px">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+    <div class="mt-auto pt-2 border-top" style="border-color:rgba(244,120,138,.1)!important">
+      <button class="d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0 bg-transparent fw-bold w-100"
+              style="color:#EF4444;font-family:'Cairo',sans-serif;font-size:14px;cursor:pointer"
+              (click)="logout()">
+        <span style="font-size:18px">🚪</span>
+        <span>تسجيل الخروج</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main ───────────────────────────────────────────────────────────── -->
+  <main class="flex-grow-1 p-3 p-md-4 d-flex flex-column gap-4" style="min-width:0">
+
+    <!-- Name lookup (first visit) -->
+    @if (!data() && !isLoading()) {
+      <div class="d-flex align-items-center justify-content-center py-5">
+        <div class="card p-5 text-center w-100 d-flex flex-column align-items-center gap-3" style="max-width:400px">
+          <div style="font-size:64px">🦁</div>
+          <h2 class="fw-800">أهلاً! ما اسمك؟</h2>
+          <div class="d-flex gap-2 w-100">
+            <input class="form-control" type="text" placeholder="اكتب اسمك..."
+              [(ngModel)]="nameInput" (keyup.enter)="load(nameInput)" />
+            <button class="btn btn-primary rounded-pill px-4" type="button" (click)="load(nameInput)">ابدأ</button>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (isLoading()) {
+      <div class="d-flex flex-column align-items-center justify-content-center py-5 gap-3">
+        <div class="spinner-border" style="color:var(--primary);width:44px;height:44px" role="status"></div>
+        <p class="fw-bold text-muted">جارٍ تحميل بياناتك...</p>
+      </div>
+    }
+
+    @if (data(); as d) {
+
+      <!-- Welcome -->
+      <div>
+        <h1 class="fw-800 mb-1" style="font-size:clamp(22px,4vw,30px)">أهلاً يا {{ d.childName }}! 👋</h1>
+        <p class="text-muted mb-0">أنت تقوم بعمل رائع! استمر.</p>
+      </div>
+
+      <!-- Level progress -->
+      <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="fw-800">
+            @switch (state.currentUser()?.level ?? 1) {
+              @case (1) { 🌱 المستوى 1 — الحروف والأصوات }
+              @case (2) { 📗 المستوى 2 — الكلمات والمعاني }
+              @case (3) { 🌟 المستوى 3 — الجمل والقراءة }
+              @default  { 🌱 المستوى 1 — الحروف والأصوات }
+            }
+          </span>
+          <span class="fw-800" style="color:var(--primary)">{{ d.avgScore | number:'1.0-0' }}٪</span>
+        </div>
+        <div class="progress mb-2" style="height:10px;border-radius:999px">
+          <div class="progress-bar" style="background:var(--primary-gradient);border-radius:999px"
+            [style.width.%]="d.avgScore"></div>
+        </div>
+        <div class="d-flex justify-content-between small fw-semibold text-muted">
+          <span>{{ d.lessonsCompleted }} درساً مكتملاً</span>
+          <span>{{ d.storiesRead }} قصة مكتملة</span>
+        </div>
+      </div>
+
+      <!-- AI Lesson shortcut -->
+      <div class="card p-4 d-flex flex-row align-items-center gap-3"
+           style="background:linear-gradient(135deg,#fff0f3,#f5f0ff);border:1.5px solid rgba(244,120,138,.2)">
+        <div style="font-size:2.5rem;line-height:1">🤖</div>
+        <div class="flex-grow-1">
+          <div class="fw-800 mb-1">أنشئ درساً بالذكاء الاصطناعي</div>
+          <div class="text-muted small">اكتب موضوعاً وسيُنشئ النظام لك درساً تفاعلياً بالعربية</div>
+        </div>
+        <a routerLink="/generate-lesson"
+           class="btn rounded-pill px-4 fw-bold flex-shrink-0"
+           style="background:var(--primary-gradient);color:#fff;white-space:nowrap">
+          ابدأ الآن ✨
+        </a>
+      </div>
+
+      <!-- Stats grid -->
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <div class="card p-3 p-md-4 text-center h-100 d-flex flex-column align-items-center gap-2">
+            <span style="font-size:28px">📚</span>
+            <span class="fw-800 fs-4">{{ d.storiesRead }}</span>
+            <span class="text-muted small fw-semibold">قصص مكتملة</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card p-3 p-md-4 text-center h-100 d-flex flex-column align-items-center gap-2">
+            <span style="font-size:28px">⚡</span>
+            <span class="fw-800 fs-4">{{ d.lessonsCompleted }}</span>
+            <span class="text-muted small fw-semibold">دروس مكتملة</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card p-3 p-md-4 text-center h-100 d-flex flex-column align-items-center gap-2">
+            <span style="font-size:28px">⭐</span>
+            <span class="fw-800 fs-4" style="color:#D97706">{{ d.stars }}</span>
+            <span class="text-muted small fw-semibold">نجوم مكتسبة</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card p-3 p-md-4 text-center h-100 d-flex flex-column align-items-center gap-2">
+            <span style="font-size:28px">🔥</span>
+            <span class="fw-800 fs-4" style="color:#EA580C">{{ d.currentStreak ?? 0 }}</span>
+            <span class="text-muted small fw-semibold">أيام متتالية</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Achievements + Weekly chart -->
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="card p-4 h-100">
+            <h5 class="fw-800 mb-3">🏆 الإنجازات</h5>
+            <div class="row g-2">
+              @for (a of achievements(); track a.label) {
+                <div class="col-4">
+                  <div class="p-2 rounded-3 text-center d-flex flex-column align-items-center gap-1"
+                       [style.background]="a.earned ? 'rgba(244,120,138,.06)' : '#F9FAFB'"
+                       [style.border]="'1.5px solid ' + (a.earned ? 'rgba(244,120,138,.2)' : '#F3F4F6')"
+                       [style.opacity]="a.earned ? '1' : '0.5'"
+                       [style.filter]="a.earned ? 'none' : 'grayscale(1)'">
+                    <span style="font-size:24px">{{ a.icon }}</span>
+                    <span class="fw-bold" style="font-size:10px;color:var(--text-muted)">{{ a.label }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card p-4 h-100 d-flex flex-column">
+            <h5 class="fw-800 mb-3">📊 النشاط الأسبوعي</h5>
+            <div class="d-flex align-items-end gap-1 flex-grow-1" style="height:100px">
+              @for (val of weekActivity(); track $index) {
+                <div class="d-flex flex-column align-items-center gap-1 flex-fill h-100" style="justify-content:flex-end">
+                  <div class="w-100 rounded-top" style="background:var(--primary-gradient);min-height:4px;transition:height .6s ease-out"
+                       [style.height.%]="barHeight(val)"></div>
+                  <span class="fw-semibold" style="font-size:10px;color:var(--text-muted)">{{ weekDays[$index].slice(0,3) }}</span>
+                </div>
+              }
+            </div>
+            <p class="text-center text-muted small fw-semibold mb-0 mt-2">دقائق النشاط هذا الأسبوع</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- In-progress / recommended lessons -->
+      <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-800 mb-0">✨ موصى به لك</h5>
+          <a routerLink="/lessons-list" class="fw-bold text-decoration-none small" style="color:var(--primary)">الدروس ›</a>
+        </div>
+        @if ((d.inProgressLessons ?? []).length === 0) {
+          <p class="text-muted small mb-0">لا توجد دروس قيد التقدم حالياً — ابدأ درساً جديداً!</p>
+        }
+        <div class="d-flex gap-3 overflow-auto pb-2">
+          @for (lesson of (d.inProgressLessons ?? []); track lesson.id) {
+            <div class="card-hover rounded-4 overflow-hidden flex-shrink-0 border"
+                 style="width:160px;cursor:pointer;border-color:#F3E8FF!important"
+                 (click)="openBook(lesson.id)">
+              @if (lesson.coverImageUrl) {
+                <img [src]="lesson.coverImageUrl" alt="{{ lesson.title }}" style="width:100%;height:100px;object-fit:cover" />
+              } @else {
+                <div class="d-flex align-items-center justify-content-center" style="height:100px;background:#FFE4E8">
+                  <span class="amiri" style="font-size:48px">{{ lesson.letter || '📖' }}</span>
+                </div>
+              }
+              <div class="p-2 d-flex flex-column gap-2 bg-white">
+                <span class="fw-800" style="font-size:13px">{{ lesson.title }}</span>
+                <button class="btn btn-primary btn-sm rounded-pill w-100" type="button">ابدأ القراءة</button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+    }
+  </main>
+</div>

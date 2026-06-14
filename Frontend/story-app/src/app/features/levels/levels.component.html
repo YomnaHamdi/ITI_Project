@@ -1,0 +1,89 @@
+<app-navbar />
+<div dir="rtl" class="levels-page">
+  <div class="container" style="max-width:820px">
+
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-icon">🏆</div>
+      <h1 class="fw-800 mb-2">مستويات التعلم</h1>
+      <p class="text-muted mb-0">اختر مستواك وواصل رحلتك في اللغة العربية</p>
+    </div>
+
+    <!-- Level cards -->
+    @if (isLoading()) {
+      <div class="d-flex justify-content-center py-5">
+        <div class="spinner-border" style="color:var(--primary);width:44px;height:44px" role="status"></div>
+      </div>
+    }
+    <div class="levels-list">
+      @for (level of levels(); track level.level; let last = $last) {
+
+        <div class="lc"
+          [class.lc-active]="!level.locked"
+          [class.lc-locked]="level.locked"
+          (click)="openLevel(level)">
+
+          <!-- Number badge column -->
+          <div class="lc-num-col">
+            <div class="lc-num-badge">{{ level.level }}</div>
+          </div>
+
+          <!-- Main info -->
+          <div class="lc-body">
+            <div class="d-flex align-items-start justify-content-between gap-3 mb-2">
+              <div class="flex-grow-1">
+                <span class="lc-tag mb-2 d-inline-block">{{ level.tag }}</span>
+                <h2 class="lc-title mb-1">{{ level.title }}</h2>
+                <p class="lc-sub mb-0">{{ level.subtitle }}</p>
+              </div>
+              <span class="lc-big-icon">{{ level.icon }}</span>
+            </div>
+
+            <!-- Stars row -->
+            <div class="d-flex align-items-center gap-1 mt-2 mb-2">
+              @for (i of starDots; track i) {
+                <span class="star-chip" [class.star-on]="i <= starsEarned(level)">★</span>
+              }
+              <span class="lc-count ms-1">{{ level.stars }}/{{ level.totalStars }} نجمة</span>
+            </div>
+
+            <!-- Progress or lock message -->
+            @if (!level.locked) {
+              <div class="d-flex align-items-center gap-2">
+                <div class="lc-bar-track flex-grow-1">
+                  <div class="lc-bar-fill" [style.width.%]="progressPct(level)"></div>
+                </div>
+                <span class="lc-bar-label">{{ level.lessonsCompleted }}/{{ level.totalLessons }} درس</span>
+              </div>
+            } @else {
+              <div class="lc-lock-msg">🔒 {{ level.unlockCondition }}</div>
+            }
+          </div>
+
+          <!-- CTA button -->
+          <div class="lc-cta">
+            @if (!level.locked) {
+              <button class="lc-go-btn" type="button">
+                <span>انطلق</span>
+                <span class="lc-arrow">›</span>
+              </button>
+            } @else {
+              <div class="lc-locked-pill">مغلق 🔒</div>
+            }
+          </div>
+
+        </div>
+
+        <!-- Path connector between cards -->
+        @if (!last) {
+          <div class="path-connector">
+            <div class="path-line"></div>
+            <span class="path-dot"></span>
+          </div>
+        }
+
+      }
+    </div>
+
+  </div>
+</div>

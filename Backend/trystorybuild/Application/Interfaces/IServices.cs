@@ -133,6 +133,54 @@ namespace Application.Interfaces
         Task<List<Student>>  GetByTeacherIdAsync(Guid teacherId);
     }
 
+    // ── Level Word Config ──────────────────────────────────────────────────────────
+    public interface ILevelWordConfigRepository
+    {
+        Task<int> GetWordCountAsync(int level);
+        Task UpsertAsync(int level, int wordCount, string exampleSentence);
+        Task<List<Domain.Entities.LevelWordConfig>> GetAllAsync();
+    }
+
+    // ── RAG Page Chunks ────────────────────────────────────────────────────────────
+    public interface IRagPageChunkRepository
+    {
+        Task<Domain.Entities.RagPageChunk> SaveAsync(Domain.Entities.RagPageChunk chunk);
+        Task<List<Domain.Entities.RagPageChunk>> GetAllAsync(int? level = null, string? letter = null);
+        Task DeleteBySourceFileAsync(string sourceFile);
+    }
+
+    // ── Student Groups ─────────────────────────────────────────────────────────────
+    public interface IStudentGroupRepository
+    {
+        Task<Domain.Entities.StudentGroup> SaveAsync(Domain.Entities.StudentGroup group);
+        Task<Domain.Entities.StudentGroup?> GetByIdAsync(Guid id);
+        Task<List<Domain.Entities.StudentGroup>> GetByTeacherIdAsync(Guid teacherId);
+        Task<bool> AddMemberAsync(Guid groupId, Guid studentId);
+        Task<bool> RemoveMemberAsync(Guid groupId, Guid studentId);
+        Task<bool> DeleteAsync(Guid id);
+        Task<List<Domain.Entities.StudentGroup>> GetGroupsForStudentAsync(Guid studentId);
+    }
+
+    // ── Lesson Assignments ─────────────────────────────────────────────────────────
+    public interface ILessonAssignmentRepository
+    {
+        Task<Domain.Entities.LessonAssignment> SaveAsync(Domain.Entities.LessonAssignment assignment);
+        Task<List<Domain.Entities.LessonAssignment>> GetForStudentAsync(Guid studentId, List<Guid> groupIds);
+        Task<List<Domain.Entities.LessonAssignment>> GetByTeacherAsync(Guid teacherId);
+    }
+
+    // ── Educational PDF Ingestion ──────────────────────────────────────────────────
+    public interface IEducationalPdfIngestionService
+    {
+        Task<DTOs.IngestDocumentResponse> IngestAsync(
+            Stream pdfStream,
+            string fileName,
+            int level,
+            string letter,
+            string letterName,
+            CancellationToken ct = default);
+    }
+
     // ── Dashboard Service ──────────────────────────────────────────────────────────
     public interface IDashboardService
     {
@@ -141,5 +189,6 @@ namespace Application.Interfaces
         Task<TeacherDashboardDto> GetTeacherDashboardAsync();
         Task<SchoolDashboardDto> GetSchoolDashboardAsync();
         Task<List<string>> GetKnownChildNamesAsync();
+        Task<List<LevelProgressDto>> GetLevelProgressAsync(string childName);
     }
 }

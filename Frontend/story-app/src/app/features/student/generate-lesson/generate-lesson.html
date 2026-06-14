@@ -1,0 +1,91 @@
+<div class="gl-page" dir="rtl">
+  <div class="gl-card">
+    <!-- Header -->
+    <div class="gl-header">
+      <div class="gl-icon">✨</div>
+      <h1 class="gl-title">أنشئ درسك</h1>
+      <p class="gl-subtitle">اختر موضوعاً وسيُنشئ الذكاء الاصطناعي لك درساً تفاعلياً بالعربية</p>
+    </div>
+
+    <!-- Examples -->
+    <div class="gl-examples">
+      <p class="gl-examples-label">اقتراحات سريعة:</p>
+      <div class="gl-chips">
+        @for (ex of examples; track ex) {
+          <button class="gl-chip" (click)="useExample(ex)">{{ ex }}</button>
+        }
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form class="gl-form" (ngSubmit)="generate()" #f="ngForm">
+      <!-- Topic -->
+      <div class="gl-field">
+        <label class="gl-label" for="topic">موضوع الدرس <span class="req">*</span></label>
+        <input
+          id="topic"
+          class="gl-input"
+          type="text"
+          placeholder="مثال: القطة والكلب، يوم في المدرسة..."
+          [(ngModel)]="topic"
+          name="topic"
+          required
+          [disabled]="loading()"
+        />
+      </div>
+
+      <!-- Level -->
+      <div class="gl-field">
+        <label class="gl-label">المستوى</label>
+        <div class="gl-level-group">
+          @for (lvl of levels; track lvl.value) {
+            <label class="gl-level-card" [class.active]="level === lvl.value">
+              <input type="radio" [(ngModel)]="level" name="level" [value]="lvl.value" [disabled]="loading()" />
+              <span class="lvl-num">{{ lvl.value }}</span>
+              <span class="lvl-text">{{ lvl.label | slice:10 }}</span>
+            </label>
+          }
+        </div>
+      </div>
+
+      <!-- Letter (optional) -->
+      <div class="gl-field">
+        <label class="gl-label" for="letter">حرف بعينه <span class="optional">(اختياري)</span></label>
+        <input
+          id="letter"
+          class="gl-input gl-input-sm"
+          type="text"
+          placeholder="مثال: ب"
+          maxlength="2"
+          [(ngModel)]="letter"
+          name="letter"
+          [disabled]="loading()"
+        />
+        <p class="gl-hint">إن تركته فارغاً سيختار النظام الحرف تلقائياً</p>
+      </div>
+
+      <!-- Alerts -->
+      @if (error()) {
+        <div class="gl-alert gl-alert-error">{{ error() }}</div>
+      }
+      @if (success()) {
+        <div class="gl-alert gl-alert-success">{{ success() }}</div>
+      }
+
+      <!-- Submit -->
+      <button class="gl-btn-generate" type="submit" [disabled]="loading() || !topic.trim()">
+        @if (loading()) {
+          <span class="gl-spinner"></span>
+          <span>جارٍ إنشاء الدرس...</span>
+        } @else {
+          <span>✨ أنشئ الدرس</span>
+        }
+      </button>
+    </form>
+
+    <!-- Footer link -->
+    <div class="gl-footer">
+      <a routerLink="/my-lessons" class="gl-link">عرض دروسي السابقة ←</a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,41 @@
+<app-navbar />
+<div class="min-vh-100 d-flex align-items-center justify-content-center pt-5 pb-4 px-3 position-relative overflow-hidden" dir="rtl">
+
+  <!-- Confetti -->
+  <div class="position-fixed top-0 start-0 w-100 h-100" style="pointer-events:none;z-index:0">
+    @for (c of confetti(); track $index) {
+      <div class="confetti-piece position-absolute"
+           [style.left.%]="c.x" [style.top.%]="c.y"
+           [style.background]="c.color"
+           [style.width.px]="c.size" [style.height.px]="c.size"
+           [style.animation-delay.s]="c.delay"></div>
+    }
+  </div>
+
+  <div class="card animate-pop p-4 p-md-5 text-center w-100 position-relative d-flex flex-column align-items-center gap-3" style="max-width:440px;z-index:1">
+    <div style="font-size:88px;line-height:1">🎉</div>
+    <h1 class="fw-800 fs-2 mb-0">اكتمل الاختبار!</h1>
+    <p class="fw-semibold text-muted mb-0">حصلت على {{ correct() }} من {{ total() }}</p>
+
+    <!-- Stars -->
+    <div class="d-flex justify-content-center gap-2 py-2">
+      @for (s of starsArr; track s) {
+        <span style="font-size:40px;transition:all .4s ease"
+              [style.filter]="s <= stars() ? 'none' : 'grayscale(100%) opacity(.25)'">⭐</span>
+      }
+    </div>
+
+    <!-- Points badge -->
+    <div class="rounded-pill px-4 py-2 fw-800 d-inline-block"
+         style="background:#FEF9C3;color:#92400E;font-size:17px;box-shadow:0 4px 14px rgba(253,230,138,.5)">
+      +{{ points() }} نقطة مكتسبة!
+    </div>
+
+    <!-- Actions -->
+    <div class="d-flex flex-column gap-2 w-100 mt-2">
+      <button class="btn btn-primary rounded-pill py-3 fw-bold" type="button" (click)="nextBook()">الكتاب التالي ›</button>
+      <button class="btn btn-outline-primary rounded-pill py-3 fw-bold" type="button" (click)="tryAgain()">🔄 حاول مجدداً</button>
+      <button class="btn btn-outline-secondary rounded-pill py-3 fw-bold" type="button" (click)="share()">🔗 شارك الوسام</button>
+    </div>
+  </div>
+</div>

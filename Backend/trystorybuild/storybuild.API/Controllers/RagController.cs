@@ -12,6 +12,8 @@ namespace storybuild.API.Controllers
     public class RagController(
         IRagIngestionService ingestionService,
         IRagQueryService queryService,
+        IRagPageChunkRepository pageChunkRepository,
+        IEducationalPdfIngestionService educationalIngestionService,
         AppDbContext db) : ControllerBase
     {
         [HttpPost("ingest")]
@@ -44,6 +46,59 @@ namespace storybuild.API.Controllers
             {
                 return BadRequest(new { error = ex.Message });
             }
+        }
+
+        // ── Ingest educational PDF (per-page, Gemini Vision) ──────────────────────
+        [HttpPost("ingest-educational")]
+        [Consumes("multipart/form-data")]
+        [ProducesResponseType(typeof(IngestDocumentResponse), 200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> IngestEducational(
+            IFormFile file,
+            [FromForm] int level,
+            [FromForm] string letter,
+            [FromForm] string letterName,
+            CancellationToken ct)
+        {
+            if (file is null || file.Length == 0)
+                return BadRequest(new { error = "يرجى رفع ملف PDF." });
+
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (ext != ".pdf")
+                return BadRequest(new { error = "يُقبل ملفات PDF فقط." });
+
+            if (level < 1 || level > 4)
+                return BadRequest(new { error = "المستوى يجب أن يكون بين 1 و 4." });
+
+            if (string.IsNullOrWhiteSpace(letter))
+                return BadRequest(new { error = "يرجى إدخال الحرف." });
+
+            try
+            {
+                var result = await educationalIngestionService.IngestAsync(
+                    file.OpenReadStream(), file.FileName,
+                    level, letter.Trim(), letterName?.Trim() ?? letter.Trim(),
+                    ct);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "فشلت معالجة الكتاب.", detail = ex.Message });
+            }
+        }
+
+        // ── Get RAG page chunks (admin viewer) ────────────────────────────────────
+        [HttpGet("page-chunks")]
+        [ProducesResponseType(typeof(List<RagPageChunkDto>), 200)]
+        public async Task<IActionResult> GetPageChunks(
+            [FromQuery] int? level,
+            [FromQuery] string? letter)
+        {
+            var chunks = await pageChunkRepository.GetAllAsync(level, letter);
+            var dtos = chunks.Select(c => new RagPageChunkDto(
+                c.Id, c.SourceFile, c.PageNumber, c.Sentence, c.WordCount,
+                c.ImagePath, c.Level, c.Letter, c.LetterName)).ToList();
+            return Ok(dtos);
         }
 
         [HttpGet("documents")]

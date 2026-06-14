@@ -1,0 +1,60 @@
+<div class="d-flex min-vh-100" dir="rtl">
+  <app-admin-sidebar />
+
+  <main class="flex-grow-1 p-4" style="min-width:0;overflow-y:auto">
+
+    <h1 class="fw-800 mb-1" style="font-size:24px">🏫 إضافة مدرسة</h1>
+    <p class="text-muted small mb-4">أنشئ حساب مدير مدرسة جديد</p>
+
+    <div class="card p-4" style="max-width:520px">
+
+      @if (created(); as res) {
+        <div class="text-center py-3">
+          <div style="font-size:56px" class="mb-2">🎉</div>
+          <h5 class="fw-800 mb-3">تم إنشاء المدرسة بنجاح!</h5>
+          <div class="d-flex flex-column gap-2 text-end mb-4 p-3 rounded-3" style="background:#F0FFF4;border:1.5px solid #86EFAC">
+            <div><span class="fw-700 text-muted small">اسم المدرسة: </span><strong>{{ res.schoolName }}</strong></div>
+            <div><span class="fw-700 text-muted small">البريد الإلكتروني: </span><strong dir="ltr">{{ res.adminEmail }}</strong></div>
+            <div>
+              <span class="fw-700 text-muted small">كود المدرسة: </span>
+              <code class="fw-800 px-2 py-1 rounded-2" style="background:#DCFCE7;color:#16A34A;font-size:15px">{{ res.schoolCode }}</code>
+            </div>
+          </div>
+          <p class="small text-muted mb-4">احتفظ بكود المدرسة — المعلمون يحتاجونه عند التسجيل.</p>
+          <button class="btn btn-primary rounded-pill px-4" type="button" (click)="reset()">+ إضافة مدرسة أخرى</button>
+        </div>
+
+      } @else {
+        <form (ngSubmit)="submit()">
+
+          <div class="mb-3">
+            <label class="form-label fw-700 small mb-1">اسم المدرسة</label>
+            <input class="form-control" [(ngModel)]="form.schoolName" name="schoolName"
+              placeholder="مثال: مدرسة النور الابتدائية" required />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-700 small mb-1">البريد الإلكتروني للمدير</label>
+            <input class="form-control" type="email" [(ngModel)]="form.adminEmail" name="adminEmail"
+              placeholder="admin@school.com" dir="ltr" required />
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-700 small mb-1">كلمة مرور المدير</label>
+            <input class="form-control" type="password" [(ngModel)]="form.adminPassword" name="adminPassword"
+              placeholder="6 أحرف على الأقل" dir="ltr" required minlength="6" />
+          </div>
+
+          @if (error()) {
+            <div class="alert alert-danger py-2 small">{{ error() }}</div>
+          }
+
+          <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-700" [disabled]="isLoading()">
+            {{ isLoading() ? 'جارٍ الإنشاء...' : '🏫 إنشاء المدرسة' }}
+          </button>
+        </form>
+      }
+
+    </div>
+  </main>
+</div>

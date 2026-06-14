@@ -1,0 +1,27 @@
+<app-navbar />
+<div class="min-vh-100 d-flex align-items-center justify-content-center pt-5 pb-4 px-3" dir="rtl">
+  <div class="card animate-pop p-5 text-center w-100 d-flex flex-column align-items-center gap-4" style="max-width:480px">
+    <div class="animate-bounce" style="font-size:96px;line-height:1">🦁</div>
+    <div>
+      <h1 class="fw-800 fs-2 mb-2">هيا نكتشف مستواك!</h1>
+      <p class="text-muted mb-0" style="max-width:360px;margin:0 auto;font-size:17px;line-height:1.7">
+        سيساعدنا هذا الاختبار القصير في معرفة مستواك في اللغة العربية
+        حتى نختار لك المحتوى المناسب تماماً.
+      </p>
+    </div>
+    <div class="d-flex justify-content-center gap-4 flex-wrap">
+      <div class="d-flex align-items-center gap-2 fw-bold">
+        <span style="font-size:20px">📝</span><span>15 سؤالاً</span>
+      </div>
+      <div class="d-flex align-items-center gap-2 fw-bold">
+        <span style="font-size:20px">⏱️</span><span>5 دقائق تقريباً</span>
+      </div>
+      <div class="d-flex align-items-center gap-2 fw-bold">
+        <span style="font-size:20px">🎯</span><span>3 مستويات</span>
+      </div>
+    </div>
+    <button class="btn btn-primary rounded-pill px-5 py-3 fw-bold" style="font-size:18px" type="button" (click)="startTest()">
+      ▶ ابدأ الاختبار
+    </button>
+  </div>
+</div>

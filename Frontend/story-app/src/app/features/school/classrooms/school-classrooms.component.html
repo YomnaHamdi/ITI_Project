@@ -1,0 +1,83 @@
+<div dir="rtl" style="min-height:100vh;background:var(--bg-base)">
+  <app-navbar />
+
+  <div class="container" style="max-width:960px;padding-top:88px;padding-bottom:60px">
+
+    <!-- School nav tabs -->
+    <nav style="display:flex;gap:6px;margin-bottom:28px;background:var(--bg-card);padding:7px;border-radius:14px;border:1.5px solid rgba(244,120,138,.08)">
+      <a routerLink="/school/dashboard" routerLinkActive="school-nav-active" [routerLinkActiveOptions]="{exact:true}"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        🏠 لوحة المدرسة
+      </a>
+      <a routerLink="/school/teachers" routerLinkActive="school-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        👩‍🏫 المعلمون
+      </a>
+      <a routerLink="/school/classrooms" routerLinkActive="school-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        🏫 الفصول
+      </a>
+      <a routerLink="/school/reports" routerLinkActive="school-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        📊 التقارير
+      </a>
+    </nav>
+
+    <div style="margin-bottom:24px">
+      <h2 style="font-size:24px;font-weight:900;margin:0">🏫 الفصول الدراسية</h2>
+      <p style="color:var(--text-muted);font-size:13px;margin-top:4px">{{ classrooms().length }} فصل</p>
+    </div>
+
+    @if (isLoading()) {
+      <div style="text-align:center;padding:60px;color:var(--text-muted)">جارٍ التحميل…</div>
+    } @else {
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px">
+        @for (cls of classrooms(); track cls.id) {
+          <div style="background:var(--bg-card);border-radius:20px;padding:22px;border:1.5px solid rgba(244,120,138,.08)">
+
+            <!-- Header -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+              <h4 style="font-weight:900;font-size:18px;margin:0">{{ cls.name }}</h4>
+              <span [style.background]="levelColor(cls.level) + '22'" [style.color]="levelColor(cls.level)"
+                    style="font-size:11px;font-weight:800;padding:3px 10px;border-radius:99px">
+                المستوى {{ cls.level }}
+              </span>
+            </div>
+
+            <!-- Teacher -->
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+              <span style="font-size:18px">👩‍🏫</span>
+              <span style="font-size:13px;font-weight:700;color:var(--text-muted)">{{ cls.teacher }}</span>
+            </div>
+
+            <!-- Stats row -->
+            <div style="display:flex;gap:12px;margin-bottom:14px">
+              <div style="flex:1;background:rgba(244,120,138,.05);border-radius:12px;padding:10px;text-align:center">
+                <div style="font-size:20px;font-weight:900;color:var(--primary)">{{ cls.studentCount }}</div>
+                <div style="font-size:11px;color:var(--text-muted)">طالب</div>
+              </div>
+              <div style="flex:1;background:rgba(34,197,94,.05);border-radius:12px;padding:10px;text-align:center">
+                <div style="font-size:20px;font-weight:900" [style.color]="progressColor(cls.avgProgress)">{{ cls.avgProgress }}%</div>
+                <div style="font-size:11px;color:var(--text-muted)">متوسط التقدّم</div>
+              </div>
+            </div>
+
+            <!-- Progress bar -->
+            <div style="margin-bottom:4px;display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted)">
+              <span>تقدّم الفصل</span><span>{{ cls.avgProgress }}%</span>
+            </div>
+            <div style="height:8px;background:#F3F4F6;border-radius:99px;overflow:hidden">
+              <div [style.width.%]="cls.avgProgress" [style.background]="progressColor(cls.avgProgress)"
+                   style="height:100%;border-radius:99px;transition:.5s"></div>
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<style>
+  .school-nav-active { background: var(--primary-gradient) !important; color: #fff !important; }
+</style>

@@ -1,0 +1,87 @@
+<div class="d-flex min-vh-100" dir="rtl" style="background:var(--bg-base)">
+  <app-admin-sidebar />
+  <main class="flex-grow-1 p-4 d-flex flex-column gap-4" style="overflow-y:auto">
+
+    <h1 class="fw-800 mb-0" style="font-size:24px">👥 إدارة المستخدمين</h1>
+
+    <!-- Search -->
+    <div class="card d-flex flex-row align-items-center gap-2 p-3">
+      <span style="font-size:18px">🔍</span>
+      <input class="border-0 bg-transparent fw-600 flex-grow-1" type="text"
+        placeholder="ابحث بالاسم أو البريد أو الدور..."
+        style="font-family:Cairo,sans-serif;font-size:15px;outline:none;color:var(--text-dark)"
+        [value]="searchTerm()" (input)="setSearch($any($event.target).value)" />
+    </div>
+
+    @if (isLoading()) {
+      <div class="d-flex justify-content-center py-5">
+        <div class="spinner-border" style="color:var(--primary);width:44px;height:44px" role="status"></div>
+      </div>
+    }
+
+    <div class="card overflow-hidden p-0">
+      <div class="px-4 py-3 fw-700 small text-muted" style="border-bottom:1px solid #F3F4F6">
+        {{ filteredUsers().length }} مستخدم
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle" style="font-size:14px;min-width:700px">
+          <thead>
+            <tr style="border-bottom:2px solid #F3F4F6">
+              <th class="fw-800 text-muted small px-4 py-3">المستخدم</th>
+              <th class="fw-800 text-muted small px-4 py-3">البريد الإلكتروني</th>
+              <th class="fw-800 text-muted small px-4 py-3">الدور</th>
+              <th class="fw-800 text-muted small px-4 py-3">تاريخ التسجيل</th>
+              <th class="fw-800 text-muted small px-4 py-3">الحالة</th>
+              <th class="fw-800 text-muted small px-4 py-3">إجراء</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of filteredUsers(); track user.id) {
+              <tr [style.opacity]="user.isBlocked ? '0.55' : '1'"
+                  [style.background]="user.isBlocked ? '#FFF5F5' : ''">
+                <td class="px-4 py-3">
+                  <div class="d-flex align-items-center gap-2 fw-800">
+                    <span style="font-size:18px">👤</span>{{ user.name }}
+                  </div>
+                </td>
+                <td class="px-4 py-3 small text-muted">{{ user.email }}</td>
+                <td class="px-4 py-3">
+                  <span class="badge rounded-pill fw-800 px-2 py-1"
+                    [style.background]="user.role==='admin' ? '#7C3AED' : user.role==='teacher' ? '#0EA5E9' : user.role==='parent' ? '#10B981' : '#F59E0B'"
+                    [style.color]="'#fff'"
+                    style="font-size:12px">
+                    {{ roleLabel(user.role) }}
+                  </span>
+                </td>
+                <td class="px-4 py-3 small text-muted">{{ user.createdAt }}</td>
+                <td class="px-4 py-3">
+                  <span class="badge rounded-pill fw-800 px-2 py-1"
+                    [style.background]="user.isBlocked ? '#FEF2F2' : '#F0FDF4'"
+                    [style.color]="user.isBlocked ? '#EF4444' : '#22C55E'"
+                    style="font-size:12px">
+                    {{ user.isBlocked ? 'محظور' : 'نشط' }}
+                  </span>
+                </td>
+                <td class="px-4 py-3">
+                  <button class="btn btn-sm rounded-pill fw-800"
+                    [style.background]="user.isBlocked ? '#F0FDF4' : '#FEF2F2'"
+                    [style.color]="user.isBlocked ? '#22C55E' : '#EF4444'"
+                    [style.border]="user.isBlocked ? '1.5px solid #A7F3D0' : '1.5px solid #FECACA'"
+                    (click)="toggleBlock(user)">
+                    {{ user.isBlocked ? '🔓 رفع الحظر' : '🚫 حظر' }}
+                  </button>
+                </td>
+              </tr>
+            }
+            @if (filteredUsers().length === 0 && !isLoading()) {
+              <tr>
+                <td colspan="6" class="text-center text-muted py-5 fw-semibold">لا توجد نتائج</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>

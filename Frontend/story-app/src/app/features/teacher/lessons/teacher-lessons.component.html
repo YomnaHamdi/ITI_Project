@@ -1,0 +1,73 @@
+<div dir="rtl" style="min-height:100vh;background:var(--bg-base);display:flex">
+
+  <app-teacher-sidebar />
+
+  <main style="flex:1;padding:32px 24px;max-width:1100px">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <div>
+        <h2 style="font-size:24px;font-weight:900;margin:0">📚 الدروس المتاحة</h2>
+        <p style="color:var(--text-muted);font-size:13px;margin-top:4px">{{ allLessons().length }} درس إجمالاً</p>
+      </div>
+      <a routerLink="/teacher/lessons/create"
+         style="background:var(--primary-gradient);color:#fff;text-decoration:none;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:800">
+        + إنشاء درس جديد
+      </a>
+    </div>
+
+    <!-- Level filter pills -->
+    <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">
+      <button (click)="setLevel(null)"
+              [style.background]="activeLevel() === null ? 'var(--primary-gradient)' : 'var(--bg-card)'"
+              [style.color]="activeLevel() === null ? '#fff' : 'var(--text-muted)'"
+              style="border:none;padding:8px 18px;border-radius:99px;font-size:13px;font-weight:800;cursor:pointer;transition:.2s">
+        الكل ({{ allLessons().length }})
+      </button>
+      @for (lc of levelCounts(); track lc.lv) {
+        <button (click)="setLevel(lc.lv)"
+                [style.background]="activeLevel() === lc.lv ? 'var(--primary-gradient)' : 'var(--bg-card)'"
+                [style.color]="activeLevel() === lc.lv ? '#fff' : 'var(--text-muted)'"
+                style="border:none;padding:8px 18px;border-radius:99px;font-size:13px;font-weight:800;cursor:pointer;transition:.2s">
+          المستوى {{ lc.lv }} ({{ lc.count }})
+        </button>
+      }
+    </div>
+
+    @if (isLoading()) {
+      <div style="text-align:center;padding:60px;color:var(--text-muted)">جارٍ التحميل…</div>
+    } @else if (filtered().length === 0) {
+      <div style="text-align:center;padding:60px">
+        <div style="font-size:56px;margin-bottom:16px">📭</div>
+        <h3 style="font-weight:800;margin-bottom:8px">لا توجد دروس</h3>
+        <p style="color:var(--text-muted)">أنشئ أول درس لطلابك</p>
+        <a routerLink="/teacher/lessons/create" style="display:inline-block;margin-top:12px;background:var(--primary-gradient);color:#fff;text-decoration:none;padding:10px 24px;border-radius:99px;font-weight:800">
+          إنشاء درس
+        </a>
+      </div>
+    } @else {
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px">
+        @for (lesson of filtered(); track lesson.id) {
+          <div style="background:var(--bg-card);border-radius:18px;overflow:hidden;border:1.5px solid rgba(244,120,138,.08)">
+            @if (lesson.coverImageUrl) {
+              <img [src]="lesson.coverImageUrl" [alt]="lesson.title" style="width:100%;height:120px;object-fit:cover" />
+            } @else {
+              <div style="width:100%;height:120px;background:linear-gradient(135deg,#FFE4E8,#EDE9FE);display:flex;align-items:center;justify-content:center;font-size:40px">📖</div>
+            }
+            <div style="padding:14px">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+                <span style="background:rgba(244,120,138,.1);color:var(--primary);font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px">{{ levelLabel(lesson.level) }}</span>
+                <span style="background:rgba(99,102,241,.1);color:#6366F1;font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px">{{ lesson.letter }}</span>
+              </div>
+              <h5 style="font-weight:800;font-size:14px;margin-bottom:4px;line-height:1.4">{{ lesson.title }}</h5>
+              <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">{{ lesson.pageCount }} صفحة</p>
+              <a [routerLink]="['/lessons', lesson.id]"
+                 style="display:block;text-align:center;padding:7px;border-radius:10px;background:rgba(244,120,138,.08);color:var(--primary);text-decoration:none;font-size:13px;font-weight:800">
+                معاينة ▶
+              </a>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </main>
+</div>

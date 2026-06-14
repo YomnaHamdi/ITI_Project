@@ -1,0 +1,189 @@
+<div class="d-flex min-vh-100" dir="rtl" style="background:var(--bg-base)">
+  <app-teacher-sidebar />
+  <main class="flex-grow-1 p-4 d-flex flex-column gap-4" style="overflow-y:auto">
+
+    <h1 class="fw-800 mb-0" style="font-size:24px">📖 إنشاء درس جديد</h1>
+
+    @if (publishError()) {
+      <div class="alert alert-danger fw-600 py-2">⚠️ {{ publishError() }}</div>
+    }
+    @if (publishSuccess()) {
+      <div class="alert fw-700 py-2" style="background:#F0FFF4;border:1.5px solid #86EFAC;color:#16A34A">{{ publishSuccess() }}</div>
+    }
+
+    <div class="row g-3 align-items-start">
+
+      <!-- Left: Form -->
+      <div class="col-md-8 d-flex flex-column gap-3">
+
+        <!-- Metadata -->
+        <div class="card p-4 d-flex flex-column gap-3">
+          <h5 class="fw-800 mb-0">📋 بيانات الدرس</h5>
+          <div class="d-flex flex-column gap-1">
+            <label class="fw-700 small">عنوان الدرس <span style="color:var(--primary)">*</span></label>
+            <input class="form-control fw-600" type="text" placeholder="مثال: حرف الخاء" [(ngModel)]="form.title" />
+          </div>
+          <div class="row g-2">
+            <div class="col-6 d-flex flex-column gap-1">
+              <label class="fw-700 small">الحرف المستهدف</label>
+              <input class="form-control fw-600" type="text" placeholder="خ" [(ngModel)]="form.letter" maxlength="3" />
+            </div>
+            <div class="col-6 d-flex flex-column gap-1">
+              <label class="fw-700 small">المستوى</label>
+              <select class="form-select fw-600" [(ngModel)]="form.level">
+                @for (lvl of levels; track lvl.value) {
+                  <option [ngValue]="lvl.value">{{ lvl.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+          <div class="d-flex flex-column gap-1">
+            <label class="fw-700 small">وسوم (اختياري)</label>
+            <input class="form-control fw-600" type="text" placeholder="حيوانات، أرقام، ألوان..." [(ngModel)]="form.tags" />
+          </div>
+        </div>
+
+        <!-- PDF Upload -->
+        <div class="card p-4 d-flex flex-column gap-3">
+          <h5 class="fw-800 mb-0">📤 رفع ملف PDF</h5>
+          <p class="small text-muted mb-0">ارفع كتاباً أو درساً بصيغة PDF وسيتم استيراده تلقائياً</p>
+          <div class="pdf-drop-zone rounded-3 text-center p-4"
+            [class.dragging]="isDraggingPdf()"
+            (dragover)="onPdfDragOver($event)" (dragleave)="onPdfDragLeave()"
+            (drop)="onPdfDrop($event)" (click)="pdfInput.click()">
+            <input #pdfInput type="file" accept=".pdf" class="d-none" (change)="onPdfInput($event)" />
+            @if (selectedPdf) {
+              <div class="d-flex align-items-center justify-content-center gap-3">
+                <span style="font-size:24px">📄</span>
+                <div class="text-start">
+                  <p class="fw-700 mb-0 small">{{ selectedPdf.name }}</p>
+                  <p class="small text-muted mb-0">{{ (selectedPdf.size / 1024).toFixed(0) }} KB</p>
+                </div>
+              </div>
+            } @else {
+              <div class="d-flex flex-column align-items-center gap-2">
+                <span style="font-size:36px">📄</span>
+                <p class="fw-700 mb-0">اسحب ملف PDF هنا أو انقر للتصفح</p>
+                <small class="text-muted">الحد الأقصى 50 MB</small>
+              </div>
+            }
+          </div>
+          <button class="btn btn-primary rounded-pill fw-800 align-self-start px-4"
+            [disabled]="!selectedPdf || isPublishing()" (click)="publishFromPdf()">
+            @if (isPublishing()) { ⏳ جارٍ الاستيراد... } @else { 📤 استيراد وتحليل }
+          </button>
+        </div>
+
+        <!-- AI Generation -->
+        <div class="card p-4 d-flex flex-column gap-3">
+          <h5 class="fw-800 mb-0">✨ توليد بالذكاء الاصطناعي</h5>
+          <p class="small text-muted mb-0">سيستخدم Gemini وقاعدة المعرفة لتوليد جمل مناسبة وصور كرتونية</p>
+
+          <!-- Target selection -->
+          <div class="d-flex flex-column gap-2">
+            <label class="fw-700 small">تعيين الدرس بعد التوليد (اختياري)</label>
+            <div class="d-flex gap-2 flex-wrap">
+              <label class="d-flex align-items-center gap-1 small fw-600">
+                <input type="radio" name="targetType" value="none" [(ngModel)]="targetType" /> بدون تعيين
+              </label>
+              <label class="d-flex align-items-center gap-1 small fw-600">
+                <input type="radio" name="targetType" value="student" [(ngModel)]="targetType" /> طالب محدد
+              </label>
+              <label class="d-flex align-items-center gap-1 small fw-600">
+                <input type="radio" name="targetType" value="group" [(ngModel)]="targetType" /> مجموعة
+              </label>
+            </div>
+            @if (targetType === 'student') {
+              <input class="form-control fw-600" type="text"
+                     placeholder="معرّف الطالب (UUID)" [(ngModel)]="targetStudentId" />
+            }
+            @if (targetType === 'group') {
+              <select class="form-select fw-600" [(ngModel)]="targetGroupId">
+                <option value="">-- اختر مجموعة --</option>
+                @for (g of groups(); track g.id) {
+                  <option [value]="g.id">{{ g.name }} ({{ g.memberCount }} طالب)</option>
+                }
+              </select>
+            }
+          </div>
+
+          <button class="btn btn-outline-primary rounded-pill fw-800 align-self-start px-4"
+            [disabled]="!form.title.trim() || isPublishing()" (click)="publishFromAi()">
+            @if (isPublishing()) { ⏳ جارٍ التوليد... } @else { 🤖 توليد الدرس بالذكاء الاصطناعي }
+          </button>
+        </div>
+
+        <!-- Block builder -->
+        <div class="card p-4 d-flex flex-column gap-3">
+          <div class="d-flex align-items-center justify-content-between">
+            <h5 class="fw-800 mb-0">🧩 بناء محتوى الصفحات</h5>
+            <span class="small fw-700 text-muted">{{ blocks().length }} عناصر</span>
+          </div>
+          @if (blocks().length > 0) {
+            <div class="d-flex flex-column gap-2">
+              @for (block of blocks(); track block.id; let idx = $index) {
+                <div class="rounded-3 overflow-hidden block-item" [class]="'block-' + block.type">
+                  <div class="d-flex align-items-center gap-2 px-3 py-2 block-hdr">
+                    <span>{{ block.type === 'text' ? '📝' : block.type === 'image' ? '🖼️' : block.type === 'audio' ? '🔊' : '🎮' }}</span>
+                    <span class="small fw-700 flex-grow-1">{{ block.label }}</span>
+                    <div class="d-flex gap-1">
+                      <button class="bk-btn" type="button" (click)="moveUp(idx)"   [disabled]="idx === 0">↑</button>
+                      <button class="bk-btn" type="button" (click)="moveDown(idx)" [disabled]="idx === blocks().length - 1">↓</button>
+                      <button class="bk-btn danger" type="button" (click)="removeBlock(block.id)">✕</button>
+                    </div>
+                  </div>
+                  <textarea class="block-input w-100 px-3 py-2" rows="2"
+                    [placeholder]="block.type === 'text' ? 'أدخل النص التعليمي...' : block.type === 'image' ? 'رابط الصورة أو وصفها...' : block.type === 'activity' ? 'نوع النشاط: mcq / dragdrop / matching / ordering' : 'رابط الصوت...'"
+                    [(ngModel)]="block.content"></textarea>
+                </div>
+              }
+            </div>
+          }
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-sm rounded-pill fw-700 add-text"     type="button" (click)="addBlock('text')"    >+ نص</button>
+            <button class="btn btn-sm rounded-pill fw-700 add-image"    type="button" (click)="addBlock('image')"   >+ صورة</button>
+            <button class="btn btn-sm rounded-pill fw-700 add-audio"    type="button" (click)="addBlock('audio')"   >+ صوت</button>
+            <button class="btn btn-sm rounded-pill fw-700 add-activity" type="button" (click)="addBlock('activity')">+ نشاط</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right: Preview -->
+      <div class="col-md-4">
+        <div class="card p-4 d-flex flex-column gap-3" style="position:sticky;top:20px">
+          <h5 class="fw-800 mb-0">👁️ معاينة</h5>
+          @if (!form.title && blocks().length === 0) {
+            <div class="d-flex flex-column align-items-center gap-2 py-4 text-center">
+              <span style="font-size:40px;opacity:.3">📖</span>
+              <p class="small text-muted mb-0">ابدأ بملء البيانات لرؤية المعاينة</p>
+            </div>
+          } @else {
+            <div class="d-flex flex-column gap-2 align-items-center">
+              <div class="d-flex align-items-center justify-content-center rounded-3 position-relative"
+                   style="width:72px;height:72px;background:linear-gradient(135deg,#FFE4E8,#F3E8FF)">
+                <span style="font-size:32px;font-family:Amiri,serif">{{ form.letter || '📖' }}</span>
+                @if (form.level) {
+                  <span class="position-absolute top-0 start-0 m-1 badge fw-800"
+                    style="background:var(--primary);font-size:9px">M{{ form.level }}</span>
+                }
+              </div>
+              <h6 class="fw-800 text-center mb-0">{{ form.title || 'عنوان الدرس' }}</h6>
+              <p class="small text-muted mb-0">{{ blocks().length }} صفحات</p>
+            </div>
+            <div class="d-flex flex-column gap-2">
+              @for (block of blocks(); track block.id) {
+                <div class="d-flex gap-2 align-items-start p-2 rounded-3"
+                     style="background:#F9FAFB;border:1px solid #F3F4F6">
+                  <span>{{ block.type === 'text' ? '📝' : block.type === 'image' ? '🖼️' : block.type === 'audio' ? '🔊' : '🎮' }}</span>
+                  <p class="small fw-600 mb-0" style="word-break:break-word;line-height:1.5">{{ block.content || 'محتوى ' + block.label }}</p>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>

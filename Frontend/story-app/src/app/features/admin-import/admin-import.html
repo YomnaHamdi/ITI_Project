@@ -1,0 +1,309 @@
+<div class="ab-shell" dir="rtl">
+
+  <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+  <app-admin-sidebar />
+
+  <!-- ── Main ───────────────────────────────────────────────────────────── -->
+  <main class="ab-main">
+
+    <!-- Page header -->
+    <header class="ab-page-header">
+      <div>
+        <h1 class="ab-page-title">📚 إدارة الكتب</h1>
+        <p class="ab-page-sub">استيراد وإنشاء وتعديل كتب المستويات</p>
+      </div>
+      <div class="ab-header-actions">
+        <button class="ab-btn ab-btn-outline" (click)="tab.set('import')" [class.active]="tab()==='import'">
+          📥 رفع PDF
+        </button>
+        <button class="ab-btn ab-btn-outline" (click)="tab.set('manual')" [class.active]="tab()==='manual'">
+          ✏️ كتاب يدوي
+        </button>
+        <button class="ab-btn ab-btn-primary" (click)="tab.set('list')" [class.active]="tab()==='list'">
+          📖 الكتب
+        </button>
+      </div>
+    </header>
+
+    <!-- ══════════════ BOOKS LIST ═══════════════ -->
+    @if (tab() === 'list') {
+
+      <!-- Level filter tabs -->
+      <div class="ab-level-tabs">
+        @for (lf of levelFilters; track lf.label) {
+          <button
+            class="ab-level-tab"
+            [class.active]="levelFilter() === lf.value"
+            (click)="setLevelFilter(lf.value)">
+            {{ lf.label }}
+          </button>
+        }
+      </div>
+
+      <!-- Error -->
+      @if (listError()) {
+        <div class="ab-alert ab-alert-danger">{{ listError() }}</div>
+      }
+
+      <!-- Loading -->
+      @if (listLoading()) {
+        <div class="ab-loading">⏳ جارٍ التحميل…</div>
+      }
+
+      <!-- Empty -->
+      @if (!listLoading() && books().length === 0) {
+        <div class="ab-empty">
+          <div style="font-size:3rem">📭</div>
+          <p>لا توجد كتب بعد. ابدأ بـ <strong>رفع PDF</strong> أو <strong>إنشاء كتاب يدوي</strong>.</p>
+        </div>
+      }
+
+      <!-- Grid -->
+      @if (!listLoading() && books().length > 0) {
+        <div class="ab-grid">
+          @for (book of books(); track book.id) {
+            <div class="ab-card">
+              <!-- Cover image -->
+              <div class="ab-card-cover">
+                @if (coverUrl(book)) {
+                  <img [src]="coverUrl(book)" [alt]="book.title" class="ab-cover-img" />
+                } @else {
+                  <div class="ab-cover-placeholder">📖</div>
+                }
+                <span class="ab-level-badge">المستوى {{ levelLabel(book.level) }}</span>
+              </div>
+              <!-- Info -->
+              <div class="ab-card-body">
+                <h3 class="ab-card-title">{{ book.title }}</h3>
+                <p class="ab-card-meta">{{ book.letterName }} · {{ book.pageCount }} صفحة</p>
+              </div>
+              <!-- Actions -->
+              <div class="ab-card-actions">
+                <button class="ab-btn ab-btn-sm ab-btn-outline" (click)="openEdit(book)">
+                  ✏️ تعديل
+                </button>
+                <button class="ab-btn ab-btn-sm ab-btn-danger" (click)="deleteBook(book)">
+                  🗑 حذف
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="ab-pagination">
+          <button class="ab-page-btn" [disabled]="page() === 1" (click)="goPage(page() - 1)">→</button>
+          @for (p of pages(); track p) {
+            <button
+              class="ab-page-btn"
+              [class.active]="p === page()"
+              (click)="goPage(p)">
+              {{ p }}
+            </button>
+          }
+          <button class="ab-page-btn" [disabled]="page() === totalPages()" (click)="goPage(page() + 1)">←</button>
+        </div>
+      }
+
+      <!-- Summary -->
+      @if (!listLoading()) {
+        <p class="ab-summary">إجمالي {{ totalCount() }} كتاب</p>
+      }
+    }
+
+    <!-- ══════════════ EDIT VIEW ═══════════════ -->
+    @if (tab() === 'edit') {
+      <div>
+        <button class="ab-btn ab-btn-outline mb-3" (click)="backToList()">← العودة للقائمة</button>
+
+        @if (editLoading()) {
+          <div class="ab-loading">⏳ جارٍ التحميل…</div>
+        }
+
+        @if (editBook(); as book) {
+          <h2 class="ab-section-title">{{ book.title }} — المستوى {{ levelLabel(book.level) }}</h2>
+
+          <div class="ab-edit-grid">
+            @for (page of book.pages; track page.pageId) {
+              <div class="ab-edit-card">
+                <!-- Page image -->
+                <div class="ab-edit-img-wrap">
+                  @if (pageImageUrl(page)) {
+                    <img [src]="pageImageUrl(page)" class="ab-edit-img" [alt]="'صفحة ' + page.pageNumber" />
+                  } @else {
+                    <div class="ab-edit-no-img">📄</div>
+                  }
+                  <span class="ab-edit-badge">
+                    {{ page.isCoverPage ? 'الغلاف' : 'صفحة ' + page.pageNumber }}
+                  </span>
+                </div>
+
+                <!-- Sentence -->
+                <div class="ab-edit-sentence-row">
+                  @if (editingPageId() === page.pageId) {
+                    <textarea
+                      class="ab-edit-textarea"
+                      dir="rtl"
+                      [(ngModel)]="editSentence"
+                      rows="2">
+                    </textarea>
+                    <div class="ab-edit-btn-row">
+                      <button class="ab-btn ab-btn-sm ab-btn-primary" (click)="savePageSentence(page)">حفظ</button>
+                      <button class="ab-btn ab-btn-sm ab-btn-outline" (click)="cancelEditSentence()">إلغاء</button>
+                    </div>
+                  } @else {
+                    <p class="ab-edit-sentence-text">{{ page.sentence || '(لا توجد جملة)' }}</p>
+                    <button class="ab-btn ab-btn-sm ab-btn-outline" (click)="startEditSentence(page)">
+                      ✏️ تعديل الجملة
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ══════════════ IMPORT FORM ═══════════════ -->
+    @if (tab() === 'import') {
+      <div class="ab-form-wrap">
+        <h2 class="ab-section-title">📥 رفع كتاب PDF</h2>
+        <p class="ab-form-hint">يتم استخراج ما يصل إلى 3 صفحات باستخدام Gemini AI · الصفحة الأولى (الغلاف) والأخيرة يتم تخطيهما</p>
+
+        @if (importError()) {
+          <div class="ab-alert ab-alert-danger" (click)="importError.set(null)">⚠️ {{ importError() }}</div>
+        }
+        @if (importSuccess(); as res) {
+          <div class="ab-alert ab-alert-success">
+            ✅ تم استيراد "{{ res.title }}" بنجاح — {{ res.pageCount }} صفحة
+          </div>
+        }
+
+        <form (ngSubmit)="submitImport()" class="ab-form">
+          <div class="ab-form-row">
+            <label class="ab-label">اسم الكتاب *</label>
+            <input class="ab-input" type="text" [(ngModel)]="importForm.title" name="title"
+              placeholder="مثال: كتاب حرف الباء للمستوى الأول" dir="rtl" />
+          </div>
+
+          <div class="ab-form-row">
+            <label class="ab-label">المستوى *</label>
+            <select class="ab-input" [(ngModel)]="importForm.level" name="level">
+              @for (l of levels; track l) {
+                <option [ngValue]="l">المستوى {{ levelLabel(l) }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="ab-form-row2">
+            <div>
+              <label class="ab-label">الحرف *</label>
+              <input class="ab-input" type="text" [(ngModel)]="importForm.letter" name="letter"
+                placeholder="ب" maxlength="3" dir="rtl" />
+            </div>
+            <div>
+              <label class="ab-label">اسم الحرف *</label>
+              <input class="ab-input" type="text" [(ngModel)]="importForm.letterName" name="letterName"
+                placeholder="حرف الباء" dir="rtl" />
+            </div>
+          </div>
+
+          <div class="ab-form-row">
+            <label class="ab-label">ملف PDF *</label>
+            <input class="ab-input ab-file-input" type="file" accept=".pdf,application/pdf"
+              (change)="onFileSelected($event)" />
+            @if (importForm.pdfFile) {
+              <small class="ab-file-name">📄 {{ importForm.pdfFile.name }}</small>
+            }
+          </div>
+
+          <button class="ab-btn ab-btn-primary ab-btn-full" type="submit" [disabled]="importLoading()">
+            @if (importLoading()) { ⏳ جارٍ المعالجة… } @else { 📥 استيراد الكتاب }
+          </button>
+        </form>
+      </div>
+    }
+
+    <!-- ══════════════ MANUAL FORM ═══════════════ -->
+    @if (tab() === 'manual') {
+      <div class="ab-form-wrap">
+        <h2 class="ab-section-title">✏️ إنشاء كتاب يدوي</h2>
+        <p class="ab-form-hint">أضف حتى 3 صفحات يدوياً · الجمل تُكتب مباشرةً دون استخدام الذكاء الاصطناعي</p>
+
+        @if (manualError()) {
+          <div class="ab-alert ab-alert-danger" (click)="manualError.set(null)">⚠️ {{ manualError() }}</div>
+        }
+        @if (manualSuccess(); as res) {
+          <div class="ab-alert ab-alert-success">
+            ✅ تم إنشاء "{{ res.title }}" بنجاح — {{ res.pageCount }} صفحة
+          </div>
+        }
+
+        <form (ngSubmit)="submitManual()" class="ab-form">
+          <div class="ab-form-row">
+            <label class="ab-label">عنوان الكتاب *</label>
+            <input class="ab-input" type="text" [(ngModel)]="manualForm.title" name="title"
+              placeholder="مثال: كتاب حرف الباء" dir="rtl" />
+          </div>
+
+          <div class="ab-form-row">
+            <label class="ab-label">المستوى *</label>
+            <select class="ab-input" [(ngModel)]="manualForm.level" name="level">
+              @for (l of levels; track l) {
+                <option [ngValue]="l">المستوى {{ levelLabel(l) }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="ab-form-row2">
+            <div>
+              <label class="ab-label">الحرف *</label>
+              <input class="ab-input" type="text" [(ngModel)]="manualForm.letter" name="mletter"
+                placeholder="ب" maxlength="3" dir="rtl" />
+            </div>
+            <div>
+              <label class="ab-label">اسم الحرف *</label>
+              <input class="ab-input" type="text" [(ngModel)]="manualForm.letterName" name="mletterName"
+                placeholder="حرف الباء" dir="rtl" />
+            </div>
+          </div>
+
+          <!-- Pages -->
+          <div class="ab-pages-section">
+            <div class="ab-pages-header">
+              <label class="ab-label">الصفحات ({{ manualForm.pages.length }}/3)</label>
+              @if (manualForm.pages.length < 3) {
+                <button type="button" class="ab-btn ab-btn-sm ab-btn-outline" (click)="addManualPage()">
+                  + إضافة صفحة
+                </button>
+              }
+            </div>
+            @for (pg of manualForm.pages; track $index; let i = $index) {
+              <div class="ab-page-row">
+                <span class="ab-page-num">{{ i + 1 }}</span>
+                <input
+                  class="ab-input ab-page-input"
+                  type="text"
+                  [(ngModel)]="pg.sentence"
+                  [name]="'page_' + i"
+                  placeholder="اكتب الجملة للصفحة {{ i + 1 }}"
+                  dir="rtl" />
+                @if (manualForm.pages.length > 1) {
+                  <button type="button" class="ab-btn ab-btn-sm ab-btn-danger" (click)="removeManualPage(i)">✕</button>
+                }
+              </div>
+            }
+          </div>
+
+          <button class="ab-btn ab-btn-primary ab-btn-full" type="submit" [disabled]="manualLoading()">
+            @if (manualLoading()) { ⏳ جارٍ الحفظ… } @else { ✏️ إنشاء الكتاب }
+          </button>
+        </form>
+      </div>
+    }
+
+  </main>
+</div>

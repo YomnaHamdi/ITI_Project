@@ -1,0 +1,65 @@
+<nav class="navbar navbar-lughati navbar-expand-lg fixed-top py-2" [class.scrolled]="scrolled()" dir="rtl">
+  <div class="container">
+
+    <!-- Logo -->
+    <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none" routerLink="/" (click)="closeMenu()">
+      <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+           style="width:40px;height:40px;background:var(--primary-gradient);font-size:18px">📚</div>
+      <span class="fw-800 fs-5 text-dark">عربي ممتع</span>
+    </a>
+
+    <!-- Mobile toggler -->
+    <button class="navbar-toggler border-0 shadow-none" type="button" (click)="toggleMenu()" aria-label="Toggle navigation">
+      <i class="bi" [class.bi-list]="!menuOpen()" [class.bi-x-lg]="menuOpen()"></i>
+    </button>
+
+    <!-- Collapse -->
+    <div class="navbar-collapse" [class.collapse]="!menuOpen()">
+
+      <!-- Center links -->
+      <ul class="navbar-nav mx-auto gap-1 py-2 py-lg-0">
+        @for (link of navLinks; track link.route) {
+          <li class="nav-item">
+            <a class="nav-link px-3"
+              [routerLink]="link.route"
+              routerLinkActive="active"
+              (click)="closeMenu()">
+              {{ isArabic() ? link.label : link.labelEn }}
+            </a>
+          </li>
+        }
+      </ul>
+
+      <!-- Right actions -->
+      <div class="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-2 pb-3 pb-lg-0">
+        <button class="btn btn-sm btn-outline-primary rounded-pill d-none d-lg-inline-flex" type="button" (click)="toggleLang()">
+          🌐 {{ isArabic() ? 'English' : 'العربية' }}
+        </button>
+
+        @if (state.isLoggedIn()) {
+          @if (state.userRole() === 'admin') {
+            <button class="btn btn-sm rounded-pill fw-700" type="button" (click)="goToDashboard()"
+              style="background:linear-gradient(135deg,#F4788A,#C084FC);color:#fff;border:none">
+              🛡️ لوحة الإدارة
+            </button>
+          } @else {
+            <button class="btn btn-primary btn-sm rounded-pill" type="button" (click)="goToDashboard()">
+              {{ state.currentUserName() }}
+            </button>
+          }
+          <button class="btn btn-sm btn-outline-danger rounded-pill d-lg-none" type="button" (click)="logout()">
+            تسجيل الخروج
+          </button>
+        } @else {
+          <button class="btn btn-primary btn-sm rounded-pill" type="button" (click)="goToLogin()">
+            تسجيل الدخول
+          </button>
+          <button class="btn btn-sm btn-outline-primary rounded-pill d-lg-none" type="button" (click)="goToRegister()">
+            إنشاء حساب
+          </button>
+        }
+      </div>
+
+    </div>
+  </div>
+</nav>

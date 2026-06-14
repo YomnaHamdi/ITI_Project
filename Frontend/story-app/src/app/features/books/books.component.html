@@ -1,0 +1,70 @@
+<app-navbar />
+<div dir="rtl" style="min-height:100vh;padding:88px 0 60px;background:var(--bg-base)">
+  <div class="container">
+
+    <!-- Breadcrumb -->
+    <nav class="d-flex align-items-center gap-2 pt-4 mb-3 small fw-600 text-muted">
+      <a routerLink="/levels" class="fw-600 text-decoration-none" style="color:var(--primary)">المستويات</a>
+      <span>›</span>
+      <span>كتب المستوى {{ levelId() }}</span>
+    </nav>
+
+    <!-- Page header -->
+    <div class="mb-4">
+      <h1 class="fw-800 mb-1" style="font-size:32px">كتب المستوى {{ levelId() }}</h1>
+      <p class="text-muted fw-600 mb-0">{{ levelNames[levelId()] }} · {{ lessons().length }} كتاباً</p>
+    </div>
+
+    @if (isLoading()) {
+      <div class="d-flex justify-content-center py-5">
+        <div class="spinner-border" style="color:var(--primary);width:44px;height:44px" role="status"></div>
+      </div>
+    }
+
+    @if (error()) {
+      <div class="alert alert-danger fw-bold">{{ error() }}</div>
+    }
+
+    <!-- Books grid -->
+    <div class="row g-4">
+      @for (lesson of lessons(); track lesson.id; let i = $index) {
+        <div class="col-6 col-md-4 col-lg-3">
+          <div class="card h-100 overflow-hidden book-card">
+
+            <!-- Cover -->
+            <div class="book-cover position-relative d-flex align-items-center justify-content-center"
+                 [style.background]="colorFor(i)" style="height:160px;overflow:hidden">
+              <div class="amiri" style="font-size:80px;line-height:1;user-select:none">{{ lesson.letter || '📖' }}</div>
+              <span class="position-absolute top-0 end-0 m-2 badge rounded-pill fw-800"
+                style="background:var(--primary);color:#fff;font-size:11px;z-index:3">L{{ lesson.level }}</span>
+            </div>
+
+            <!-- Info -->
+            <div class="p-3 d-flex flex-column gap-1 flex-grow-1">
+              <h3 class="fw-800 mb-0" style="font-size:15px;line-height:1.3">{{ lesson.letterName || lesson.letter }}</h3>
+              <div class="small fw-600 text-muted">
+                {{ progressPercent(lesson) > 0 ? progressPercent(lesson) + '٪ مكتمل' : 'لم تبدأ بعد' }}
+              </div>
+              <div class="rounded-pill overflow-hidden mb-1" style="height:6px;background:#F3F4F6">
+                <div class="h-100 rounded-pill" style="background:var(--primary);transition:width .6s"
+                     [style.width.%]="progressPercent(lesson)"></div>
+              </div>
+              <button class="btn btn-primary rounded-pill fw-800 w-100 mt-auto"
+                type="button" (click)="openBook(lesson)">
+                {{ btnLabel(lesson) }}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      }
+
+      @if (!isLoading() && lessons().length === 0 && !error()) {
+        <div class="col-12 text-center py-5 text-muted fw-600">
+          لا توجد كتب لهذا المستوى بعد.
+        </div>
+      }
+    </div>
+
+  </div>
+</div>

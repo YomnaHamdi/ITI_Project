@@ -1,0 +1,125 @@
+<div class="d-flex min-vh-100" dir="rtl" style="background:var(--bg-base)">
+  <app-teacher-sidebar />
+  <main class="flex-grow-1 p-4 d-flex flex-column gap-4" style="overflow-y:auto">
+
+    <h1 class="fw-800 mb-0" style="font-size:24px">✨ مولّد الدروس الذكي</h1>
+
+    <div class="row g-3 align-items-start">
+
+      <!-- Settings panel -->
+      <div class="col-md-6">
+        <div class="card p-4 d-flex flex-column gap-3">
+          <h5 class="fw-800 mb-0">إعدادات التوليد</h5>
+
+          <div class="d-flex flex-column gap-1">
+            <label class="fw-700 small">الموضوع</label>
+            <input class="form-control fw-600" type="text"
+              placeholder="مثلاً: الحيوانات في الغابة"
+              [(ngModel)]="form.topic"
+              (keyup.enter)="generate()" />
+            <div class="d-flex flex-wrap gap-2 mt-1">
+              @for (t of suggestedTopics; track t) {
+                <button class="btn btn-sm rounded-pill fw-700"
+                  style="background:rgba(244,120,138,.05);border:1.5px solid rgba(244,120,138,.2);color:var(--primary);font-size:13px"
+                  type="button" (click)="form.topic = t">{{ t }}</button>
+              }
+            </div>
+          </div>
+
+          <div class="d-flex flex-column gap-1">
+            <label class="fw-700 small">المستوى</label>
+            <select class="form-select fw-600" [(ngModel)]="form.level">
+              @for (lvl of levels; track lvl.value) {
+                <option [ngValue]="lvl.value">{{ lvl.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="d-flex flex-column gap-1">
+            <label class="fw-700 small">الحرف المستهدف (اختياري)</label>
+            <input class="form-control fw-600" type="text" placeholder="مثال: خ" [(ngModel)]="form.letter" maxlength="3" />
+          </div>
+
+          <div class="d-flex flex-column gap-1">
+            <label class="fw-700 small">أسلوب القصة</label>
+            <div class="d-flex gap-2">
+              @for (s of styles; track s.key) {
+                <button class="btn fw-700 flex-fill rounded-3"
+                  [class.btn-primary]="form.style === s.key"
+                  [style.border]="form.style !== s.key ? '2px solid #F3E8FF' : ''"
+                  type="button" (click)="form.style = s.key">
+                  {{ s.emoji }} {{ s.label }}
+                </button>
+              }
+            </div>
+          </div>
+
+          @if (error()) {
+            <div class="alert alert-danger py-2 fw-600 small">⚠️ {{ error() }}</div>
+          }
+
+          <button class="btn btn-primary rounded-pill fw-800 w-100 py-2" style="font-size:16px"
+            type="button" (click)="generate()" [disabled]="isGenerating() || !form.topic.trim()">
+            @if (isGenerating()) { ⏳ جارٍ التوليد... } @else { ✨ أنشئ الدرس }
+          </button>
+        </div>
+      </div>
+
+      <!-- Preview panel -->
+      <div class="col-md-6">
+        <div class="card p-4 d-flex flex-column gap-3">
+
+          @if (!generatedLesson() && !isGenerating()) {
+            <div class="d-flex flex-column align-items-center justify-content-center gap-3 py-5 text-center">
+              <span style="font-size:56px;opacity:.3">✨</span>
+              <p class="text-muted fw-600 mb-0">معاينة الدرس المولّد ستظهر هنا</p>
+            </div>
+          }
+
+          @if (isGenerating()) {
+            <div class="d-flex flex-column align-items-center gap-3 py-5">
+              <div class="d-flex gap-2">
+                <span class="wizard-dot"></span>
+                <span class="wizard-dot" style="animation-delay:.2s"></span>
+                <span class="wizard-dot" style="animation-delay:.4s"></span>
+              </div>
+              <p class="text-muted fw-700 mb-0">يعمل الذكاء الاصطناعي على إنشاء الدرس...</p>
+            </div>
+          }
+
+          @if (generatedLesson(); as lesson) {
+            <div class="d-flex flex-column gap-3">
+              <div class="d-flex flex-column gap-1">
+                <span class="badge rounded-pill fw-800 align-self-start px-3 py-2"
+                  style="background:#F0FFF4;color:#16A34A;border:1.5px solid #86EFAC;font-size:13px">✅ جاهز للمراجعة</span>
+                <h5 class="fw-800 mb-0">{{ lesson.title }}</h5>
+                <p class="small text-muted mb-0">{{ lesson.letter || '' }} · مستوى {{ lesson.level }} · {{ lesson.pages?.length || 0 }} صفحات</p>
+              </div>
+              <div class="d-flex flex-column gap-2">
+                @for (page of (lesson.pages || []).slice(0, 4); track page.pageId) {
+                  @if (!page.isCoverPage) {
+                    <div class="d-flex align-items-center gap-2 p-3 rounded-3"
+                         style="background:rgba(244,120,138,.04);border:1px solid rgba(244,120,138,.1)">
+                      <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0 fw-800 text-white"
+                           style="width:26px;height:26px;background:var(--primary);font-size:12px">{{ page.pageNumber }}</div>
+                      <span class="fw-700" style="font-size:15px">{{ page.sentence }}</span>
+                    </div>
+                  }
+                }
+                @if ((lesson.pages?.length || 0) > 4) {
+                  <p class="small text-muted text-center mb-0">+ {{ lesson.pages.length - 4 }} صفحات أخرى</p>
+                }
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-primary rounded-pill fw-800 flex-fill" type="button" (click)="approveLesson()">✅ موافقة وعرض</button>
+                <button class="btn btn-outline-primary rounded-pill fw-800 flex-fill" type="button" (click)="regenerate()">🔄 إعادة التوليد</button>
+              </div>
+            </div>
+          }
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>

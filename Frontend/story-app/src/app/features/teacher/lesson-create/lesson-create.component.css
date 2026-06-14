@@ -1,0 +1,37 @@
+.pdf-drop-zone {
+  border: 2px dashed rgba(244,120,138,.35);
+  cursor: pointer;
+  background: rgba(244,120,138,.02);
+  transition: .2s;
+}
+.pdf-drop-zone:hover, .pdf-drop-zone.dragging {
+  border-color: var(--primary);
+  background: rgba(244,120,138,.06);
+}
+
+.block-item { border: 1.5px solid #F3E8FF; background: var(--bg-card, #fff); }
+.block-text     { border-color: rgba(244,120,138,.2); }
+.block-image    { border-color: rgba(196,181,253,.3); }
+.block-activity { border-color: rgba(134,239,172,.3); }
+.block-hdr { background: rgba(244,120,138,.03); border-bottom: 1px solid rgba(244,120,138,.06); }
+.bk-btn {
+  width: 26px; height: 26px; border-radius: 6px;
+  border: none; background: #F3F4F6; font-size: 12px; cursor: pointer; transition: .15s;
+}
+.bk-btn:hover:not(:disabled) { background: #E5E7EB; }
+.bk-btn:disabled { opacity: .3; cursor: not-allowed; }
+.bk-btn.danger:hover { background: #FEE2E2; color: #DC2626; }
+.block-input {
+  border: none; background: transparent;
+  font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 600;
+  color: var(--text-dark); resize: vertical; outline: none;
+}
+
+.add-text     { background: rgba(244,120,138,.05); border: 1.5px solid rgba(244,120,138,.3); color: var(--primary); }
+.add-text:hover { background: rgba(244,120,138,.12) !important; }
+.add-image    { background: rgba(196,181,253,.06); border: 1.5px solid rgba(196,181,253,.4); color: #7C3AED; }
+.add-image:hover { background: rgba(196,181,253,.15) !important; }
+.add-audio    { background: rgba(134,239,172,.06); border: 1.5px solid rgba(134,239,172,.4); color: #16A34A; }
+.add-audio:hover { background: rgba(134,239,172,.15) !important; }
+.add-activity { background: rgba(253,230,138,.06); border: 1.5px solid rgba(253,230,138,.5); color: #D97706; }
+.add-activity:hover { background: rgba(253,230,138,.15) !important; }

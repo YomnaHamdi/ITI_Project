@@ -1,0 +1,142 @@
+<div dir="rtl" style="min-height:100vh;background:var(--bg-base)">
+  <app-navbar />
+  <div class="container-xl pt-4 pb-5 d-flex flex-column gap-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <h1 class="fw-800 mb-0" style="font-size:24px">🏫 لوحة المدرسة</h1>
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-secondary rounded-pill px-4 fw-bold" routerLink="/school/teachers">👩‍🏫 المعلمون</a>
+        <a class="btn btn-outline-secondary rounded-pill px-4 fw-bold" routerLink="/school/classrooms">🏫 الفصول</a>
+        <a class="btn btn-outline-primary rounded-pill px-4 fw-bold" routerLink="/school/reports">📊 التقارير</a>
+        <button class="btn btn-outline-danger rounded-pill px-4" (click)="logout()">🚪 خروج</button>
+      </div>
+    </div>
+
+    @if (isLoading()) {
+      <div class="d-flex justify-content-center py-5">
+        <div class="spinner-border" style="color:var(--primary);width:44px;height:44px" role="status"></div>
+      </div>
+    }
+
+    <!-- Hero stat circles -->
+    <div class="row g-3 justify-content-center">
+      @if (data(); as d) {
+        @for (circle of [
+          {val: d.totalStudents, lbl: 'طالب',         c: '#F4788A'},
+          {val: d.totalStories,  lbl: 'قصة',          c: '#A78BFA'},
+          {val: d.totalLessons,  lbl: 'درس',          c: '#34D399'},
+          {val: ((d.avgSchoolScore ?? 0) | number:'1.0-0') + '٪', lbl: 'متوسط التقدم', c: '#FCD34D'}
+        ]; track circle.lbl) {
+          <div class="col-6 col-md-3 d-flex justify-content-center">
+            <div class="d-flex flex-column align-items-center justify-content-center rounded-circle"
+                 [style.border]="'4px solid ' + circle.c"
+                 [style.background]="circle.c + '22'"
+                 style="width:140px;height:140px;gap:4px">
+              <span class="fw-800" style="font-size:28px" [style.color]="circle.c">{{ circle.val }}</span>
+              <span class="fw-700 small text-muted">{{ circle.lbl }}</span>
+            </div>
+          </div>
+        }
+      } @else {
+        @for (circle of [
+          {lbl: 'طالب', c: '#F4788A'},{lbl: 'قصة', c: '#A78BFA'},
+          {lbl: 'درس',  c: '#34D399'},{lbl: 'متوسط التقدم', c: '#FCD34D'}
+        ]; track circle.lbl) {
+          <div class="col-6 col-md-3 d-flex justify-content-center">
+            <div class="d-flex flex-column align-items-center justify-content-center rounded-circle"
+                 [style.border]="'4px solid ' + circle.c"
+                 [style.background]="circle.c + '22'"
+                 style="width:140px;height:140px;gap:4px">
+              <span class="fw-800" style="font-size:28px" [style.color]="circle.c">—</span>
+              <span class="fw-700 small text-muted">{{ circle.lbl }}</span>
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Grid: table + charts -->
+    <div class="row g-3">
+
+      <!-- Classes table -->
+      <div class="col-md-6">
+        <div class="card p-4 h-100">
+          <h5 class="fw-800 mb-3">📋 الفصول الدراسية</h5>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size:14px">
+              <thead>
+                <tr>
+                  <th class="fw-800 text-muted small">الفصل</th>
+                  <th class="fw-800 text-muted small">المعلم</th>
+                  <th class="fw-800 text-muted small text-center">الطلاب</th>
+                  <th class="fw-800 text-muted small">متوسط التقدم</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (cls of classrooms(); track cls.name) {
+                  <tr>
+                    <td class="fw-800">{{ cls.name }}</td>
+                    <td>{{ cls.teacher }}</td>
+                    <td class="text-center fw-semibold">{{ cls.students }}</td>
+                    <td>
+                      <div class="d-flex align-items-center gap-2">
+                        <div class="flex-grow-1 rounded-pill overflow-hidden" style="height:10px;background:#F3F4F6">
+                          <div class="h-100 rounded-pill" style="transition:width .6s"
+                               [style.width.%]="cls.avgProgress"
+                               [style.background]="progressColor(cls.avgProgress)"></div>
+                        </div>
+                        <span class="fw-800 small" style="width:36px" [style.color]="progressColor(cls.avgProgress)">{{ cls.avgProgress }}٪</span>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Level distribution + Class comparison -->
+      <div class="col-md-6">
+        <div class="card p-4 h-100 d-flex flex-column gap-4">
+
+          <div>
+            <h5 class="fw-800 mb-3">📊 توزيع المستويات</h5>
+            <div class="d-flex flex-column gap-2">
+              @for (lv of levelDistribution(); track lv.level) {
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fw-700 small flex-shrink-0" style="width:90px">{{ lv.label }}</span>
+                  <div class="flex-grow-1 rounded-pill overflow-hidden" style="height:20px;background:#F3F4F6">
+                    <div class="h-100 rounded-pill" style="transition:width .8s ease"
+                         [style.width.%]="lv.pct" [style.background]="lv.color"></div>
+                  </div>
+                  <span class="fw-800 small" style="width:36px;text-align:left">{{ lv.pct }}٪</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div>
+            <h5 class="fw-800 mb-3">📊 مقارنة الفصول</h5>
+            <div class="d-flex flex-column gap-2">
+              @for (cls of classrooms(); track cls.name) {
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fw-700 small flex-shrink-0" style="width:60px">{{ cls.name }}</span>
+                  <div class="flex-grow-1 rounded-pill overflow-hidden" style="height:14px;background:#F3F4F6">
+                    <div class="h-100 rounded-pill" style="transition:width .8s ease"
+                         [style.width.%]="barWidth(cls.avgProgress)"
+                         [style.background]="progressColor(cls.avgProgress)"></div>
+                  </div>
+                  <span class="fw-800 small" style="width:36px;text-align:left">{{ cls.avgProgress }}٪</span>
+                </div>
+              }
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

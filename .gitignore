@@ -1,7 +1,23 @@
-.vs/
+# Build artifacts
 bin/
 obj/
 
-appsettings.Development.json
+# VS / IDE
+.vs/
+.idea/
+*.user
+*.suo
 
+# Secrets — never commit
+appsettings.Development.json
+appsettings.*.local.json
+
+# Runtime-generated uploads
 wwwroot/images/
+wwwroot/uploads/
+wwwroot/rag-docs/
+
+# Angular
+Frontend/story-app/.angular/
+Frontend/story-app/node_modules/
+Frontend/story-app/dist/

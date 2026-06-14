@@ -1,0 +1,73 @@
+<div class="min-vh-100 d-flex flex-column align-items-center gap-4" dir="rtl"
+     style="background:var(--bg-base);padding:1rem">
+  @if (isLoading()) { <app-loading message="جارٍ تحليل الكتابة..." /> }
+  @if (error())     { <app-error-toast [message]="error()!" (dismissed)="error.set(null)" /> }
+
+  <header class="d-flex align-items-center justify-content-between w-100" style="max-width:600px;padding:.8rem 0">
+    <button class="btn btn-outline-secondary rounded-pill fw-700" (click)="goBack()">← العودة</button>
+    <h1 class="fw-800 mb-0" style="font-size:clamp(1.2rem,4vw,1.7rem)">✏️ تمرين الكتابة</h1>
+    <div style="width:80px"></div>
+  </header>
+
+  <div class="card p-4 text-center w-100" style="max-width:600px">
+    <p class="small fw-700 mb-2" style="color:var(--primary)">📖 الجملة المطلوبة — صفحة {{ pageNum() }}</p>
+    <p class="fw-800 mb-2" style="font-size:clamp(1.8rem,5vw,2.5rem);direction:rtl;line-height:1.4">{{ sentence() }}</p>
+    <p class="small text-muted fw-600 mb-0">اكتب هذه الجملة على ورقة، ثم التقط صورة لها وارفعها</p>
+  </div>
+
+  @if (result(); as res) {
+    <div class="card p-4 text-center w-100" style="max-width:600px"
+         [style.border-top]="res.isAccepted ? '6px solid #48bb78' : '6px solid #f6ad55'">
+      <div style="font-size:3.5rem" class="mb-2">{{ res.isAccepted ? '🎉' : '😊' }}</div>
+      <p class="fw-800 mb-3" style="font-size:1.2rem">{{ res.message }}</p>
+
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <span class="small fw-700 text-muted text-nowrap">نسبة الدقة</span>
+        <div class="flex-grow-1 rounded-pill overflow-hidden" style="height:12px;background:#e2e8f0">
+          <div class="h-100 rounded-pill" style="transition:width .6s ease"
+               [style.width.%]="res.similarityScore"
+               [style.background]="res.isAccepted ? '#48bb78' : '#f6ad55'"></div>
+        </div>
+        <span class="fw-800 text-nowrap">{{ res.similarityScore.toFixed(0) }}٪</span>
+      </div>
+
+      @if (res.extractedText) {
+        <div class="rounded-3 p-3 text-end mb-3" style="background:#f8faff;border:1.5px solid #e0e7ff">
+          <span class="d-block small fw-700 mb-1" style="color:var(--primary)">ما قرأه الكمبيوتر:</span>
+          <span class="fw-700" style="direction:rtl">{{ res.extractedText }}</span>
+        </div>
+      }
+
+      <div class="d-flex justify-content-center gap-3">
+        @if (res.isAccepted) {
+          <button class="btn rounded-pill fw-800 px-4"
+                  style="background:linear-gradient(135deg,#FFD700,#ff9a00);color:#333;border:none"
+                  (click)="goBack()">📖 العودة للقصة</button>
+        } @else {
+          <button class="btn btn-primary rounded-pill fw-800 px-4"
+                  (click)="tryAgain()">🔄 حاول مرة أخرى</button>
+        }
+      </div>
+    </div>
+
+  } @else {
+    @if (!writingMode()) {
+      <button class="btn btn-primary rounded-pill fw-800 px-5 py-3" style="font-size:1.2rem"
+              (click)="startWriting()">✏️ ابدأ الكتابة</button>
+    } @else {
+      <div class="writing-overlay">
+        <div class="mini-task">{{ sentence() }}</div>
+        <div class="overlay-header">
+          <button class="btn-clear" (click)="clearCanvas()">🗑️ مسح</button>
+          <button class="btn-close-canvas" (click)="finishWriting()">✓ إنهاء الكتابة</button>
+        </div>
+        <div class="canvas-wrapper">
+          <canvas #drawingCanvas width="1400" height="900" class="draw-canvas"></canvas>
+        </div>
+        <button class="btn-submit-canvas" (click)="submit()" [disabled]="!hasDrawing()">
+          ✅ تحقق من الكتابة
+        </button>
+      </div>
+    }
+  }
+</div>

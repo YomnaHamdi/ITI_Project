@@ -1,0 +1,125 @@
+<div dir="rtl" style="min-height:100vh;background:var(--bg-base);padding:60px 16px">
+  @if (isLoading()) {
+    <app-loading message="جارٍ إنشاء قصتك السحرية..." />
+  }
+  @if (error()) {
+    <app-error-toast [message]="error()!" (dismissed)="error.set(null)" />
+  }
+
+  <div class="container" style="max-width:580px">
+
+    <!-- Header -->
+    <div class="text-center mb-4 animate-fade-up">
+      <span class="d-block animate-bounce" style="font-size:56px">☁️</span>
+      <h1 class="fw-800 mb-1" style="font-size:clamp(36px,8vw,56px)">
+        قصتي <span style="color:#F59E0B">✨</span>
+      </h1>
+      <p class="fw-600 text-muted">أنشئ قصة رائعة لطفلك!</p>
+    </div>
+
+    <!-- Card -->
+    <div class="card overflow-hidden">
+      <!-- Rainbow stripe -->
+      <div style="height:7px;background:linear-gradient(90deg,#f5576c,#f093fb,#667eea,#4facfe,#43e97b)"></div>
+
+      <div class="p-4 d-flex flex-column gap-4">
+
+        <!-- Child name -->
+        <div class="d-flex flex-column gap-1">
+          <label class="fw-700 d-flex align-items-center gap-2">
+            <span>👦</span> اسم الطفل
+          </label>
+          <input class="form-control fw-600" type="text" placeholder="مثال: علي، سارة..."
+            [(ngModel)]="form.childName" [disabled]="isLoading()" maxlength="30" />
+        </div>
+
+        <!-- Character name -->
+        <div class="d-flex flex-column gap-1">
+          <label class="fw-700 d-flex align-items-center gap-2">
+            <span>🦸</span> اسم الشخصية
+          </label>
+          <input class="form-control fw-600" type="text" placeholder="مثال: سبايدرمان، سيمبا..."
+            [(ngModel)]="form.character" [disabled]="isLoading()" maxlength="40" />
+        </div>
+
+        <!-- Theme -->
+        <div class="d-flex flex-column gap-2">
+          <label class="fw-700 d-flex align-items-center gap-2">
+            <span>🎨</span> موضوع القصة
+          </label>
+          <div class="gen-theme-grid">
+            @for (t of themes; track t.value) {
+              <button class="gen-chip fw-700" [class.gen-chip-sel]="form.theme === t.value"
+                (click)="selectTheme(t.value)" [disabled]="isLoading()" type="button">
+                {{ t.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Generate -->
+        <button class="btn btn-primary w-100 rounded-pill fw-800 py-3" style="font-size:20px"
+          (click)="submit()" [disabled]="isLoading()" type="button">
+          ✨ اصنع قصتي ✨
+        </button>
+
+        <!-- Secondary actions -->
+        <button class="btn btn-outline-primary w-100 rounded-pill fw-700"
+          (click)="goToLessons()" [disabled]="isLoading()" type="button">
+          📚 دروس الحروف
+        </button>
+
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm rounded-pill fw-700 flex-fill"
+            style="background:rgba(244,120,138,.08);border:1.5px solid rgba(244,120,138,.2);color:var(--primary)"
+            (click)="goToAdmin()" [disabled]="isLoading()" type="button">
+            📥 استيراد PDF
+          </button>
+          <button class="btn btn-sm rounded-pill fw-700 flex-fill"
+            style="background:rgba(244,120,138,.08);border:1.5px solid rgba(244,120,138,.2);color:var(--primary)"
+            (click)="goToAdminRag()" [disabled]="isLoading()" type="button">
+            🧠 قاعدة المعرفة
+          </button>
+        </div>
+
+        <!-- Dashboard nav -->
+        <div class="position-relative text-center small fw-700 text-muted my-1">
+          <span class="px-2" style="background:#fff;position:relative;z-index:1">لوحات المتابعة</span>
+          <div class="position-absolute top-50 start-0 end-0" style="height:1px;background:#E5E7EB;z-index:0"></div>
+        </div>
+        <div class="row g-2">
+          <div class="col-6">
+            <button class="btn w-100 rounded-3 fw-800 text-white"
+              style="background:linear-gradient(135deg,#667eea,#764ba2)"
+              (click)="goTo('/dashboard')" [disabled]="isLoading()">
+              👦 لوحة الطالب
+            </button>
+          </div>
+          <div class="col-6">
+            <button class="btn w-100 rounded-3 fw-800 text-white"
+              style="background:linear-gradient(135deg,#1a1a2e,#16213e)"
+              (click)="goTo('/parent/dashboard')" [disabled]="isLoading()">
+              👪 ولي الأمر
+            </button>
+          </div>
+          <div class="col-6">
+            <button class="btn w-100 rounded-3 fw-800 text-white"
+              style="background:linear-gradient(135deg,#1b4332,#2d6a4f)"
+              (click)="goTo('/teacher/students')" [disabled]="isLoading()">
+              👩‍🏫 المعلم
+            </button>
+          </div>
+          <div class="col-6">
+            <button class="btn w-100 rounded-3 fw-800 text-white"
+              style="background:linear-gradient(135deg,#2d1b69,#11998e)"
+              (click)="goTo('/school/dashboard')" [disabled]="isLoading()">
+              🏫 المدرسة
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

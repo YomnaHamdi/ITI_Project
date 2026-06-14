@@ -1,0 +1,190 @@
+<app-navbar />
+
+<main dir="rtl" style="padding-top:68px">
+
+  <!-- Hero -->
+  <section style="padding:80px 0 60px;background:linear-gradient(180deg,rgba(244,120,138,.04) 0%,transparent 100%)">
+    <div class="container">
+      <div class="row align-items-center g-5">
+
+        <!-- Text -->
+        <div class="col-lg-7 animate-fade-up">
+          <span class="badge rounded-pill fw-700 mb-3 px-3 py-2"
+            style="background:rgba(244,120,138,.08);border:1.5px solid rgba(244,120,138,.2);color:var(--primary);font-size:14px">
+            🏆 منصة تعليم العربية الحائزة على جوائز
+          </span>
+          <h1 class="fw-800 mb-3" style="font-size:clamp(32px,5vw,52px);line-height:1.2">
+            تعلم العربية —
+            <span style="background:var(--primary-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
+              خطوة بخطوة!
+            </span>
+          </h1>
+          <p class="fw-semibold mb-4" style="font-size:18px;color:var(--text-muted);line-height:1.7;max-width:520px">
+            تعلم الحروف والكلمات والجمل العربية مع أنشطة ممتعة وقصص صوتية ومغامرات ذكاء اصطناعي مخصصة.
+          </p>
+          <div class="d-flex gap-3 flex-wrap mb-4">
+            <button class="btn btn-primary rounded-pill fw-800 px-4 py-2" style="font-size:18px" (click)="startNow()">
+              ▶ ابدأ الآن
+            </button>
+            <button class="btn btn-outline-primary rounded-pill fw-800 px-4 py-2" style="font-size:18px" (click)="viewLevels()">
+              📋 عرض المستويات
+            </button>
+          </div>
+          <div class="d-flex gap-4 flex-wrap">
+            @for (stat of stats; track stat.label) {
+              <div class="d-flex flex-column align-items-center gap-1">
+                <span class="fw-800" style="font-size:22px">{{ stat.value }}</span>
+                <span class="fw-600 small text-muted">{{ stat.label }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Mascot -->
+        <div class="col-lg-5 d-flex justify-content-center">
+          <div class="d-flex align-items-center justify-content-center rounded-circle position-relative animate-bounce"
+               style="width:300px;height:300px;background:linear-gradient(135deg,#A7F3D0,#FDE68A)">
+            <span style="font-size:120px;line-height:1">🦁</span>
+            @for (fb of [{t:'أ',pos:'top:10%;left:5%'},{t:'ب',pos:'top:10%;right:5%'},{t:'ج',pos:'bottom:15%;left:0%'},{t:'د',pos:'bottom:10%;right:5%'}]; track fb.t) {
+              <div class="position-absolute d-flex align-items-center justify-content-center rounded-circle fw-800 animate-bounce"
+                   [style]="fb.pos + ';width:48px;height:48px;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.1);font-family:Amiri,serif;font-size:22px;color:var(--primary)'">
+                {{ fb.t }}
+              </div>
+            }
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Learning Journey -->
+  <section class="py-5">
+    <div class="container">
+      <div class="text-center mb-5">
+        <h2 class="fw-800" style="font-size:32px">رحلة التعلم</h2>
+        <p class="text-muted fw-semibold">ثلاثة مستويات مصممة للمتعلمين الصغار</p>
+      </div>
+      <div class="row g-4">
+        @for (level of levels; track level.number) {
+          <div class="col-md-4">
+            <div class="card p-4 h-100 d-flex flex-column gap-2" style="transition:transform .2s ease"
+                 [style.background]="level.locked ? '#F9FAFB' : 'var(--primary-gradient)'"
+                 [style.color]="level.locked ? '' : '#fff'"
+                 (mouseenter)="$any($event.currentTarget).style.transform='translateY(-4px)'"
+                 (mouseleave)="$any($event.currentTarget).style.transform='translateY(0)'">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex align-items-center justify-content-center rounded-circle fw-800"
+                     [style.background]="level.locked ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.2)'"
+                     [style.color]="level.locked ? '#9CA3AF' : '#fff'"
+                     style="width:36px;height:36px;font-size:16px">{{ level.number }}</div>
+                <span style="font-size:28px">{{ level.icon }}</span>
+              </div>
+              @if (level.locked) { <div class="text-center" style="font-size:32px">🔒</div> }
+              <h3 class="fw-800 mb-0" style="font-size:20px" [style.color]="level.locked ? '#9CA3AF' : '#fff'">{{ level.title }}</h3>
+              <p style="font-size:14px;opacity:.85;margin:0" [style.color]="level.locked ? '#9CA3AF' : 'rgba(255,255,255,.9)'">{{ level.subtitle }}</p>
+              @if (!level.locked) {
+                <button class="btn rounded-pill fw-800 mt-2 align-self-start"
+                  style="background:#fff;color:var(--primary);border:none;padding:10px 20px;font-size:15px"
+                  (click)="startNow()">ابدأ التعلم ›</button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="py-5" style="background:rgba(244,120,138,.02)">
+    <div class="container">
+      <div class="text-center mb-5">
+        <h2 class="fw-800" style="font-size:32px">لماذا عربي ممتع؟</h2>
+      </div>
+      <div class="row g-4">
+        @for (feat of features; track feat.title) {
+          <div class="col-sm-6 col-lg-3">
+            <div class="card p-4 text-center d-flex flex-column align-items-center gap-2 h-100">
+              <span style="font-size:40px">{{ feat.icon }}</span>
+              <h4 class="fw-700 mb-0" style="font-size:17px">{{ feat.title }}</h4>
+              <p class="small text-muted mb-0" style="line-height:1.5">{{ feat.subtitle }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Banner -->
+  <section class="py-5">
+    <div class="container">
+      <div class="rounded-4 p-5 text-center d-flex flex-column align-items-center gap-3"
+           style="background:var(--primary-gradient);box-shadow:0 16px 48px rgba(244,120,138,.3)">
+        <h2 class="fw-800 text-white mb-0" style="font-size:32px">هل أنت مستعد؟</h2>
+        <p class="fw-semibold mb-0" style="font-size:18px;color:rgba(255,255,255,.85)">خذ اختبار التحديد وحدد مستواك الآن!</p>
+        <button class="btn rounded-pill fw-800 px-4 py-2"
+          style="background:#fff;color:var(--primary);font-size:18px;box-shadow:0 4px 16px rgba(0,0,0,.15)"
+          (click)="takeFreeTest()">▶ خذ الاختبار المجاني</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing teaser -->
+  <section class="py-5" style="background:rgba(244,120,138,.03)">
+    <div class="container">
+      <div class="text-center mb-4">
+        <h2 class="fw-800 mb-2" style="font-size:28px">💎 خطط الاشتراك</h2>
+        <p class="text-muted fw-600 mb-3">ابدأ مجاناً — وسّّع عند الحاجة</p>
+      </div>
+      <div class="row g-3 justify-content-center">
+        @for (plan of pricingPlans; track plan.name) {
+          <div class="col-sm-6 col-lg-3">
+            <div class="card p-4 h-100 d-flex flex-column align-items-center gap-2 text-center position-relative"
+                 [style.border]="plan.popular ? '2px solid var(--primary)' : '2px solid transparent'">
+              @if (plan.popular) {
+                <span class="badge position-absolute top-0 start-50 translate-middle rounded-pill px-3"
+                  style="background:var(--primary-gradient);font-size:11px;white-space:nowrap">الأكثر شعبية</span>
+              }
+              <span style="font-size:36px">{{ plan.icon }}</span>
+              <h5 class="fw-800 mb-0">{{ plan.name }}</h5>
+              <div class="fw-800" style="font-size:26px;color:var(--primary)">
+                {{ plan.price === 0 ? 'مجاني' : '$' + plan.price + '/شهر' }}
+              </div>
+              <ul class="list-unstyled text-end w-100 d-flex flex-column gap-1 mb-2">
+                @for (f of plan.features; track f) {
+                  <li class="small fw-600">✓ {{ f }}</li>
+                }
+              </ul>
+              <button class="btn rounded-pill fw-800 mt-auto w-100"
+                [class.btn-primary]="plan.popular"
+                [class.btn-outline-primary]="!plan.popular"
+                (click)="goUpgrade()">
+                {{ plan.price === 0 ? 'ابدأ الآن' : 'اشترك الآن' }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-4" style="background:var(--bg-card);border-top:1px solid rgba(244,120,138,.1)">
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-2 fw-800" style="font-size:18px">
+          <div class="d-flex align-items-center justify-content-center rounded-circle"
+               style="width:32px;height:32px;background:var(--primary-gradient);font-size:14px">📚</div>
+          عربي ممتع
+        </div>
+        <div class="d-flex gap-4">
+          <a href="#" class="fw-600 small text-decoration-none" style="color:var(--text-muted)">عن المنصة</a>
+          <a href="#" class="fw-600 small text-decoration-none" style="color:var(--text-muted)">تواصل معنا</a>
+          <a href="#" class="fw-600 small text-decoration-none" style="color:var(--text-muted)">الخصوصية</a>
+        </div>
+        <p class="small text-muted mb-0">© 2025 عربي ممتع</p>
+      </div>
+    </div>
+  </footer>
+
+</main>

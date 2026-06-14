@@ -1,0 +1,76 @@
+<div class="reader-page" dir="rtl">
+
+  @if (isLoading()) {
+    <div class="full-loader">
+      <div class="loader-spinner"></div>
+      <p>جارٍ تحميل الكتاب...</p>
+    </div>
+  }
+
+  @if (story(); as s) {
+    <!-- Top bar -->
+    <header class="reader-topbar">
+      <button class="topbar-btn" type="button" (click)="goBack()">‹ رجوع</button>
+      <div class="topbar-center">
+        <h1 class="topbar-title">{{ s.title || s.letterName }}</h1>
+        <span class="topbar-page">صفحة {{ pageNum() }} من {{ totalPages() }}</span>
+      </div>
+      <button class="audio-btn" [class.playing]="isPlaying()"
+        type="button" (click)="playAudio()">
+        🔊
+        @if (isPlaying()) { <span class="pulse-ring"></span> }
+      </button>
+    </header>
+
+    <!-- Full-width layout -->
+    <div class="reader-body">
+
+      <!-- Content panel -->
+      <main class="content-panel card">
+        @if (activePage(); as page) {
+          <!-- Image -->
+          <div class="content-image-wrap">
+            @if (!imageLoaded()) {
+              <div class="img-placeholder">📖</div>
+            }
+            @if (page.imageUrl || page.imagePath) {
+              <img class="content-img" [class.visible]="imageLoaded()"
+                [src]="imageUrl(page.imageUrl || page.imagePath)"
+                [alt]="page.sentence"
+                (load)="onImgLoad()" />
+            } @else {
+              <div class="placeholder-letter amiri">{{ s.letter || '📖' }}</div>
+            }
+          </div>
+
+          <!-- Sentence -->
+          <div class="sentence-area">
+            <p class="sentence-text amiri">{{ page.sentence }}</p>
+          </div>
+
+          <!-- Read aloud -->
+          <button class="btn btn-primary read-aloud-btn" type="button" (click)="playAudio()">
+            🔊 {{ isPlaying() ? 'إيقاف' : 'اقرأ لي' }}
+          </button>
+
+          <!-- Navigation -->
+          <div class="nav-row">
+            <button class="nav-arrow nav-next" type="button" (click)="next()">
+              @if (isLast()) { 🎉 انتهيت من القصة } @else { التالي ‹ }
+            </button>
+            <div class="page-dots">
+              @for (d of dots(); track d) {
+                <span class="page-dot" [class.active]="d === pageNum()"></span>
+              }
+            </div>
+            <button class="nav-arrow nav-prev" type="button" (click)="prev()" [disabled]="isFirst()">
+              › السابق
+            </button>
+          </div>
+        }
+      </main>
+
+    </div>
+  }
+
+</div>

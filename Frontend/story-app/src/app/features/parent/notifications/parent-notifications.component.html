@@ -1,0 +1,69 @@
+<div dir="rtl" style="min-height:100vh;background:var(--bg-base)">
+  <app-navbar />
+
+  <div class="container" style="max-width:760px;padding-top:88px;padding-bottom:60px">
+
+    <!-- Parent nav tabs -->
+    <nav style="display:flex;gap:6px;margin-bottom:28px;background:var(--bg-card);padding:7px;border-radius:14px;border:1.5px solid rgba(244,120,138,.08)">
+      <a routerLink="/parent/dashboard" routerLinkActive="parent-nav-active" [routerLinkActiveOptions]="{exact:true}"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        🏠 لوحتي
+      </a>
+      <a routerLink="/parent/children" routerLinkActive="parent-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        👨‍👧‍👦 أطفالي
+      </a>
+      <a routerLink="/parent/notifications" routerLinkActive="parent-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        🔔 الإشعارات
+      </a>
+    </nav>
+
+    <div style="margin-bottom:24px">
+      <h2 style="font-size:24px;font-weight:900;margin:0">🔔 الإشعارات والنشاطات</h2>
+      <p style="color:var(--text-muted);font-size:13px;margin-top:4px">آخر أنشطة أطفالك</p>
+    </div>
+
+    @if (isLoading()) {
+      <div style="text-align:center;padding:60px;color:var(--text-muted)">جارٍ التحميل…</div>
+    } @else if (activities().length === 0) {
+      <div style="text-align:center;padding:80px 20px">
+        <div style="font-size:56px;margin-bottom:16px">🔕</div>
+        <h3 style="font-weight:800;margin-bottom:8px">لا توجد إشعارات</h3>
+        <p style="color:var(--text-muted)">ستظهر هنا أنشطة أطفالك عندما يبدأون التعلم</p>
+      </div>
+    } @else {
+      <div style="display:flex;flex-direction:column;gap:12px">
+        @for (act of activities(); track act.occurredAt) {
+          <div style="background:var(--bg-card);border-radius:16px;padding:16px 20px;border:1.5px solid rgba(244,120,138,.08);display:flex;align-items:flex-start;gap:14px">
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#FFE4E8,#EDE9FE);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">
+              {{ activityIcon(act.activityType) }}
+            </div>
+            <div style="flex:1">
+              <div style="font-weight:800;font-size:14px;margin-bottom:4px">
+                <span style="color:var(--primary)">{{ act.childName }}</span>
+                @switch (act.activityType) {
+                  @case ('exam')    { <span> أكمل اختبار </span><span>{{ act.title }}</span> }
+                  @case ('story')   { <span> قرأ قصة </span><span>{{ act.title }}</span> }
+                  @case ('lesson')  { <span> أكمل درس </span><span>{{ act.title }}</span> }
+                  @case ('writing') { <span> أرسل تمرين كتابة في </span><span>{{ act.title }}</span> }
+                  @default          { <span> {{ act.title }}</span> }
+                }
+              </div>
+              @if (act.score != null) {
+                <div style="font-size:12px;margin-bottom:4px">
+                  الدرجة: <strong [style.color]="act.score >= 80 ? '#22C55E' : act.score >= 50 ? '#F59E0B' : '#EF4444'">{{ act.score | number:'1.0-0' }}%</strong>
+                </div>
+              }
+              <div style="font-size:12px;color:var(--text-muted)">{{ formatDate(act.occurredAt) }}</div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<style>
+  .parent-nav-active { background: var(--primary-gradient) !important; color: #fff !important; }
+</style>

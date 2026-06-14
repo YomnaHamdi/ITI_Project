@@ -1,0 +1,35 @@
+<div class="page-wrapper" dir="rtl">
+  <div class="page-header">
+    <h1>الدروس المعيّنة</h1>
+    <p class="subtitle">الدروس التي عيّنها لك المعلم</p>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">جاري التحميل...</div>
+  } @else if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  } @else if (assignments().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">🎓</div>
+      <p>لا توجد دروس معيّنة لك حتى الآن.</p>
+    </div>
+  } @else {
+    <div class="assignments-list">
+      @for (a of assignments(); track a.id) {
+        <div class="assignment-card" (click)="open(a.lessonId)">
+          <div class="assignment-icon">📘</div>
+          <div class="assignment-info">
+            <div class="assignment-title">{{ a.lessonTitle }}</div>
+            <div class="assignment-meta">
+              <span class="pill pill-type">
+                @if (a.targetType === 'Group') { مجموعة } @else { طالب }
+              </span>
+              <span class="pill pill-date">{{ a.assignedAt | date:'yyyy/MM/dd' }}</span>
+            </div>
+          </div>
+          <div class="assignment-arrow">←</div>
+        </div>
+      }
+    </div>
+  }
+</div>

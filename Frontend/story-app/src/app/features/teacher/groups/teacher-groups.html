@@ -1,0 +1,88 @@
+<div class="page-wrapper" dir="rtl">
+  <div class="page-header">
+    <h1>المجموعات الدراسية</h1>
+  </div>
+
+  @if (message()) {
+    <div class="alert alert-success">{{ message() }}</div>
+  }
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+
+  <!-- Create group -->
+  <section class="create-card">
+    <h2>إنشاء مجموعة جديدة</h2>
+    <div class="create-row">
+      <input [(ngModel)]="newGroupName" class="form-control" placeholder="اسم المجموعة" />
+      <button class="btn-primary" (click)="createGroup()">إنشاء</button>
+    </div>
+  </section>
+
+  <!-- Groups list -->
+  @if (loading()) {
+    <div class="loading">جاري التحميل...</div>
+  } @else if (groups().length === 0) {
+    <div class="empty">لا توجد مجموعات بعد.</div>
+  } @else {
+    <div class="groups-list">
+      @for (group of groups(); track group.id) {
+        <div class="group-card">
+          <div class="group-header">
+            <div class="group-title">
+              <span class="group-icon">👥</span>
+              <strong>{{ group.name }}</strong>
+              <span class="badge">{{ group.memberCount }} طالب</span>
+            </div>
+            <button class="btn-danger-sm" (click)="deleteGroup(group.id)">حذف المجموعة</button>
+          </div>
+
+          <!-- Members list -->
+          <div class="members-list">
+            @if (group.members.length === 0) {
+              <p class="no-members">لا يوجد أعضاء بعد.</p>
+            }
+            @for (member of group.members; track member.studentId) {
+              <div class="member-row">
+                <span>{{ member.studentName }}</span>
+                <button class="btn-remove" (click)="removeMember(group.id, member.studentId)">إزالة</button>
+              </div>
+            }
+          </div>
+
+          <!-- Add member -->
+          <div class="add-member-row">
+            <input [(ngModel)]="addStudentId[group.id]" class="form-control form-sm"
+                   placeholder="معرّف الطالب (UUID)" />
+            <button class="btn-outline-sm" (click)="addMember(group.id)">إضافة طالب</button>
+          </div>
+
+          <!-- Assign lesson -->
+          <div class="assign-section" (click)="initAssignForm(group.id)">
+            @if (assignForm[group.id]) {
+              <div class="assign-row">
+                <select [(ngModel)]="assignForm[group.id].lessonId" class="form-control form-sm">
+                  <option value="">-- اختر درساً --</option>
+                  @for (lesson of lessons(); track lesson.id) {
+                    <option [value]="lesson.id">{{ lesson.title }}</option>
+                  }
+                </select>
+                <select [(ngModel)]="assignForm[group.id].type" class="form-control form-sm">
+                  <option value="Group">للمجموعة كلها</option>
+                  <option value="Student">لطالب محدد</option>
+                </select>
+                @if (assignForm[group.id].type === 'Student') {
+                  <input [(ngModel)]="assignForm[group.id].studentId" class="form-control form-sm"
+                         placeholder="معرّف الطالب" />
+                }
+                <button class="btn-primary-sm" (click)="assignLesson(group.id)">تعيين</button>
+              </div>
+            } @else {
+              <button class="btn-outline-sm" (click)="initAssignForm(group.id)">تعيين درس</button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

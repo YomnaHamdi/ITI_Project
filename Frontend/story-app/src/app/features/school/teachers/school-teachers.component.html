@@ -1,0 +1,77 @@
+<div dir="rtl" style="min-height:100vh;background:var(--bg-base)">
+  <app-navbar />
+
+  <div class="container" style="max-width:960px;padding-top:88px;padding-bottom:60px">
+
+    <!-- School nav tabs -->
+    <nav style="display:flex;gap:6px;margin-bottom:28px;background:var(--bg-card);padding:7px;border-radius:14px;border:1.5px solid rgba(244,120,138,.08)">
+      <a routerLink="/school/dashboard" routerLinkActive="school-nav-active" [routerLinkActiveOptions]="{exact:true}"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        🏠 لوحة المدرسة
+      </a>
+      <a routerLink="/school/teachers" routerLinkActive="school-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        👩‍🏫 المعلمون
+      </a>
+      <a routerLink="/school/classrooms" routerLinkActive="school-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        🏫 الفصول
+      </a>
+      <a routerLink="/school/reports" routerLinkActive="school-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        📊 التقارير
+      </a>
+    </nav>
+
+    <div style="margin-bottom:24px">
+      <h2 style="font-size:24px;font-weight:900;margin:0">👩‍🏫 المعلمون</h2>
+      <p style="color:var(--text-muted);font-size:13px;margin-top:4px">{{ teachers().length }} معلم في المدرسة</p>
+    </div>
+
+    <!-- Search -->
+    <input type="text" [value]="searchTerm()" (input)="setSearch($any($event.target).value)"
+           placeholder="بحث بالاسم أو البريد الإلكتروني…"
+           class="form-control mb-4" style="max-width:400px;border-radius:12px;font-size:13px" />
+
+    @if (isLoading()) {
+      <div style="text-align:center;padding:60px;color:var(--text-muted)">جارٍ التحميل…</div>
+    } @else {
+      <div style="background:var(--bg-card);border-radius:18px;overflow:hidden;border:1.5px solid rgba(244,120,138,.08)">
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:rgba(244,120,138,.05)">
+              @for (h of ['المعلم','المادة','الطلاب','متوسط الدرجات','تاريخ الانضمام']; track h) {
+                <th style="padding:14px 16px;font-size:13px;font-weight:800;color:var(--text-muted);text-align:right">{{ h }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (t of filtered(); track t.id) {
+              <tr style="border-top:1px solid rgba(244,120,138,.06)">
+                <td style="padding:14px 16px">
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#FFE4E8,#EDE9FE);display:flex;align-items:center;justify-content:center;font-size:16px">👩‍🏫</div>
+                    <div>
+                      <div style="font-weight:800;font-size:14px">{{ t.name }}</div>
+                      <div style="font-size:11px;color:var(--text-muted)">{{ t.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td style="padding:14px 16px;font-size:13px;font-weight:700">{{ t.subject }}</td>
+                <td style="padding:14px 16px;font-size:14px;font-weight:800;color:var(--primary)">{{ t.students }}</td>
+                <td style="padding:14px 16px">
+                  <span style="font-size:14px;font-weight:900" [style.color]="scoreColor(t.avgScore)">{{ t.avgScore }}%</span>
+                </td>
+                <td style="padding:14px 16px;font-size:12px;color:var(--text-muted)">{{ t.joinedAt }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+
+<style>
+  .school-nav-active { background: var(--primary-gradient) !important; color: #fff !important; }
+</style>

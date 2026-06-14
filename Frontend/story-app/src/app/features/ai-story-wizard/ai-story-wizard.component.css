@@ -1,0 +1,66 @@
+.wizard-step-circle {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: #F3F4F6;
+  color: #9CA3AF;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  border: 2.5px solid transparent;
+  transition: all .3s ease;
+}
+.wizard-step-circle.step-active {
+  background: var(--primary-gradient);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(244,120,138,.35);
+}
+.wizard-step-circle.step-done {
+  background: #F0FFF4;
+  color: #16A34A;
+  border-color: #86EFAC;
+}
+.wizard-step-line {
+  width: 60px; height: 3px;
+  background: #F3F4F6;
+  border-radius: 2px;
+  transition: background .3s ease;
+}
+.wizard-step-line.line-done { background: #86EFAC; }
+
+.wizard-pick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.wizard-pick-btn {
+  padding: 18px 12px;
+  border-radius: 18px;
+  border: 2.5px solid #F3E8FF;
+  background: var(--bg-card, #fff);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: all .2s ease;
+}
+.wizard-pick-btn:hover {
+  border-color: rgba(244,120,138,.4);
+  transform: translateY(-2px);
+}
+.wizard-pick-btn.picked {
+  border-color: var(--primary);
+  background: rgba(244,120,138,.06);
+  box-shadow: 0 0 0 4px rgba(244,120,138,.15);
+}
+
+.wizard-dot {
+  display: inline-block;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: dot-bounce 1.2s ease infinite;
+}
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: scale(1); opacity: .6; }
+  40%            { transform: scale(1.4); opacity: 1; }
+}

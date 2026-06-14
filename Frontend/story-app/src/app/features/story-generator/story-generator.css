@@ -1,0 +1,26 @@
+.gen-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.gen-chip {
+  padding: 10px 8px;
+  border-radius: 12px;
+  border: 2.5px solid #E0E7FF;
+  background: #F8FAFF;
+  font-family: 'Cairo', sans-serif;
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+  transition: all .15s;
+}
+.gen-chip:hover:not(:disabled) {
+  border-color: #667EEA;
+  background: #EEF2FF;
+  transform: scale(1.04);
+}
+.gen-chip.gen-chip-sel {
+  border-color: var(--primary) !important;
+  background: var(--primary-gradient) !important;
+  color: #fff !important;
+}

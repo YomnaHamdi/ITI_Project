@@ -1,0 +1,74 @@
+<div dir="rtl" style="min-height:100vh;background:var(--bg-base);display:flex">
+
+  <!-- Sidebar nav -->
+  <aside style="width:210px;flex-shrink:0;background:var(--bg-card);border-left:1.5px solid rgba(244,120,138,.1);padding:24px 14px;display:flex;flex-direction:column;gap:6px;height:100vh;position:sticky;top:0">
+    <div style="font-size:22px;font-weight:900;padding:8px 4px 18px;background:var(--primary-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent">لغتي ✨</div>
+    @for (item of navItems; track item.route) {
+      <a [routerLink]="item.route" routerLinkActive="active-nav"
+         style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:700;color:var(--text-muted);transition:.2s">
+        <span>{{ item.icon }}</span><span>{{ item.label }}</span>
+      </a>
+    }
+    <div style="margin-top:auto;padding-top:16px;border-top:1px solid rgba(244,120,138,.08)">
+      <button (click)="logout()"
+              style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;border:none;background:none;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;color:#EF4444;cursor:pointer;width:100%;transition:.2s">
+        🚪 تسجيل الخروج
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main style="flex:1;padding:32px 24px;max-width:900px">
+
+    <h2 style="font-size:24px;font-weight:900;margin-bottom:24px">📋 سجل تقدّمي</h2>
+
+    @if (isLoading()) {
+      <div style="text-align:center;padding:60px;color:var(--text-muted)">جارٍ التحميل…</div>
+    } @else if (error()) {
+      <div class="alert" style="background:#FEF2F2;border:1.5px solid #FECACA;color:#DC2626;border-radius:14px;padding:16px">{{ error() }}</div>
+    } @else if (data()) {
+      <!-- Stats row -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:28px">
+        @for (stat of [
+          { icon:'⭐', val: data()!.stars,            label:'النجوم' },
+          { icon:'📖', val: data()!.storiesRead,       label:'القصص المقروءة' },
+          { icon:'✏️', val: data()!.lessonsCompleted,  label:'الدروس المكتملة' },
+          { icon:'🎯', val: data()!.examsCompleted,    label:'الاختبارات' },
+          { icon:'📊', val: data()!.avgScore,          label:'متوسط الدرجات %' }
+        ]; track stat.label) {
+          <div style="background:var(--bg-card);border-radius:16px;padding:18px;text-align:center;border:1.5px solid rgba(244,120,138,.08)">
+            <div style="font-size:28px">{{ stat.icon }}</div>
+            <div style="font-size:26px;font-weight:900;color:var(--primary)">{{ stat.val | number:'1.0-0' }}</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:4px">{{ stat.label }}</div>
+          </div>
+        }
+      </div>
+
+      <!-- Exam History -->
+      <div style="background:var(--bg-card);border-radius:18px;padding:24px;border:1.5px solid rgba(244,120,138,.08)">
+        <h4 style="font-weight:800;font-size:16px;margin-bottom:16px">📝 سجل الاختبارات</h4>
+        @if ((data()?.examHistory?.length ?? 0) === 0) {
+          <div style="text-align:center;padding:32px;color:var(--text-muted)">لم تكمل أي اختبار بعد. ابدأ رحلتك! 🚀</div>
+        } @else {
+          <div style="display:flex;flex-direction:column;gap:10px">
+            @for (exam of data()!.examHistory; track exam.storyTitle) {
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--bg-base);border-radius:12px">
+                <div>
+                  <div style="font-weight:800;font-size:14px">{{ exam.storyTitle }}</div>
+                  <div style="font-size:12px;color:var(--text-muted);margin-top:4px">{{ formatDate(exam.completedAt) }}</div>
+                </div>
+                <div style="font-size:20px;font-weight:900" [style.color]="scoreColor(exam.score)">
+                  {{ exam.score | number:'1.0-0' }}%
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </main>
+</div>
+
+<style>
+  .active-nav { background: rgba(244,120,138,.1) !important; color: var(--primary) !important; }
+</style>

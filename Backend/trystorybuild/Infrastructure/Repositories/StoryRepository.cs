@@ -240,5 +240,143 @@ namespace Infrastructure.Repositories
             }
         }
 
+        // ── LevelWordConfig Repository ─────────────────────────────────────────────────
+        public class LevelWordConfigRepository(AppDbContext db) : ILevelWordConfigRepository
+        {
+            public async Task<int> GetWordCountAsync(int level)
+            {
+                var cfg = await db.LevelWordConfigs.FindAsync(level);
+                return cfg?.WordCount ?? (level == 1 ? 2 : level == 2 ? 3 : 5);
+            }
+
+            public async Task UpsertAsync(int level, int wordCount, string exampleSentence)
+            {
+                var existing = await db.LevelWordConfigs.FindAsync(level);
+                if (existing is null)
+                    db.LevelWordConfigs.Add(new LevelWordConfig { Level = level, WordCount = wordCount, ExampleSentence = exampleSentence });
+                else
+                {
+                    existing.WordCount = wordCount;
+                    existing.ExampleSentence = exampleSentence;
+                    existing.UpdatedAt = DateTime.UtcNow;
+                }
+                await db.SaveChangesAsync();
+            }
+
+            public async Task<List<LevelWordConfig>> GetAllAsync() =>
+                await db.LevelWordConfigs.OrderBy(c => c.Level).ToListAsync();
+        }
+
+        // ── RagPageChunk Repository ────────────────────────────────────────────────────
+        public class RagPageChunkRepository(AppDbContext db) : IRagPageChunkRepository
+        {
+            public async Task<RagPageChunk> SaveAsync(RagPageChunk chunk)
+            {
+                db.RagPageChunks.Add(chunk);
+                await db.SaveChangesAsync();
+                return chunk;
+            }
+
+            public async Task<List<RagPageChunk>> GetAllAsync(int? level = null, string? letter = null)
+            {
+                var query = db.RagPageChunks.AsQueryable();
+                if (level.HasValue) query = query.Where(c => c.Level == level.Value);
+                if (!string.IsNullOrWhiteSpace(letter)) query = query.Where(c => c.Letter == letter);
+                return await query.OrderBy(c => c.Level).ThenBy(c => c.Letter).ThenBy(c => c.PageNumber).ToListAsync();
+            }
+
+            public async Task DeleteBySourceFileAsync(string sourceFile)
+            {
+                var chunks = await db.RagPageChunks.Where(c => c.SourceFile == sourceFile).ToListAsync();
+                db.RagPageChunks.RemoveRange(chunks);
+                await db.SaveChangesAsync();
+            }
+        }
+
+        // ── StudentGroup Repository ────────────────────────────────────────────────────
+        public class StudentGroupRepository(AppDbContext db) : IStudentGroupRepository
+        {
+            public async Task<StudentGroup> SaveAsync(StudentGroup group)
+            {
+                db.StudentGroups.Add(group);
+                await db.SaveChangesAsync();
+                return group;
+            }
+
+            public async Task<StudentGroup?> GetByIdAsync(Guid id) =>
+                await db.StudentGroups
+                    .Include(g => g.Members).ThenInclude(m => m.Student)
+                    .FirstOrDefaultAsync(g => g.Id == id);
+
+            public async Task<List<StudentGroup>> GetByTeacherIdAsync(Guid teacherId) =>
+                await db.StudentGroups
+                    .Include(g => g.Members).ThenInclude(m => m.Student)
+                    .Where(g => g.TeacherId == teacherId)
+                    .OrderBy(g => g.Name)
+                    .ToListAsync();
+
+            public async Task<bool> AddMemberAsync(Guid groupId, Guid studentId)
+            {
+                var exists = await db.StudentGroupMembers.AnyAsync(m => m.GroupId == groupId && m.StudentId == studentId);
+                if (exists) return false;
+                db.StudentGroupMembers.Add(new StudentGroupMember { GroupId = groupId, StudentId = studentId });
+                await db.SaveChangesAsync();
+                return true;
+            }
+
+            public async Task<bool> RemoveMemberAsync(Guid groupId, Guid studentId)
+            {
+                var member = await db.StudentGroupMembers.FindAsync(groupId, studentId);
+                if (member is null) return false;
+                db.StudentGroupMembers.Remove(member);
+                await db.SaveChangesAsync();
+                return true;
+            }
+
+            public async Task<bool> DeleteAsync(Guid id)
+            {
+                var group = await db.StudentGroups.FindAsync(id);
+                if (group is null) return false;
+                db.StudentGroups.Remove(group);
+                await db.SaveChangesAsync();
+                return true;
+            }
+
+            public async Task<List<StudentGroup>> GetGroupsForStudentAsync(Guid studentId) =>
+                await db.StudentGroups
+                    .Include(g => g.Members)
+                    .Where(g => g.Members.Any(m => m.StudentId == studentId))
+                    .ToListAsync();
+        }
+
+        // ── LessonAssignment Repository ────────────────────────────────────────────────
+        public class LessonAssignmentRepository(AppDbContext db) : ILessonAssignmentRepository
+        {
+            public async Task<LessonAssignment> SaveAsync(LessonAssignment assignment)
+            {
+                db.LessonAssignments.Add(assignment);
+                await db.SaveChangesAsync();
+                return assignment;
+            }
+
+            public async Task<List<LessonAssignment>> GetForStudentAsync(Guid studentId, List<Guid> groupIds)
+            {
+                return await db.LessonAssignments
+                    .Include(a => a.Lesson)
+                    .Where(a =>
+                        (a.TargetType == "Student" && a.TargetStudentId == studentId) ||
+                        (a.TargetType == "Group" && a.TargetGroupId != null && groupIds.Contains(a.TargetGroupId.Value)))
+                    .OrderByDescending(a => a.AssignedAt)
+                    .ToListAsync();
+            }
+
+            public async Task<List<LessonAssignment>> GetByTeacherAsync(Guid teacherId) =>
+                await db.LessonAssignments
+                    .Include(a => a.Lesson)
+                    .Where(a => a.TeacherId == teacherId)
+                    .OrderByDescending(a => a.AssignedAt)
+                    .ToListAsync();
+        }
+
     }
 

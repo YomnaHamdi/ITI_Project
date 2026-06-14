@@ -1,0 +1,74 @@
+<div class="min-vh-100 d-flex flex-column align-items-center gap-4 py-4 px-3" dir="rtl">
+
+  <!-- Top bar -->
+  <div class="d-flex align-items-center gap-3 w-100" style="max-width:680px">
+    <button class="btn btn-primary rounded-circle p-0 flex-shrink-0 audio-btn"
+      [class.playing]="isPlaying()" type="button" (click)="speakQuestion()"
+      style="width:52px;height:52px;font-size:22px;border:none">
+      🔊
+    </button>
+    <div class="flex-grow-1">
+      <div class="d-flex justify-content-between small fw-bold text-muted mb-1">
+        <span>السؤال {{ currentIdx() + 1 }} من {{ total() }}</span>
+        <span>{{ partLabel() }}</span>
+      </div>
+      <div class="progress" style="height:10px;border-radius:999px">
+        <div class="progress-bar" style="background:var(--primary-gradient);border-radius:999px;transition:width .4s ease"
+          [style.width.%]="progress()"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Question card -->
+  @if (currentQ()) {
+    <div class="card animate-fade-up w-100 overflow-hidden position-relative pb-4 d-flex flex-column" style="max-width:680px">
+
+      <!-- Image area -->
+      <div class="d-flex flex-column align-items-center justify-content-center gap-2"
+           style="background:linear-gradient(135deg,#FFE4E8,#F3E8FF);min-height:200px;padding:40px 20px">
+        @if (isAudioOnly()) {
+          <!-- Audio-only: show a pulsing speaker, hide the letter -->
+          <div class="audio-only-icon" [class.playing]="isPlaying()" (click)="speakQuestion()">
+            🔊
+          </div>
+          <p class="fw-800 mb-0" style="font-size:15px;color:var(--primary)">استمع ثم اختر الحرف</p>
+        } @else {
+          <div class="amiri" style="font-size:clamp(72px,18vw,140px);line-height:1;user-select:none">
+            {{ currentQ().imageContent }}
+          </div>
+        }
+      </div>
+
+      <!-- Question text -->
+      <h2 class="text-center fw-bold px-4 pt-4 pb-2 mb-0" style="font-size:clamp(18px,4vw,26px)">
+        {{ currentQ().questionText }}
+      </h2>
+
+      <!-- Options -->
+      <div class="options-grid">
+        @for (opt of currentQ().options; track opt.key) {
+          <button [class]="optionClass(opt.key)" type="button" (click)="selectOption(opt.key)">
+            {{ opt.label }}
+          </button>
+        }
+      </div>
+
+      <!-- Feedback toast -->
+      @if (showFeedback()) {
+        <div class="feedback-toast animate-pop"
+          [class.good]="selected() === currentQ().correctAnswer"
+          [class.bad]="selected() !== currentQ().correctAnswer">
+          {{ feedbackText() }}
+        </div>
+      }
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="d-flex flex-column align-items-center gap-3 py-5">
+      <div class="spinner-border" style="color:var(--primary);width:44px;height:44px" role="status"></div>
+      <p class="fw-bold text-muted">جارٍ تحميل الأسئلة...</p>
+    </div>
+  }
+
+</div>

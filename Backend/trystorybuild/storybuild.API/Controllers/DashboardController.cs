@@ -53,5 +53,13 @@ namespace storybuild.API.Controllers
             var names = await dashboardService.GetKnownChildNamesAsync();
             return Ok(names);
         }
+
+        [HttpGet("levels/progress/{childName}")]
+        [ProducesResponseType(typeof(List<LevelProgressDto>), 200)]
+        public async Task<IActionResult> GetLevelProgress(string childName)
+        {
+            var data = await dashboardService.GetLevelProgressAsync(childName);
+            return Ok(data);
+        }
     }
 }

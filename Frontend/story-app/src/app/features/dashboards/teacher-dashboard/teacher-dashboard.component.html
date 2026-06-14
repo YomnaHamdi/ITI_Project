@@ -1,0 +1,160 @@
+<div class="d-flex min-vh-100" dir="rtl">
+  <app-teacher-sidebar />
+
+  <main class="flex-grow-1 p-3 p-md-4 d-flex flex-column gap-4" style="min-width:0;overflow-y:auto">
+
+    <!-- Topbar -->
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <h1 class="fw-800 mb-0" style="font-size:24px">👥 طلابي</h1>
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-primary rounded-pill px-4 fw-bold" routerLink="/teacher/lessons/create">
+          <i class="bi bi-plus-circle me-1"></i> إنشاء درس
+        </a>
+        <a class="btn btn-outline-secondary rounded-pill px-4 fw-bold" routerLink="/teacher/reports">
+          <i class="bi bi-bar-chart me-1"></i> التقارير
+        </a>
+        <button class="btn btn-primary rounded-pill px-4 fw-bold" type="button" (click)="addStudent()">
+          <i class="bi bi-person-plus-fill me-1"></i> أضف طالباً
+        </button>
+      </div>
+    </div>
+
+    @if (isLoading()) {
+      <div class="d-flex justify-content-center py-5">
+        <div class="spinner-border" style="color:var(--primary);width:44px;height:44px" role="status"></div>
+      </div>
+    }
+
+    @if (data(); as d) {
+
+      <!-- Stats -->
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <div class="card p-4 text-center d-flex flex-column align-items-center gap-1 h-100">
+            <span style="font-size:26px">👥</span>
+            <span class="fw-800 fs-3" style="color:#16A34A">{{ d.totalStudents }}</span>
+            <span class="small fw-semibold text-muted">الطلاب</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card p-4 text-center d-flex flex-column align-items-center gap-1 h-100">
+            <span style="font-size:26px">📊</span>
+            <span class="fw-800 fs-3" style="color:var(--primary)">{{ d.avgClassScore | number:'1.0-0' }}٪</span>
+            <span class="small fw-semibold text-muted">متوسط الأداء</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card p-4 text-center d-flex flex-column align-items-center gap-1 h-100">
+            <span style="font-size:26px">📝</span>
+            <span class="fw-800 fs-3" style="color:#7C3AED">{{ d.activeThisWeek }}</span>
+            <span class="small fw-semibold text-muted">نشطون هذا الأسبوع</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card p-4 text-center d-flex flex-column align-items-center gap-1 h-100">
+            <span style="font-size:26px">⭐</span>
+            <span class="fw-800 fs-3" style="color:#D97706">{{ d.topContent?.length ?? 0 }}</span>
+            <span class="small fw-semibold text-muted">دروس نشطة</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Performance bands -->
+      @if (d.performanceBands?.length) {
+        <div class="card p-4">
+          <h5 class="fw-800 mb-3">📈 توزيع مستويات الفصل</h5>
+          <div class="d-flex gap-3 flex-wrap">
+            @for (band of d.performanceBands; track band.band) {
+              <div class="d-flex flex-column align-items-center gap-1 flex-grow-1"
+                   style="min-width:80px;background:#F9FAFB;border-radius:12px;padding:12px 8px">
+                <span class="fw-800 fs-4" [style.color]="band.band === 'ممتاز' ? '#16A34A' : band.band === 'جيد' ? '#D97706' : '#DC2626'">
+                  {{ band.count }}
+                </span>
+                <span class="small fw-bold text-muted">{{ band.band }}</span>
+                <div class="rounded-pill overflow-hidden w-100" style="height:6px;background:#E5E7EB">
+                  <div class="h-100 rounded-pill" style="transition:width .6s"
+                       [style.width.%]="d.totalStudents > 0 ? (band.count / d.totalStudents * 100) : 0"
+                       [style.background]="band.band === 'ممتاز' ? '#22C55E' : band.band === 'جيد' ? '#F59E0B' : '#EF4444'"></div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Search -->
+      <div style="max-width:340px">
+        <input class="form-control" type="text" placeholder="ابحث باسم الطالب..."
+          [value]="searchTerm()"
+          (input)="searchTerm.set($any($event.target).value)" />
+      </div>
+
+      <!-- Students table -->
+      <div class="card overflow-hidden p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 align-middle" style="font-size:14px">
+            <thead>
+              <tr style="border-bottom:2px solid rgba(244,120,138,.12)">
+                <th class="fw-800 px-4 py-3" style="color:var(--primary);white-space:nowrap">الاسم</th>
+                <th class="fw-800 px-4 py-3" style="color:var(--primary);white-space:nowrap">المستوى</th>
+                <th class="fw-800 px-4 py-3" style="color:var(--primary);white-space:nowrap">التقدم</th>
+                <th class="fw-800 px-4 py-3" style="color:var(--primary);white-space:nowrap">آخر نشاط</th>
+                <th class="fw-800 px-4 py-3" style="color:var(--primary)">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (filteredStudents().length === 0) {
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-5 fw-semibold">لا يوجد طلاب بعد.</td>
+                </tr>
+              }
+              @for (s of filteredStudents(); track s.childName) {
+                <tr>
+                  <td class="px-4 py-3">
+                    <div class="d-flex align-items-center gap-2 fw-800">
+                      <div class="d-flex align-items-center justify-content-center rounded-circle fw-800 flex-shrink-0"
+                           style="width:36px;height:36px;background:linear-gradient(135deg,#FFE4E8,#F3E8FF);font-size:16px">
+                        {{ s.childName.charAt(0) }}
+                      </div>
+                      {{ s.childName }}
+                    </div>
+                  </td>
+                  <td class="px-4 py-3">
+                    <span class="badge rounded-pill fw-800"
+                      [style.background]="levelColor(s.performanceLevel) + '18'"
+                      [style.color]="levelColor(s.performanceLevel)"
+                      style="font-size:12px;padding:5px 12px">
+                      {{ s.performanceLevel || 'مبتدئ' }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="flex-grow-1 rounded-pill overflow-hidden" style="height:8px;background:#F3F4F6;max-width:120px">
+                        <div class="h-100 rounded-pill" style="transition:width .6s ease"
+                             [style.width.%]="s.avgScore"
+                             [style.background]="progressColor(s.avgScore)"></div>
+                      </div>
+                      <span class="fw-800 small" [style.color]="progressColor(s.avgScore)">
+                        {{ s.avgScore | number:'1.0-0' }}٪
+                      </span>
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 small fw-semibold text-muted">{{ lastActiveLabel(s.lastActivity) }}</td>
+                  <td class="px-4 py-3">
+                    <button class="btn btn-sm rounded-pill fw-800"
+                      style="border:2px solid rgba(244,120,138,.3);color:var(--primary);background:transparent"
+                      type="button" (click)="viewStudent(s.childName)">
+                      عرض
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    }
+
+  </main>
+</div>

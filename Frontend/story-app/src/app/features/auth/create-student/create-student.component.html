@@ -1,0 +1,84 @@
+<div class="min-vh-100 d-flex align-items-center justify-content-center py-5" dir="rtl">
+  <div class="card p-4 p-md-5 w-100" style="max-width:520px">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" type="button" (click)="goBack()">
+        ‹ رجوع
+      </button>
+      <h1 class="fs-4 fw-bold mb-0">➕ إضافة طفل</h1>
+    </div>
+    <p class="text-muted small mb-4">أنشئ حساباً لطفلك وحدد رمز دخوله</p>
+
+    @if (done()) {
+      <div class="text-center animate-pop d-flex flex-column align-items-center gap-3 py-3">
+        <div style="font-size:64px">🎉</div>
+        <p class="fw-bold mb-0">تم إنشاء حساب <strong>{{ form.name }}</strong> بنجاح!</p>
+      </div>
+    } @else {
+      <form (ngSubmit)="submit()">
+
+        <div class="mb-3">
+          <label class="form-label fw-bold small mb-1">اسم الطفل</label>
+          <input class="form-control" [(ngModel)]="form.name" name="name" placeholder="مثال: محمد" required />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold small mb-1">العمر</label>
+          <input class="form-control" type="number" [(ngModel)]="form.age" name="age" min="4" max="16" />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold small mb-1">اسم المستخدم (يُستخدم للدخول)</label>
+          <input class="form-control" [(ngModel)]="form.username" name="username" placeholder="مثال: ahmed2020" dir="ltr" />
+          <div class="form-text">أحرف إنجليزية وأرقام فقط</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold small mb-1">المستوى الابتدائي</label>
+          <div class="d-flex gap-2">
+            @for (l of [1,2,3]; track l) {
+              <button type="button"
+                class="btn btn-sm rounded-pill flex-fill"
+                [class.btn-primary]="form.level === l"
+                [class.btn-outline-secondary]="form.level !== l"
+                (click)="form.level = l">
+                المستوى {{ l }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-bold small mb-1">رمز الدخول (اختر 1 أو 2 صورة)</label>
+          <p class="form-text mt-0 mb-2">الطفل سيستخدم هذه الصور لتسجيل الدخول بدلاً من كلمة مرور</p>
+          <div class="image-pin-grid">
+            @for (icon of icons; track icon.id) {
+              <button type="button"
+                class="img-pin-btn"
+                [class.selected]="pinSelected(icon.id)"
+                (click)="togglePin(icon.id)">
+                <span class="img-emoji">{{ icon.emoji }}</span>
+                @if (pinSelected(icon.id)) {
+                  <span class="img-order">{{ pinOrder(icon.id) }}</span>
+                }
+              </button>
+            }
+          </div>
+          @if (selectedPins().length > 0) {
+            <p class="mt-2 small fw-bold mb-0">
+              الرمز المختار:
+              @for (id of selectedPins(); track id) { <span style="font-size:20px">{{ icons[id-1].emoji }}</span> }
+            </p>
+          }
+        </div>
+
+        @if (error()) {
+          <div class="alert alert-danger py-2 small">{{ error() }}</div>
+        }
+
+        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2" [disabled]="isLoading()">
+          {{ isLoading() ? 'جارٍ الحفظ...' : '💾 حفظ الحساب' }}
+        </button>
+      </form>
+    }
+  </div>
+</div>

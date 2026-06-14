@@ -1,0 +1,63 @@
+/* ── Placement question-specific styles ──────────────────────────────────── */
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 8px 24px 16px;
+}
+
+.opt-btn {
+  padding: 18px 12px;
+  border-radius: 16px;
+  border: 2.5px solid #F3E8FF;
+  background: #fff;
+  font-family: 'Cairo', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+.opt-btn:hover { border-color: var(--primary-light); background: #FFF0F3; transform: translateY(-2px); }
+.opt-btn.correct { border-color: #22C55E; background: #F0FFF4; color: #16A34A; }
+.opt-btn.wrong   { border-color: #FC8181; background: #FFF5F5; color: #C53030; animation: shake 0.4s ease; }
+
+.feedback-toast {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 28px;
+  border-radius: 999px;
+  font-size: 18px;
+  font-weight: 800;
+  white-space: nowrap;
+  z-index: 10;
+}
+.feedback-toast.good { background: #F0FFF4; color: #16A34A; box-shadow: 0 4px 16px rgba(34,197,94,.2); }
+.feedback-toast.bad  { background: #EEF2FF; color: #4F46E5; box-shadow: 0 4px 16px rgba(79,70,229,.15); }
+
+.audio-btn.playing { animation: pulse-audio 1s ease infinite; }
+
+/* ── Audio-only question icon ──────────────────────────────────────────────── */
+.audio-only-icon {
+  font-size: 88px;
+  line-height: 1;
+  cursor: pointer;
+  filter: drop-shadow(0 4px 12px rgba(244,120,138,.4));
+  transition: transform .15s ease;
+  user-select: none;
+}
+.audio-only-icon:hover    { transform: scale(1.08); }
+.audio-only-icon:active   { transform: scale(0.96); }
+.audio-only-icon.playing  { animation: audio-pulse 0.9s ease infinite; }
+
+@keyframes audio-pulse {
+  0%, 100% { transform: scale(1);    filter: drop-shadow(0 4px 12px rgba(244,120,138,.4)); }
+  50%       { transform: scale(1.12); filter: drop-shadow(0 6px 24px rgba(244,120,138,.7)); }
+}
+@keyframes pulse-audio {
+  0%, 100% { box-shadow: 0 4px 14px rgba(244,120,138,.35); }
+  50%       { box-shadow: 0 4px 28px rgba(244,120,138,.65); }
+}

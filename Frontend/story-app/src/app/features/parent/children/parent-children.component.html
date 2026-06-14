@@ -1,0 +1,100 @@
+<div dir="rtl" style="min-height:100vh;background:var(--bg-base)">
+  <app-navbar />
+
+  <div class="container" style="max-width:960px;padding-top:88px;padding-bottom:60px">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px">
+      <div>
+        <h2 style="font-size:24px;font-weight:900;margin:0">👨‍👧‍👦 أطفالي</h2>
+        <p style="color:var(--text-muted);font-size:13px;margin-top:4px">إدارة حسابات أطفالك ومتابعة تقدّمهم</p>
+      </div>
+      <a routerLink="/auth/create-student" [queryParams]="{ returnTo: 'parent' }"
+         style="background:var(--primary-gradient);color:#fff;text-decoration:none;padding:11px 22px;border-radius:99px;font-size:13px;font-weight:800">
+        + إضافة طفل جديد
+      </a>
+    </div>
+
+    <!-- Parent nav tabs -->
+    <nav style="display:flex;gap:6px;margin-bottom:28px;background:var(--bg-card);padding:7px;border-radius:14px;border:1.5px solid rgba(244,120,138,.08)">
+      <a routerLink="/parent/dashboard" routerLinkActive="parent-nav-active" [routerLinkActiveOptions]="{exact:true}"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        🏠 لوحتي
+      </a>
+      <a routerLink="/parent/children" routerLinkActive="parent-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        👨‍👧‍👦 أطفالي
+      </a>
+      <a routerLink="/parent/notifications" routerLinkActive="parent-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
+        🔔 الإشعارات
+      </a>
+    </nav>
+
+    @if (isLoading()) {
+      <div style="text-align:center;padding:60px;color:var(--text-muted)">جارٍ التحميل…</div>
+    } @else if (error()) {
+      <div style="background:#FEF2F2;border:1.5px solid #FECACA;color:#DC2626;border-radius:14px;padding:16px">{{ error() }}</div>
+    } @else if (children().length === 0) {
+      <div style="text-align:center;padding:80px 20px">
+        <div style="font-size:64px;margin-bottom:16px">👶</div>
+        <h3 style="font-weight:800;margin-bottom:8px">لم تُضف أي طفل بعد</h3>
+        <p style="color:var(--text-muted);margin-bottom:24px">أنشئ حساب طفلك الأول للبدء</p>
+        <a routerLink="/auth/create-student" [queryParams]="{ returnTo: 'parent' }"
+           style="background:var(--primary-gradient);color:#fff;text-decoration:none;padding:12px 28px;border-radius:99px;font-weight:800">
+          + إضافة طفل
+        </a>
+      </div>
+    } @else {
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px">
+        @for (child of children(); track child.id) {
+          <div style="background:var(--bg-card);border-radius:20px;padding:24px;border:1.5px solid rgba(244,120,138,.08);transition:.2s" class="child-card">
+
+            <!-- Avatar + name -->
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+              <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#FFE4E8,#EDE9FE);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">👦</div>
+              <div>
+                <div style="font-weight:900;font-size:17px">{{ child.name }}</div>
+                <div style="font-size:12px;color:var(--text-muted)">&#64;{{ child.username }}</div>
+              </div>
+            </div>
+
+            <!-- Info pills -->
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+              <span [style.background]="levelColor(child.level) + '22'" [style.color]="levelColor(child.level)"
+                    style="font-size:11px;font-weight:800;padding:3px 10px;border-radius:99px">
+                {{ levelLabel(child.level) }}
+              </span>
+              <span style="background:rgba(34,197,94,.12);color:#16A34A;font-size:11px;font-weight:800;padding:3px 10px;border-radius:99px">
+                العمر: {{ child.age }}
+              </span>
+              @if (child.placementDone) {
+                <span style="background:rgba(99,102,241,.1);color:#6366F1;font-size:11px;font-weight:800;padding:3px 10px;border-radius:99px">
+                  ✓ اختبار التحديد
+                </span>
+              }
+            </div>
+
+            <!-- Actions -->
+            <div style="display:flex;gap:8px">
+              <a [routerLink]="['/parent/child', child.name, 'progress']"
+                 style="flex:1;text-align:center;padding:9px 0;border-radius:12px;background:var(--primary-gradient);color:#fff;text-decoration:none;font-size:13px;font-weight:800">
+                📊 التقدّم
+              </a>
+              <a routerLink="/parent/notifications"
+                 style="flex:1;text-align:center;padding:9px 0;border-radius:12px;background:rgba(244,120,138,.08);color:var(--primary);text-decoration:none;font-size:13px;font-weight:800">
+                🔔 الإشعارات
+              </a>
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+</div>
+
+<style>
+  .child-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(244,120,138,.12); }
+  .parent-nav-active { background: var(--primary-gradient) !important; color: #fff !important; }
+</style>

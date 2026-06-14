@@ -1,3 +1,4 @@
+using Application.Agent;
 using Application.Interfaces;
 using Infrastructure.AI;
 using Infrastructure.Auth;
@@ -61,7 +62,7 @@ namespace Infrastructure
 
             // ── AI Services ───────────────────────────────────────────────────────
             services.AddScoped<IStoryGeneratorService, QwenStoryGeneratorService>();
-            services.AddScoped<IExamGeneratorService, QwenExamGeneratorService>();
+            services.AddScoped<IExamGeneratorService, GeminiExamGeneratorService>();
             services.AddScoped<IJudgeService, QwenJudgeService>();
             services.AddScoped<IImageGenerationService, ComfyUiImageService>();
             services.AddScoped<IOcrService, TesseractOcrService>();
@@ -84,6 +85,12 @@ namespace Infrastructure
             services.AddScoped<IStudentProgressRepository, StudentProgressRepository>();
             services.AddScoped<IWritingAttemptRepository, WritingAttemptRepository>();
             services.AddScoped<IPlacementRepository, PlacementRepository>();
+
+            // ── New Repositories (Groups, Assignments, RAG Chunks, Word Config) ───
+            services.AddScoped<ILevelWordConfigRepository, LevelWordConfigRepository>();
+            services.AddScoped<IRagPageChunkRepository, RagPageChunkRepository>();
+            services.AddScoped<IStudentGroupRepository, StudentGroupRepository>();
+            services.AddScoped<ILessonAssignmentRepository, LessonAssignmentRepository>();
 
             // ── Dashboard Service ──────────────────────────────────────────────────
             services.AddScoped<IDashboardService, DashboardService>();
@@ -114,6 +121,12 @@ namespace Infrastructure
                     sp.GetRequiredService<IVectorStoreService>(),
                     rootPath,
                     sp.GetRequiredService<ILogger<EducationalPdfService>>()));
+
+            // Per-page RAG ingestion (Gemini Vision extracts sentence from each page image)
+            services.AddScoped<IEducationalPdfIngestionService, EducationalPdfIngestionService>();
+
+            // Lesson generation agent (Gemini + ComfyUI)
+            services.AddScoped<LessonGenerationAgent>();
 
             return services;
         }

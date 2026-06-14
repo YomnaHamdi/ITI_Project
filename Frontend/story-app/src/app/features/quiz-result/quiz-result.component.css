@@ -1,0 +1,4 @@
+.confetti-piece {
+  border-radius: 2px;
+  animation: confetti-fall 3.5s ease forwards;
+}

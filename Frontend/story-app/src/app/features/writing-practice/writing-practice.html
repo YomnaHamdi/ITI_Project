@@ -1,0 +1,112 @@
+<div dir="rtl" class="wp-page">
+
+  <!-- Header ─────────────────────────────────────────────────────────────── -->
+  <header class="wp-header">
+    <button class="wp-btn-back" (click)="goBack()">← رجوع</button>
+    <h1 class="wp-title">✏️ تمرين الكتابة</h1>
+    <div style="width:80px"></div>
+  </header>
+
+  <!-- Expected sentence input ─────────────────────────────────────────────── -->
+  <div class="wp-input-row">
+    <label class="wp-label">📝 الجملة المطلوبة</label>
+    <input
+      type="text"
+      class="wp-sentence-input"
+      placeholder="اكتب هنا الجملة التي تريد تدريبها…"
+      dir="rtl"
+      [ngModel]="expectedText()"
+      (ngModelChange)="expectedText.set($event); clearCanvas()"
+    />
+  </div>
+
+  <!-- Toolbar ─────────────────────────────────────────────────────────────── -->
+  <div class="wp-toolbar">
+    <button
+      class="wp-tool-btn"
+      [class.active]="tool() === 'pen'"
+      (click)="setTool('pen')">
+      🖊 قلم
+    </button>
+    <button
+      class="wp-tool-btn"
+      [class.active]="tool() === 'eraser'"
+      (click)="setTool('eraser')">
+      ⬜ ممحاة
+    </button>
+    <button class="wp-tool-btn wp-btn-clear" (click)="clearCanvas()">
+      🗑 مسح الكل
+    </button>
+  </div>
+
+  <!-- Canvas ──────────────────────────────────────────────────────────────── -->
+  <div class="wp-canvas-wrapper">
+    <canvas #drawingCanvas class="wp-canvas" width="1400" height="600"></canvas>
+  </div>
+
+  <!-- Check button ────────────────────────────────────────────────────────── -->
+  <div class="wp-check-row">
+    <button
+      class="wp-btn-check"
+      (click)="submit()"
+      [disabled]="isLoading() || !hasDrawing()">
+      @if (isLoading()) {
+        <span>⏳ جارٍ التحليل…</span>
+      } @else {
+        <span>✅ تحقق من الكتابة</span>
+      }
+    </button>
+  </div>
+
+  <!-- Error ───────────────────────────────────────────────────────────────── -->
+  @if (error()) {
+    <div class="wp-error" (click)="error.set(null)">⚠️ {{ error() }}</div>
+  }
+
+  <!-- Result ──────────────────────────────────────────────────────────────── -->
+  @if (result(); as res) {
+    <div class="wp-result" [class.accepted]="res.isAccepted" [class.rejected]="!res.isAccepted">
+
+      <div class="wp-result-icon">{{ res.isAccepted ? '🎉' : '😊' }}</div>
+
+      <p class="wp-result-msg">{{ res.message }}</p>
+
+      <!-- Similarity bar -->
+      <div class="wp-sim-row">
+        <span class="wp-sim-label">نسبة الدقة</span>
+        <div class="wp-sim-track">
+          <div
+            class="wp-sim-fill"
+            [style.width.%]="res.similarityScore"
+            [class.fill-green]="res.isAccepted"
+            [class.fill-amber]="!res.isAccepted">
+          </div>
+        </div>
+        <span class="wp-sim-pct">{{ res.similarityScore.toFixed(0) }}٪</span>
+      </div>
+
+      <!-- Detected text -->
+      @if (res.extractedText) {
+        <div class="wp-detected">
+          <span class="wp-detected-label">ما قرأه الذكاء الاصطناعي:</span>
+          <span class="wp-detected-text">{{ res.extractedText }}</span>
+        </div>
+      }
+
+      <!-- Actions -->
+      <div class="wp-result-actions">
+        @if (res.isAccepted) {
+          <button class="wp-btn-again success-btn" (click)="tryAgain()">
+            🔄 تدريب على جملة جديدة
+          </button>
+        } @else {
+          <button class="wp-btn-again" (click)="tryAgain()">
+            🔄 حاول مرة أخرى
+          </button>
+        }
+      </div>
+
+    </div>
+  }
+
+</div>

@@ -1,0 +1,38 @@
+<div class="page-wrapper" dir="rtl">
+  <div class="page-header">
+    <h1>دروسي</h1>
+    <p class="subtitle">الدروس التي أنشأتها بنفسك</p>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">جاري التحميل...</div>
+  } @else if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  } @else if (lessons().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">📚</div>
+      <p>لم تنشئ أي دروس بعد.</p>
+      <p class="hint">يمكنك إنشاء درس جديد من خلال قسم "الدروس".</p>
+    </div>
+  } @else {
+    <div class="lessons-grid">
+      @for (lesson of lessons(); track lesson.id) {
+        <div class="lesson-card" (click)="open(lesson.id)">
+          @if (lesson.coverImageUrl) {
+            <img [src]="api + lesson.coverImageUrl" [alt]="lesson.title" class="lesson-cover" />
+          } @else {
+            <div class="lesson-cover-placeholder">📖</div>
+          }
+          <div class="lesson-info">
+            <div class="lesson-title">{{ lesson.title }}</div>
+            <div class="lesson-meta">
+              <span class="pill pill-level">المستوى {{ lesson.level }}</span>
+              <span class="pill pill-letter">{{ lesson.letter }}</span>
+              <span class="pill pill-pages">{{ lesson.pageCount }} صفحات</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

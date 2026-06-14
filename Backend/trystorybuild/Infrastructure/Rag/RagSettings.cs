@@ -7,6 +7,8 @@ namespace Infrastructure.Rag
         public string VisionModel        { get; set; } = "minicpm-v";
         public string ChromaEndpoint     { get; set; } = "http://localhost:8001";
         public string CollectionName     { get; set; } = "arabic_lessons";
+        public string ChromaTenant       { get; set; } = "default_tenant";
+        public string ChromaDatabase     { get; set; } = "default_database";
         public string DocumentsDirectory { get; set; } = "Uploads/Rag";
         public int    ChunkSize          { get; set; } = 400;
         public int    ChunkOverlap       { get; set; } = 60;

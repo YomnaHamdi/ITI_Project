@@ -1,0 +1,98 @@
+<div class="d-flex min-vh-100" dir="rtl" style="background:var(--bg-base)">
+  <app-admin-sidebar />
+  <main class="flex-grow-1 p-4 d-flex flex-column gap-4" style="overflow-y:auto">
+
+    <h1 class="fw-800 mb-0" style="font-size:24px">💳 الاشتراكات</h1>
+
+    @if (isLoading()) {
+      <div class="d-flex justify-content-center py-5">
+        <div class="spinner-border" style="color:var(--primary);width:44px;height:44px" role="status"></div>
+      </div>
+    }
+
+    @if (data(); as d) {
+      <!-- Stats -->
+      <div class="row g-3">
+        @for (stat of [
+          {icon:'👥', val: d.totalSubscribers,                          lbl:'مشترك إجمالي'},
+          {icon:'💰', val: (d.monthlyRevenue | number:'1.0-0'),         lbl:'إيراد هذا الشهر ($)'},
+          {icon:'📈', val: d.activeTrials,                              lbl:'تجربة مجانية نشطة'},
+          {icon:'🔄', val: (d.renewalRate | number:'1.0-0') + '٪',     lbl:'معدل التجديد'}
+        ]; track stat.lbl) {
+          <div class="col-6 col-md-3">
+            <div class="card p-4 text-center d-flex flex-column align-items-center gap-1 h-100">
+              <span style="font-size:28px">{{ stat.icon }}</span>
+              <span class="fw-800 fs-3" style="color:var(--primary)">{{ stat.val }}</span>
+              <span class="small fw-600 text-muted">{{ stat.lbl }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Plans -->
+    <h4 class="fw-800 mb-0">خطط الاشتراك</h4>
+    <div class="row g-3">
+      @for (plan of plans; track plan.name) {
+        <div class="col-md-4">
+          <div class="card p-4 h-100 d-flex flex-column gap-3"
+               [style.border-top]="'4px solid ' + plan.color">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="fw-800 mb-0">{{ plan.name }}</h5>
+              <span class="fw-800" style="font-size:20px;color:var(--primary)">
+                @if (plan.price === 0) { مجاني } @else { ${{ plan.price }}<small class="small fw-600 text-muted">/شهر</small> }
+              </span>
+            </div>
+            <ul class="list-unstyled d-flex flex-column gap-1 mb-0">
+              @for (f of plan.features; track f) {
+                <li class="small fw-600">✓ {{ f }}</li>
+              }
+            </ul>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Recent subscribers -->
+    @if (data()?.recentSubscribers?.length > 0) {
+      <div class="card overflow-hidden p-0">
+        <div class="px-4 py-3 fw-800" style="font-size:15px;border-bottom:1px solid #F3F4F6">آخر المشتركين</div>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 align-middle" style="font-size:14px">
+            <thead>
+              <tr style="border-bottom:2px solid #F3F4F6">
+                <th class="fw-800 text-muted small px-4 py-3">المستخدم</th>
+                <th class="fw-800 text-muted small px-4 py-3">الخطة</th>
+                <th class="fw-800 text-muted small px-4 py-3">تاريخ الاشتراك</th>
+                <th class="fw-800 text-muted small px-4 py-3">الحالة</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of data().recentSubscribers; track s.id) {
+                <tr>
+                  <td class="px-4 py-3 fw-700">{{ s.name }}</td>
+                  <td class="px-4 py-3">
+                    <span class="badge rounded-pill fw-800 px-3 py-1"
+                      style="background:rgba(244,120,138,.1);color:var(--primary);font-size:12px">
+                      {{ s.plan }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3 small text-muted">{{ s.startDate }}</td>
+                  <td class="px-4 py-3">
+                    <span class="badge rounded-pill fw-800 px-2 py-1"
+                      [style.background]="s.active ? '#F0FDF4' : '#FEF2F2'"
+                      [style.color]="s.active ? '#22C55E' : '#EF4444'"
+                      style="font-size:12px">
+                      {{ s.active ? 'نشط' : 'منتهي' }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+  </main>
+</div>

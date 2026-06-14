@@ -31,7 +31,22 @@ namespace Application.DTOs
     public record GenerateLessonRequest(
         string Topic,
         int Level,
-        string? Letter);
+        string? Letter,
+        Guid? CreatorId = null,
+        string CreatorRole = "Student",
+        Guid? TargetStudentId = null,
+        Guid? TargetGroupId = null);
+
+    public record RagPageChunkDto(
+        Guid Id,
+        string SourceFile,
+        int PageNumber,
+        string Sentence,
+        int WordCount,
+        string ImageUrl,
+        int Level,
+        string Letter,
+        string LetterName);
 
     public record GeneratedLessonDto(
         string Title,

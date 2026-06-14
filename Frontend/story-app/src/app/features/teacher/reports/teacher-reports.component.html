@@ -1,0 +1,87 @@
+<div class="d-flex min-vh-100" dir="rtl" style="background:var(--bg-base)">
+  <app-teacher-sidebar />
+  <main class="flex-grow-1 p-4 d-flex flex-column gap-4" style="overflow-y:auto">
+
+    <h1 class="fw-800 mb-0" style="font-size:24px">📊 تقارير الفصل</h1>
+
+    @if (isLoading()) {
+      <div class="d-flex justify-content-center py-5">
+        <div class="spinner-border" style="color:var(--primary);width:44px;height:44px" role="status"></div>
+      </div>
+    }
+
+    @if (data(); as d) {
+
+      <!-- Stats -->
+      <div class="row g-3">
+        @for (s of [
+          {icon:'👥', val: d.totalActiveStudents,                    lbl:'طالب نشط'},
+          {icon:'📊', val: (d.platformAverageScore | number:'1.0-0') + '٪', lbl:'متوسط الدرجات'},
+          {icon:'📝', val: d.totalExamsTaken,                        lbl:'امتحانات مكتملة'},
+          {icon:'✏️', val: d.totalWritingAttempts,                   lbl:'محاولات الكتابة'}
+        ]; track s.lbl) {
+          <div class="col-6 col-md-3">
+            <div class="card p-4 text-center d-flex flex-column align-items-center gap-1 h-100">
+              <span style="font-size:28px">{{ s.icon }}</span>
+              <span class="fw-800" style="font-size:26px;color:var(--primary)">{{ s.val }}</span>
+              <span class="small fw-600 text-muted">{{ s.lbl }}</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Bar chart -->
+      <div class="card p-4 d-flex flex-column gap-3">
+        <h5 class="fw-800 mb-0">نظرة عامة على تقدم الطلاب</h5>
+        <div class="d-flex align-items-end gap-3 overflow-auto" style="height:200px;padding:0 8px">
+          @for (student of d.students; track student.childName) {
+            <div class="d-flex flex-column align-items-center gap-1 flex-shrink-0 h-100 justify-content-end" style="min-width:56px">
+              <span class="fw-800 small" [style.color]="barColor(student.averageExamScore)">
+                {{ student.averageExamScore | number:'1.0-0' }}٪
+              </span>
+              <div class="rounded-top flex-grow-1 d-flex align-items-end overflow-hidden"
+                   style="width:40px;background:#F3F4F6;border-radius:8px 8px 0 0">
+                <div class="w-100" style="min-height:4px;border-radius:8px 8px 0 0;transition:height .8s ease-out"
+                     [style.height.%]="barHeight(student.averageExamScore)"
+                     [style.background]="barColor(student.averageExamScore)"></div>
+              </div>
+              <span class="fw-700 text-muted text-center small" style="font-size:12px;max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                {{ student.childName }}
+              </span>
+            </div>
+          }
+        </div>
+        <div class="d-flex gap-4 flex-wrap justify-content-center small fw-700">
+          <span style="color:#22C55E">■ ممتاز (80٪+)</span>
+          <span style="color:#F59E0B">■ جيد (50-79٪)</span>
+          <span style="color:#EF4444">■ يحتاج دعم (&lt;50٪)</span>
+        </div>
+      </div>
+
+      <!-- Top stories -->
+      @if (d.topStories?.length > 0) {
+        <div class="card p-4 d-flex flex-column gap-3">
+          <h5 class="fw-800 mb-0">📖 أكثر القصص اكتمالاً</h5>
+          <div class="d-flex flex-column gap-2">
+            @for (s of d.topStories; track s.id) {
+              <div class="d-flex align-items-center gap-3 p-3 rounded-3"
+                   style="background:rgba(244,120,138,.03);border:1px solid rgba(244,120,138,.08)">
+                <div class="d-flex align-items-center justify-content-center rounded-circle fw-800 text-white flex-shrink-0"
+                     style="width:26px;height:26px;background:var(--primary);font-size:12px">{{ $index + 1 }}</div>
+                <span class="fw-700 flex-grow-1" style="font-size:14px">{{ s.title }}</span>
+                <span class="small text-muted flex-shrink-0">{{ s.completionCount }} إكمال</span>
+                <div class="rounded-pill overflow-hidden flex-shrink-0" style="width:80px;height:8px;background:#F3F4F6">
+                  <div class="h-100 rounded-pill" [style.width.%]="s.averageScore" [style.background]="barColor(s.averageScore)"></div>
+                </div>
+                <span class="fw-800 small flex-shrink-0" [style.color]="barColor(s.averageScore)" style="width:40px;text-align:left">
+                  {{ s.averageScore | number:'1.0-0' }}٪
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+    }
+  </main>
+</div>

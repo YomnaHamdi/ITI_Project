@@ -1,0 +1,92 @@
+<div class="admin-layout" dir="rtl">
+  <app-admin-sidebar />
+
+  <main class="admin-main">
+    <h1 class="page-title">صفحات RAG التعليمية</h1>
+
+    <!-- Upload educational PDF -->
+    <section class="upload-card">
+      <h2>رفع كتاب تعليمي (PDF)</h2>
+      <div class="upload-grid">
+        <div class="form-group">
+          <label>المستوى</label>
+          <select [(ngModel)]="uploadLevel" class="form-control">
+            <option [value]="1">المستوى 1</option>
+            <option [value]="2">المستوى 2</option>
+            <option [value]="3">المستوى 3</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>الحرف (مثال: ب)</label>
+          <input [(ngModel)]="uploadLetter" class="form-control" placeholder="ب" />
+        </div>
+        <div class="form-group">
+          <label>اسم الحرف (مثال: باء)</label>
+          <input [(ngModel)]="uploadLetterName" class="form-control" placeholder="باء" />
+        </div>
+        <div class="form-group">
+          <label>ملف PDF</label>
+          <input type="file" accept=".pdf" (change)="onFileChange($event)" class="form-control" />
+        </div>
+      </div>
+      @if (uploadMessage()) {
+        <div class="alert alert-success">{{ uploadMessage() }}</div>
+      }
+      @if (uploadError()) {
+        <div class="alert alert-danger">{{ uploadError() }}</div>
+      }
+      <button class="btn-primary" [disabled]="uploadLoading()" (click)="submitUpload()">
+        @if (uploadLoading()) { <span>جاري المعالجة...</span> } @else { <span>رفع وتحليل الكتاب</span> }
+      </button>
+    </section>
+
+    <!-- Filter -->
+    <section class="filter-bar">
+      <div class="filter-row">
+        <select [(ngModel)]="filterLevel" (change)="applyFilter()" class="form-control filter-select">
+          <option [ngValue]="undefined">كل المستويات</option>
+          <option [ngValue]="1">المستوى 1</option>
+          <option [ngValue]="2">المستوى 2</option>
+          <option [ngValue]="3">المستوى 3</option>
+        </select>
+        <input [(ngModel)]="filterLetter" (input)="applyFilter()" class="form-control filter-input"
+               placeholder="تصفية بالحرف..." />
+        <button class="btn-outline" (click)="clearFilter()">مسح التصفية</button>
+      </div>
+    </section>
+
+    <!-- Loading / error -->
+    @if (loading()) {
+      <div class="loading-state">جاري التحميل...</div>
+    }
+    @if (error()) {
+      <div class="alert alert-danger">{{ error() }}</div>
+    }
+
+    <!-- Chunks grid -->
+    @if (!loading() && chunks().length === 0) {
+      <div class="empty-state">لا توجد صفحات RAG بعد. ارفع كتاباً تعليمياً أولاً.</div>
+    }
+
+    <div class="chunks-grid">
+      @for (chunk of chunks(); track chunk.id) {
+        <div class="chunk-card">
+          @if (chunk.imageUrl) {
+            <img [src]="api + chunk.imageUrl" [alt]="chunk.sentence" class="chunk-img" />
+          } @else {
+            <div class="chunk-no-img">لا توجد صورة</div>
+          }
+          <div class="chunk-body">
+            <div class="chunk-sentence">{{ chunk.sentence }}</div>
+            <div class="chunk-meta">
+              <span class="badge badge-level">المستوى {{ chunk.level }}</span>
+              <span class="badge badge-letter">{{ chunk.letter }} — {{ chunk.letterName }}</span>
+              <span class="badge badge-words">{{ chunk.wordCount }} كلمة</span>
+            </div>
+            <div class="chunk-source">{{ chunk.sourceFile }} — ص{{ chunk.pageNumber }}</div>
+          </div>
+        </div>
+      }
+    </div>
+  </main>
+</div>

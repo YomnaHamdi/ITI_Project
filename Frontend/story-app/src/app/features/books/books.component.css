@@ -1,0 +1,6 @@
+.book-card {
+  border-radius: 20px;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.book-card:hover       { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(244,120,138,.2); }
+.book-card.locked-card { opacity: .8; }

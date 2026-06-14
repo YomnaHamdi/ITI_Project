@@ -1,0 +1,81 @@
+<div dir="rtl" style="min-height:100vh;background:var(--bg-base)">
+  <app-navbar />
+  <div class="container" style="max-width:960px;padding-top:88px;padding-bottom:60px">
+
+    <!-- Hero -->
+    <div class="text-center mb-5">
+      <h1 class="fw-800 mb-2" style="font-size:32px">✨ ارفع مستوى التعلم</h1>
+      <p class="fw-600 text-muted mb-4">افتح كل قصة وأداة ذكاء اصطناعي لطفلك</p>
+      <div class="d-inline-flex gap-1 p-1 rounded-3" style="background:#F3F4F6">
+        <button class="btn rounded-3 fw-700"
+          [class.btn-white]="billingCycle() !== 'monthly'"
+          [style.background]="billingCycle() === 'monthly' ? '#fff' : 'transparent'"
+          [style.color]="billingCycle() === 'monthly' ? 'var(--text-dark)' : 'var(--text-muted)'"
+          [style.box-shadow]="billingCycle() === 'monthly' ? '0 2px 8px rgba(0,0,0,.08)' : 'none'"
+          (click)="billingCycle.set('monthly')">شهري</button>
+        <button class="btn rounded-3 fw-700 d-flex align-items-center gap-2"
+          [style.background]="billingCycle() === 'yearly' ? '#fff' : 'transparent'"
+          [style.color]="billingCycle() === 'yearly' ? 'var(--text-dark)' : 'var(--text-muted)'"
+          [style.box-shadow]="billingCycle() === 'yearly' ? '0 2px 8px rgba(0,0,0,.08)' : 'none'"
+          (click)="billingCycle.set('yearly')">
+          سنوي
+          <span class="badge fw-800" style="background:#22C55E;font-size:11px">وفّر 35%</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Plans -->
+    <div class="row g-4 mb-4">
+      @for (plan of plans; track plan.id) {
+        <div class="col-md-6">
+          <div class="card p-4 text-center d-flex flex-column align-items-center gap-3 position-relative h-100"
+               [style.border]="(plan.popular || selectedPlan() === plan.id) ? '2px solid ' + plan.color : '2px solid transparent'"
+               [style.transform]="selectedPlan() === plan.id ? 'translateY(-4px)' : ''"
+               style="transition:all .2s ease">
+            @if (plan.popular) {
+              <div class="position-absolute top-0 start-50 translate-middle badge fw-800 rounded-pill px-3 py-2"
+                   [style.background]="plan.color" style="font-size:12px;white-space:nowrap">الأكثر شعبية</div>
+            }
+            <span style="font-size:48px">{{ plan.icon }}</span>
+            <h2 class="fw-800 mb-0" style="font-size:22px">{{ plan.name }}</h2>
+            <div class="d-flex align-items-end gap-1">
+              <span class="fw-800" style="font-size:40px;line-height:1" [style.color]="plan.color">${{ price(plan) }}</span>
+              <span class="small fw-600 text-muted pb-1">/شهر</span>
+            </div>
+            @if (billingCycle() === 'yearly') {
+              <p class="small fw-700 mb-0" style="color:#22C55E">تبادل ${{ savings(plan) }}/سنة</p>
+            }
+            <ul class="list-unstyled w-100 d-flex flex-column gap-2 mb-0 text-end">
+              @for (f of plan.features; track f) {
+                <li class="small fw-600">✓ {{ f }}</li>
+              }
+            </ul>
+            <button class="btn rounded-pill fw-800 w-100 text-white"
+              [style.background]="plan.color"
+              (click)="selectedPlan.set(plan.id)">
+              {{ selectedPlan() === plan.id ? '✅ تم الاختيار' : 'اختر هذه الخطة' }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Checkout bar -->
+    @if (selectedPlan()) {
+      <div class="card p-4 d-flex flex-row justify-content-between align-items-center gap-3 flex-wrap mb-3"
+           style="border:2px solid rgba(244,120,138,.2)">
+        <span class="fw-700">
+          الخطة المختارة: <strong>{{ selectedPlan() === 'family' ? 'العائلي' : 'المدرسي' }}</strong>
+          — ${{ price(plans[selectedPlan() === 'family' ? 0 : 1]) }}/شهر
+        </span>
+        <button class="btn btn-primary rounded-pill fw-800 px-4">متابعة الدفع →</button>
+      </div>
+    }
+
+    <!-- Free note -->
+    <div class="text-center small fw-600 text-muted">
+      تبقى على الخطة المجانية؟ <a routerLink="/levels" class="fw-800 text-decoration-none" style="color:var(--primary)">تصفح القصص المجانية</a>
+    </div>
+
+  </div>
+</div>
