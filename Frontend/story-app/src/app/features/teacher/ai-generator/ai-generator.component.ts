@@ -51,7 +51,14 @@ export class AiGeneratorComponent {
       letter: this.form.letter.trim() || undefined
     }).subscribe({
       next:  lesson => { this.generatedLesson.set(lesson); this.isGenerating.set(false); },
-      error: (e: Error) => { this.error.set(e.message); this.isGenerating.set(false); }
+      error: (err: any) => {
+        const msg = err?.error?.error
+          ?? err?.error?.message
+          ?? err?.message
+          ?? 'حدث خطأ أثناء التوليد. تأكد من صحة الموضوع وأن المحتوى متاح في قاعدة المعرفة.';
+        this.error.set(msg);
+        this.isGenerating.set(false);
+      }
     });
   }
 

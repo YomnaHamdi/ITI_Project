@@ -48,6 +48,25 @@ namespace storybuild.API.Controllers
             await progressRepository.SaveAsync(progress);
             return Ok(request);
         }
+
+        /// <summary>Update lesson exam progress after student submits lesson exam.</summary>
+        [HttpPut("lesson")]
+        [ProducesResponseType(typeof(LessonProgressRequest), 200)]
+        public async Task<IActionResult> UpdateLesson([FromBody] LessonProgressRequest request)
+        {
+            var progress = new StudentProgress
+            {
+                LessonId       = request.LessonId,
+                ChildName      = request.ChildName,
+                TotalQuestions = request.TotalQuestions,
+                CorrectAnswers = request.CorrectAnswers,
+                ScorePercentage = request.ScorePercentage,
+                ExamCompleted  = request.ExamCompleted
+            };
+
+            await progressRepository.SaveAsync(progress);
+            return Ok(request);
+        }
     }
 
 }

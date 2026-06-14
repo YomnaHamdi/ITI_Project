@@ -42,6 +42,13 @@ namespace Infrastructure.Repositories
                     .OrderByDescending(s => s.CreatedAt)
                     .ToListAsync();
 
+            public async Task<List<Story>> GetByChildNameAsync(string childName) =>
+                await db.Stories
+                    .Include(s => s.Pages)
+                    .Where(s => s.ChildName == childName)
+                    .OrderByDescending(s => s.CreatedAt)
+                    .ToListAsync();
+
             public async Task<bool> DeleteAsync(Guid id)
             {
                 var story = await db.Stories.FindAsync(id);

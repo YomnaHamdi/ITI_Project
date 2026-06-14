@@ -4,13 +4,19 @@
 
     <h1 class="fw-800 mb-0" style="font-size:24px">👥 إدارة المستخدمين</h1>
 
-    <!-- Search -->
-    <div class="card d-flex flex-row align-items-center gap-2 p-3">
+    <!-- Filters -->
+    <div class="card d-flex flex-row align-items-center gap-3 p-3 flex-wrap">
       <span style="font-size:18px">🔍</span>
       <input class="border-0 bg-transparent fw-600 flex-grow-1" type="text"
-        placeholder="ابحث بالاسم أو البريد أو الدور..."
-        style="font-family:Cairo,sans-serif;font-size:15px;outline:none;color:var(--text-dark)"
+        placeholder="ابحث بالاسم أو البريد..."
+        style="font-family:Cairo,sans-serif;font-size:15px;outline:none;color:var(--text-dark);min-width:180px"
         [value]="searchTerm()" (input)="setSearch($any($event.target).value)" />
+      <select class="form-select fw-700 rounded-pill" style="width:auto;font-family:Cairo,sans-serif;font-size:14px"
+        [value]="roleFilter()" (change)="setRole($any($event.target).value)">
+        @for (opt of roleOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
     </div>
 
     @if (isLoading()) {
@@ -20,8 +26,9 @@
     }
 
     <div class="card overflow-hidden p-0">
-      <div class="px-4 py-3 fw-700 small text-muted" style="border-bottom:1px solid #F3F4F6">
-        {{ filteredUsers().length }} مستخدم
+      <div class="px-4 py-3 fw-700 small text-muted d-flex justify-content-between" style="border-bottom:1px solid #F3F4F6">
+        <span>{{ filteredUsers().length }} مستخدم</span>
+        <span>صفحة {{ currentPage() }} من {{ totalPages() }}</span>
       </div>
       <div class="table-responsive">
         <table class="table table-hover mb-0 align-middle" style="font-size:14px;min-width:700px">
@@ -36,7 +43,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (user of filteredUsers(); track user.id) {
+            @for (user of pagedUsers(); track user.id) {
               <tr [style.opacity]="user.isBlocked ? '0.55' : '1'"
                   [style.background]="user.isBlocked ? '#FFF5F5' : ''">
                 <td class="px-4 py-3">
@@ -47,9 +54,8 @@
                 <td class="px-4 py-3 small text-muted">{{ user.email }}</td>
                 <td class="px-4 py-3">
                   <span class="badge rounded-pill fw-800 px-2 py-1"
-                    [style.background]="user.role==='admin' ? '#7C3AED' : user.role==='teacher' ? '#0EA5E9' : user.role==='parent' ? '#10B981' : '#F59E0B'"
-                    [style.color]="'#fff'"
-                    style="font-size:12px">
+                    [style.background]="roleColor(user.role)"
+                    style="color:#fff;font-size:12px">
                     {{ roleLabel(user.role) }}
                   </span>
                 </td>
@@ -73,7 +79,7 @@
                 </td>
               </tr>
             }
-            @if (filteredUsers().length === 0 && !isLoading()) {
+            @if (pagedUsers().length === 0 && !isLoading()) {
               <tr>
                 <td colspan="6" class="text-center text-muted py-5 fw-semibold">لا توجد نتائج</td>
               </tr>
@@ -81,6 +87,27 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="d-flex justify-content-center gap-2 p-3 flex-wrap">
+          <button class="btn btn-sm rounded-pill fw-700"
+            style="border:1.5px solid rgba(244,120,138,.3)"
+            [disabled]="currentPage() === 1"
+            (click)="goToPage(currentPage() - 1)">‹ السابق</button>
+          @for (p of pages(); track p) {
+            <button class="btn btn-sm rounded-pill fw-700"
+              [style.background]="p === currentPage() ? 'var(--primary-gradient)' : 'transparent'"
+              [style.color]="p === currentPage() ? '#fff' : 'var(--text-dark)'"
+              style="border:1.5px solid rgba(244,120,138,.3);min-width:36px"
+              (click)="goToPage(p)">{{ p }}</button>
+          }
+          <button class="btn btn-sm rounded-pill fw-700"
+            style="border:1.5px solid rgba(244,120,138,.3)"
+            [disabled]="currentPage() === totalPages()"
+            (click)="goToPage(currentPage() + 1)">التالي ›</button>
+        </div>
+      }
     </div>
 
   </main>

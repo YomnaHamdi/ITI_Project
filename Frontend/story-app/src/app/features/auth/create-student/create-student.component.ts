@@ -15,7 +15,7 @@ export class CreateStudentComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route  = inject(ActivatedRoute);
 
-  private returnTo = 'parent';
+  returnTo = 'parent';
 
   readonly isLoading = signal(false);
   readonly error     = signal<string | null>(null);

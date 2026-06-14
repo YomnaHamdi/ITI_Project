@@ -54,14 +54,6 @@
         </div>
       </div>
 
-      @if (form.role === 'teacher') {
-        <div class="mb-3 animate-fade-in">
-          <label class="form-label fw-bold small mb-1">كود المدرسة (اختياري)</label>
-          <input class="form-control" type="text" placeholder="مثال: SCH-1234" [(ngModel)]="form.schoolCode" dir="ltr" />
-          <div class="form-text">اطلب الكود من مدير مدرستك</div>
-        </div>
-      }
-
       <!-- Language preference -->
       <div class="d-flex align-items-center gap-3 mb-4">
         <span class="fw-bold small">لغة الواجهة:</span>

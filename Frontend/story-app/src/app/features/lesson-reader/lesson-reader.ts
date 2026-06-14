@@ -176,24 +176,45 @@ export class LessonReaderComponent implements OnInit, OnDestroy, AfterViewInit {
     this.ctx.stroke();
     this.ctx.setLineDash([]);
 
-    // ── Letter watermark (large, centered, traceable) ──────────────────────────
-    const letter = this.lesson()?.letter ?? '';
-    if (letter) {
-      // Large letter fills most of the canvas height
-      const fontSize = Math.round(canvas.height * 0.78);
-      this.ctx.font          = `bold ${fontSize}px Amiri, serif`;
-      this.ctx.textAlign     = 'center';
-      this.ctx.textBaseline  = 'alphabetic';
-      this.ctx.direction     = 'rtl';
-      this.ctx.fillStyle     = 'rgba(244,120,138,0.13)';
-      this.ctx.fillText(letter, canvas.width / 2, canvas.height * 0.82);
+    // ── Sentence as traceable background text ─────────────────────────────────
+    const sentence = this.activePage()?.sentence ?? '';
+    if (sentence) {
+      // Fit sentence into canvas width by adjusting font size
+      let fontSize = Math.round(canvas.height * 0.52);
+      this.ctx.font      = `bold ${fontSize}px Amiri, serif`;
+      this.ctx.direction = 'rtl';
+      while (fontSize > 18 && this.ctx.measureText(sentence).width > canvas.width - 60) {
+        fontSize -= 2;
+        this.ctx.font = `bold ${fontSize}px Amiri, serif`;
+      }
+      this.ctx.textAlign    = 'center';
+      this.ctx.textBaseline = 'alphabetic';
+      this.ctx.fillStyle    = 'rgba(244,120,138,0.12)';
+      this.ctx.fillText(sentence, canvas.width / 2, canvas.height * 0.78);
 
-      // Dashed stroke outline so child can trace the exact shape
-      this.ctx.setLineDash([6, 7]);
-      this.ctx.strokeStyle = 'rgba(244,120,138,0.28)';
-      this.ctx.lineWidth   = 2;
-      this.ctx.strokeText(letter, canvas.width / 2, canvas.height * 0.82);
+      // Dashed stroke so child can trace
+      this.ctx.setLineDash([5, 6]);
+      this.ctx.strokeStyle = 'rgba(244,120,138,0.22)';
+      this.ctx.lineWidth   = 1.5;
+      this.ctx.strokeText(sentence, canvas.width / 2, canvas.height * 0.78);
       this.ctx.setLineDash([]);
+    } else {
+      // Fallback: draw the letter watermark when no sentence
+      const letter = this.lesson()?.letter ?? '';
+      if (letter) {
+        const fontSize = Math.round(canvas.height * 0.78);
+        this.ctx.font          = `bold ${fontSize}px Amiri, serif`;
+        this.ctx.textAlign     = 'center';
+        this.ctx.textBaseline  = 'alphabetic';
+        this.ctx.direction     = 'rtl';
+        this.ctx.fillStyle     = 'rgba(244,120,138,0.13)';
+        this.ctx.fillText(letter, canvas.width / 2, canvas.height * 0.82);
+        this.ctx.setLineDash([6, 7]);
+        this.ctx.strokeStyle = 'rgba(244,120,138,0.28)';
+        this.ctx.lineWidth   = 2;
+        this.ctx.strokeText(letter, canvas.width / 2, canvas.height * 0.82);
+        this.ctx.setLineDash([]);
+      }
     }
 
     this.ctx.restore();
@@ -242,7 +263,7 @@ export class LessonReaderComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onImgLoad(): void { this.imageLoaded.set(true); }
-  goBack():    void { this.router.navigate(['/levels']); }
+  goBack():    void { this.router.navigate(['/books']); }
 
   pageDotsArr(): number[] {
     return Array.from({ length: this.totalPages() }, (_, i) => i + 1);

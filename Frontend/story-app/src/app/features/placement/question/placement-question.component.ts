@@ -2,6 +2,7 @@ import { Component, signal, computed, OnInit, OnDestroy, inject } from '@angular
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { StoryService } from '../../../services/story';
+import { AppStateService } from '../../../services/app-state-service';
 
 @Component({
   selector: 'app-placement-question',
@@ -13,6 +14,7 @@ import { StoryService } from '../../../services/story';
 export class PlacementQuestionComponent implements OnInit, OnDestroy {
   private readonly router  = inject(Router);
   private readonly service = inject(StoryService);
+  private readonly state   = inject(AppStateService);
 
   readonly questions    = signal<any[]>([]);
   readonly currentIdx   = signal(0);
@@ -122,14 +124,22 @@ export class PlacementQuestionComponent implements OnInit, OnDestroy {
     };
     this.service.submitPlacement(request).subscribe({
       next: result => {
+        const assignedLevel = result.assignedLevel ?? result.level ?? 1;
         sessionStorage.setItem('placement_result', JSON.stringify({
           score: result.totalScore,
           total: this.total(),
-          level: result.assignedLevel,
+          level: assignedLevel,
           p1: result.part1Score,
           p2: result.part2Score,
           p3: result.part3Score
         }));
+        // Persist level to DB and update local session
+        if (this.state.isLoggedIn()) {
+          this.service.updateStudentLevel(assignedLevel).subscribe({
+            next: updated => this.state.updateStudentLevel(assignedLevel, updated.token),
+            error: () => {}
+          });
+        }
         this.router.navigate(['/test/result']);
       },
       error: () => {

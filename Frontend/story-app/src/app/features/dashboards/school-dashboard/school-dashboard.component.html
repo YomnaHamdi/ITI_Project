@@ -24,8 +24,6 @@
       @if (data(); as d) {
         @for (circle of [
           {val: d.totalStudents, lbl: 'طالب',         c: '#F4788A'},
-          {val: d.totalStories,  lbl: 'قصة',          c: '#A78BFA'},
-          {val: d.totalLessons,  lbl: 'درس',          c: '#34D399'},
           {val: ((d.avgSchoolScore ?? 0) | number:'1.0-0') + '٪', lbl: 'متوسط التقدم', c: '#FCD34D'}
         ]; track circle.lbl) {
           <div class="col-6 col-md-3 d-flex justify-content-center">
@@ -40,8 +38,7 @@
         }
       } @else {
         @for (circle of [
-          {lbl: 'طالب', c: '#F4788A'},{lbl: 'قصة', c: '#A78BFA'},
-          {lbl: 'درس',  c: '#34D399'},{lbl: 'متوسط التقدم', c: '#FCD34D'}
+          {lbl: 'طالب', c: '#F4788A'},{lbl: 'متوسط التقدم', c: '#FCD34D'}
         ]; track circle.lbl) {
           <div class="col-6 col-md-3 d-flex justify-content-center">
             <div class="d-flex flex-column align-items-center justify-content-center rounded-circle"

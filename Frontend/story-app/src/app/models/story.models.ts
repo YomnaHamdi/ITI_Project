@@ -110,6 +110,7 @@ export interface QuestionDto {
   optionC?:       string;
   optionD?:       string;
   dataJson?:      string;
+  imageUrl?:      string;
 }
 
 export interface ExamResponse {
@@ -441,10 +442,11 @@ export interface AddGroupMemberRequest {
 // ── Lesson Assignments ────────────────────────────────────────────────────────
 
 export interface AssignLessonRequest {
-  lessonId:        string;
-  targetType:      'Student' | 'Group';
+  lessonId:         string;
+  targetType:       'Student' | 'Group' | 'Level';
   targetStudentId?: string;
-  targetGroupId?:  string;
+  targetGroupId?:   string;
+  targetLevel?:     number;
 }
 
 export interface LessonAssignmentDto {

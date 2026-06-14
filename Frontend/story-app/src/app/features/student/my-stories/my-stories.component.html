@@ -20,30 +20,45 @@
   <!-- Main -->
   <main style="flex:1;padding:32px 24px">
 
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
-      <h2 style="font-size:24px;font-weight:900;margin:0">📖 قصصي الذكية</h2>
-      <a routerLink="/ai-story" style="background:var(--primary-gradient);color:#fff;text-decoration:none;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:800">
-        + إنشاء قصة جديدة
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px">
+      <div>
+        <h2 style="font-size:24px;font-weight:900;margin:0 0 4px">📖 قصصي الذكية</h2>
+        <p style="font-size:13px;color:var(--text-muted);margin:0">القصص التي أنشأها الذكاء الاصطناعي لـ {{ childName() }}</p>
+      </div>
+      <a routerLink="/ai-story"
+         style="background:var(--primary-gradient);color:#fff;text-decoration:none;padding:10px 22px;border-radius:99px;font-size:13px;font-weight:800;white-space:nowrap">
+        ✨ إنشاء قصة جديدة
       </a>
     </div>
 
     @if (isLoading()) {
       <div style="text-align:center;padding:60px;color:var(--text-muted)">جارٍ التحميل…</div>
     } @else if (error()) {
-      <div class="alert" style="background:#FEF2F2;border:1.5px solid #FECACA;color:#DC2626;border-radius:14px;padding:16px">{{ error() }}</div>
-    } @else if (stories().length === 0) {
-      <div style="text-align:center;padding:80px 20px">
-        <div style="font-size:64px;margin-bottom:16px">📚</div>
-        <h3 style="font-weight:800;margin-bottom:8px">لا توجد قصص بعد!</h3>
-        <p style="color:var(--text-muted);margin-bottom:24px">ابدأ بإنشاء قصتك الذكية الأولى</p>
-        <a routerLink="/ai-story" style="background:var(--primary-gradient);color:#fff;text-decoration:none;padding:12px 28px;border-radius:99px;font-weight:800">
-          ✨ إنشاء قصة
-        </a>
-      </div>
+      <div style="background:#FEF2F2;border:1.5px solid #FECACA;color:#DC2626;border-radius:14px;padding:16px">{{ error() }}</div>
     } @else {
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px">
+
+        <!-- "Create new story" card — always first -->
+        <a routerLink="/ai-story" class="new-story-card"
+           style="background:var(--bg-card);border-radius:20px;overflow:hidden;border:2px dashed rgba(244,120,138,.35);text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:240px;padding:24px;transition:.2s">
+          <div style="width:64px;height:64px;border-radius:50%;background:var(--primary-gradient);display:flex;align-items:center;justify-content:center;font-size:28px">✨</div>
+          <p style="font-weight:800;font-size:15px;color:var(--primary);margin:0;text-align:center">إنشاء قصة جديدة</p>
+          <p style="font-size:12px;color:var(--text-muted);margin:0;text-align:center">اختر شخصية وموضوعاً وسيبتكر الذكاء الاصطناعي قصة خاصة بك!</p>
+        </a>
+
+        @if (stories().length === 0) {
+          <!-- Empty state hint beside the create card -->
+          <div style="background:var(--bg-card);border-radius:20px;border:1.5px solid rgba(244,120,138,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:240px;padding:24px">
+            <div style="font-size:48px">📚</div>
+            <p style="font-weight:800;font-size:14px;margin:0;text-align:center">لا توجد قصص بعد!</p>
+            <p style="font-size:12px;color:var(--text-muted);margin:0;text-align:center">اضغط على الكرت المجاور لإنشاء أول قصة لك</p>
+          </div>
+        }
+
         @for (story of stories(); track story.id) {
-          <div style="background:var(--bg-card);border-radius:20px;overflow:hidden;border:1.5px solid rgba(244,120,138,.08);transition:.2s" class="story-card">
+          <div class="story-card"
+               style="background:var(--bg-card);border-radius:20px;overflow:hidden;border:1.5px solid rgba(244,120,138,.08);transition:.2s">
             <!-- Cover -->
             @if (coverImage(story)) {
               <img [src]="coverImage(story)" [alt]="story.title" style="width:100%;height:140px;object-fit:cover" />
@@ -51,7 +66,7 @@
               <div style="width:100%;height:140px;background:linear-gradient(135deg,#FFE4E8,#EDE9FE);display:flex;align-items:center;justify-content:center;font-size:48px">📖</div>
             }
             <div style="padding:16px">
-              <h4 style="font-weight:800;font-size:15px;margin-bottom:6px;line-height:1.4">{{ story.title }}</h4>
+              <h4 style="font-weight:800;font-size:15px;margin-bottom:4px;line-height:1.4">{{ story.title }}</h4>
               <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">{{ pageCount(story) }} صفحات</p>
               <a [routerLink]="['/books', story.id, 'read']"
                  style="display:block;text-align:center;padding:8px;border-radius:10px;background:var(--primary-gradient);color:#fff;text-decoration:none;font-size:13px;font-weight:800">
@@ -68,4 +83,5 @@
 <style>
   .active-nav { background: rgba(244,120,138,.1) !important; color: var(--primary) !important; }
   .story-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(244,120,138,.15); }
+  .new-story-card:hover { border-color: var(--primary); box-shadow: 0 8px 24px rgba(244,120,138,.18); }
 </style>

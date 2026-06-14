@@ -31,8 +31,22 @@
     </div>
   </aside>
 
+  <!-- ── Mobile bottom nav ──────────────────────────────────────────────── -->
+  <nav class="d-lg-none fixed-bottom d-flex justify-content-around align-items-center"
+       dir="rtl"
+       style="background:var(--bg-card);border-top:1.5px solid rgba(244,120,138,.12);padding:6px 0;z-index:1000;box-shadow:0 -4px 16px rgba(0,0,0,.06)">
+    @for (item of mobileNavItems; track item.route) {
+      <a [routerLink]="item.route" routerLinkActive="mob-active"
+         class="d-flex flex-column align-items-center gap-1 text-decoration-none flex-fill mob-nav-item"
+         style="padding:4px 0">
+        <span style="font-size:20px;line-height:1">{{ item.icon }}</span>
+        <span style="font-size:10px;font-weight:700;color:inherit">{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+
   <!-- ── Main ───────────────────────────────────────────────────────────── -->
-  <main class="flex-grow-1 p-3 p-md-4 d-flex flex-column gap-4" style="min-width:0">
+  <main class="flex-grow-1 p-3 p-md-4 d-flex flex-column gap-4 pb-5 pb-lg-4" style="min-width:0">
 
     <!-- Name lookup (first visit) -->
     @if (!data() && !isLoading()) {
@@ -85,21 +99,6 @@
           <span>{{ d.lessonsCompleted }} درساً مكتملاً</span>
           <span>{{ d.storiesRead }} قصة مكتملة</span>
         </div>
-      </div>
-
-      <!-- AI Lesson shortcut -->
-      <div class="card p-4 d-flex flex-row align-items-center gap-3"
-           style="background:linear-gradient(135deg,#fff0f3,#f5f0ff);border:1.5px solid rgba(244,120,138,.2)">
-        <div style="font-size:2.5rem;line-height:1">🤖</div>
-        <div class="flex-grow-1">
-          <div class="fw-800 mb-1">أنشئ درساً بالذكاء الاصطناعي</div>
-          <div class="text-muted small">اكتب موضوعاً وسيُنشئ النظام لك درساً تفاعلياً بالعربية</div>
-        </div>
-        <a routerLink="/generate-lesson"
-           class="btn rounded-pill px-4 fw-bold flex-shrink-0"
-           style="background:var(--primary-gradient);color:#fff;white-space:nowrap">
-          ابدأ الآن ✨
-        </a>
       </div>
 
       <!-- Stats grid -->

@@ -1,6 +1,7 @@
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { AdminSidebarComponent } from '../shared/admin-sidebar.component';
 import { StoryService } from '../../../services/story';
 import { StoryResponse } from '../../../models/story.models';
@@ -8,7 +9,7 @@ import { StoryResponse } from '../../../models/story.models';
 @Component({
   selector: 'app-admin-stories',
   standalone: true,
-  imports: [CommonModule, FormsModule, AdminSidebarComponent],
+  imports: [CommonModule, FormsModule, RouterLink, AdminSidebarComponent],
   templateUrl: './admin-stories.component.html',
 })
 export class AdminStoriesComponent implements OnInit {

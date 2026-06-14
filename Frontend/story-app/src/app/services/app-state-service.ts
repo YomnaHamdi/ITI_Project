@@ -38,6 +38,17 @@ export class AppStateService {
     this.currentPage.set(1);
   }
 
+  updateStudentLevel(level: number, newToken?: string): void {
+    const user = this._user();
+    if (!user) return;
+    const updated = { ...user, level };
+    this._user.set(updated);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('lughati_user', JSON.stringify(updated));
+      if (newToken) localStorage.setItem('lughati_token', newToken);
+    }
+  }
+
   private loadUserFromStorage(): CurrentUser | null {
     try {
       if (typeof localStorage === 'undefined') return null;

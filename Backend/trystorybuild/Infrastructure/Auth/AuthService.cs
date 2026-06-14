@@ -120,6 +120,16 @@ namespace Infrastructure.Auth
             return students.Select(ToSummary).ToList();
         }
 
+        // ── Update student level after placement test ───────────────────────────
+        public async Task<StudentAuthResponse> UpdateStudentLevelAsync(Guid studentId, int level)
+        {
+            var ok = await studentRepo.UpdateLevelAsync(studentId, level);
+            if (!ok) throw new InvalidOperationException("الطالب غير موجود.");
+            var student = await studentRepo.FindByIdAsync(studentId)
+                ?? throw new InvalidOperationException("الطالب غير موجود.");
+            return ToStudentResponse(student);
+        }
+
         // ── Create school admin (system admin only) ─────────────────────────────
         public async Task<(Guid id, string schoolCode)> CreateSchoolAdminAsync(
             string schoolName, string email, string password)

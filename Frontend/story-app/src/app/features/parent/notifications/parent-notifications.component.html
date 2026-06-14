@@ -19,10 +19,25 @@
       </a>
     </nav>
 
-    <div style="margin-bottom:24px">
+    <div style="margin-bottom:20px">
       <h2 style="font-size:24px;font-weight:900;margin:0">🔔 الإشعارات والنشاطات</h2>
       <p style="color:var(--text-muted);font-size:13px;margin-top:4px">آخر أنشطة أطفالك</p>
     </div>
+
+    <!-- Child selector chips -->
+    @if (childNames().length > 1) {
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px">
+        @for (name of childNames(); track name) {
+          <button (click)="selectChild(name)"
+                  style="padding:8px 18px;border-radius:99px;border:2px solid;font-family:'Cairo',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:.2s"
+                  [style.background]="selectedChild() === name ? 'var(--primary-gradient)' : 'var(--bg-card)'"
+                  [style.color]="selectedChild() === name ? '#fff' : 'var(--text-muted)'"
+                  [style.border-color]="selectedChild() === name ? 'transparent' : 'rgba(244,120,138,.2)'">
+            {{ name }}
+          </button>
+        }
+      </div>
+    }
 
     @if (isLoading()) {
       <div style="text-align:center;padding:60px;color:var(--text-muted)">جارٍ التحميل…</div>
@@ -30,7 +45,7 @@
       <div style="text-align:center;padding:80px 20px">
         <div style="font-size:56px;margin-bottom:16px">🔕</div>
         <h3 style="font-weight:800;margin-bottom:8px">لا توجد إشعارات</h3>
-        <p style="color:var(--text-muted)">ستظهر هنا أنشطة أطفالك عندما يبدأون التعلم</p>
+        <p style="color:var(--text-muted)">ستظهر هنا أنشطة {{ selectedChild() }} عندما يبدأ التعلم</p>
       </div>
     } @else {
       <div style="display:flex;flex-direction:column;gap:12px">
@@ -55,7 +70,13 @@
                   الدرجة: <strong [style.color]="act.score >= 80 ? '#22C55E' : act.score >= 50 ? '#F59E0B' : '#EF4444'">{{ act.score | number:'1.0-0' }}%</strong>
                 </div>
               }
-              <div style="font-size:12px;color:var(--text-muted)">{{ formatDate(act.occurredAt) }}</div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div style="font-size:12px;color:var(--text-muted)">{{ formatDate(act.occurredAt) }}</div>
+                <a [routerLink]="['/parent/child', act.childName, 'progress']"
+                   style="font-size:11px;font-weight:800;color:var(--primary);text-decoration:none">
+                  عرض التقدم ←
+                </a>
+              </div>
             </div>
           </div>
         }

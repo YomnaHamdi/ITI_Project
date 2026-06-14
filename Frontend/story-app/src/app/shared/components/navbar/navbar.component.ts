@@ -50,9 +50,14 @@ export class NavbarComponent {
     this.closeMenu();
   }
 
-  readonly navLinks = [
-    { label: 'المستويات',      labelEn: 'Levels',       route: '/levels' },
-    { label: 'لوحتي',          labelEn: 'My Dashboard', route: '/dashboard' },
-    { label: 'اختبار التحديد', labelEn: 'Placement',    route: '/test' },
+  private readonly allNavLinks = [
+    { label: 'المستويات',      labelEn: 'Levels',       route: '/levels',     hideForParent: true  },
+    { label: 'لوحتي',          labelEn: 'My Dashboard', route: '/dashboard',  hideForParent: false },
+    { label: 'اختبار التحديد', labelEn: 'Placement',    route: '/test',       hideForParent: true  },
   ];
+
+  get navLinks() {
+    const isParent = this.state.userRole() === 'parent';
+    return isParent ? this.allNavLinks.filter(l => !l.hideForParent) : this.allNavLinks;
+  }
 }

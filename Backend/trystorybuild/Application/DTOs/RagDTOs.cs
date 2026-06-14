@@ -59,4 +59,16 @@ namespace Application.DTOs
         string Sentence,
         string ImagePrompt,
         string? ActivityType);
+
+    // ── Manual lesson creation ─────────────────────────────────────────────────
+    public record CreateManualLessonRequest(
+        string Title,
+        int    Level,
+        string Letter,
+        Guid?  CreatorId,
+        List<ManualLessonPageRequest> Pages);
+
+    public record ManualLessonPageRequest(
+        string Content,
+        string Type);
 }

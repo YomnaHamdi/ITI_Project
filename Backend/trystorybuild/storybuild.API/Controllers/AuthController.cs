@@ -89,5 +89,40 @@ namespace storybuild.API.Controllers
             var role = User.FindFirst(ClaimTypes.Role)?.Value;
             return Ok(new { id, name, role });
         }
+
+        // ── Parent/teacher updates a specific child's level ────────────────────
+        [HttpPatch("students/{id:guid}/level")]
+        [Authorize(Roles = "Parent,Teacher")]
+        [ProducesResponseType(typeof(StudentAuthResponse), 200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> UpdateChildLevel(Guid id, [FromBody] UpdateLevelRequest request)
+        {
+            if (request.Level < 1 || request.Level > 3)
+                return BadRequest(new { error = "المستوى يجب أن يكون بين 1 و 3." });
+
+            try   { return Ok(await authService.UpdateStudentLevelAsync(id, request.Level)); }
+            catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
+        }
+
+        // ── Update student level after placement test ───────────────────────────
+        [HttpPatch("students/me/level")]
+        [Authorize(Roles = "Student")]
+        [ProducesResponseType(typeof(StudentAuthResponse), 200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> UpdateMyLevel([FromBody] UpdateLevelRequest request)
+        {
+            if (request.Level < 1 || request.Level > 3)
+                return BadRequest(new { error = "المستوى يجب أن يكون بين 1 و 3." });
+
+            var studentId = Guid.Parse(
+                User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? throw new InvalidOperationException("Invalid token."));
+
+            try   { return Ok(await authService.UpdateStudentLevelAsync(studentId, request.Level)); }
+            catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
+        }
     }
+
+    public record UpdateLevelRequest(int Level);
 }

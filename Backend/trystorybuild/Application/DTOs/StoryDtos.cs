@@ -190,4 +190,12 @@ namespace Application.DTOs
         int CorrectAnswers,
         double ScorePercentage,
         bool ExamCompleted);
+
+    public record LessonProgressRequest(
+        Guid LessonId,
+        string ChildName,
+        int TotalQuestions,
+        int CorrectAnswers,
+        double ScorePercentage,
+        bool ExamCompleted);
 }

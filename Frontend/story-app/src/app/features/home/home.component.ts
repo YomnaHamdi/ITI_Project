@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
+import { AppStateService } from '../../services/app-state-service';
 
 @Component({
   selector: 'app-home',
@@ -11,6 +12,7 @@ import { NavbarComponent } from '../../shared/components/navbar/navbar.component
 })
 export class HomeComponent {
   private readonly router = inject(Router);
+  private readonly state  = inject(AppStateService);
 
   readonly levels = [
     {
@@ -64,7 +66,7 @@ export class HomeComponent {
     },
   ];
 
-  startNow():     void { this.router.navigate(['/auth/register']); }
+  startNow():     void { this.router.navigate([this.state.isLoggedIn() ? '/levels' : '/auth/register']); }
   viewLevels():   void { this.router.navigate(['/levels']); }
   takeFreeTest(): void { this.router.navigate(['/test']); }
   goUpgrade():    void { this.router.navigate(['/upgrade']); }

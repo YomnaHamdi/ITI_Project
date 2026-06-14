@@ -1,6 +1,9 @@
 using Application.DTOs;
 using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace storybuild.API.Controllers
 {
@@ -31,10 +34,16 @@ namespace storybuild.API.Controllers
         }
 
         [HttpGet("teacher")]
+        [Authorize(Roles = "Teacher")]
         [ProducesResponseType(typeof(TeacherDashboardDto), 200)]
         public async Task<IActionResult> GetTeacher()
         {
-            var data = await dashboardService.GetTeacherDashboardAsync();
+            var teacherId = Guid.Parse(
+                User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? throw new InvalidOperationException("Invalid token."));
+
+            var data = await dashboardService.GetTeacherDashboardAsync(teacherId);
             return Ok(data);
         }
 

@@ -107,6 +107,11 @@ export class AuthService {
     return this.http.get<StudentSummary[]>(`${this.api}/api/auth/students`);
   }
 
+  // ── Parent/teacher updates a child's level ─────────────────────────────────
+  updateChildLevel(studentId: string, level: number): Observable<StudentAuthResponse> {
+    return this.http.patch<StudentAuthResponse>(`${this.api}/api/auth/students/${studentId}/level`, { level });
+  }
+
   // ── Logout ─────────────────────────────────────────────────────────────────
   logout(): void {
     this._token.set(null);

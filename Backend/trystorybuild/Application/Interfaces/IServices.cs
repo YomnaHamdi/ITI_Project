@@ -64,6 +64,7 @@ namespace Application.Interfaces
         Task<Story> SaveAsync(Story story);
         Task<Story?> GetByIdAsync(Guid id);
         Task<List<Story>> GetAllAsync();
+        Task<List<Story>> GetByChildNameAsync(string childName);
         Task<bool> DeleteAsync(Guid id);
     }
 
@@ -111,6 +112,7 @@ namespace Application.Interfaces
         Task<List<StudentProfileDto>> GetChildrenAsync(Guid parentId);
         Task<List<StudentProfileDto>> GetStudentsAsync(Guid teacherId);
         Task<(Guid id, string schoolCode)> CreateSchoolAdminAsync(string schoolName, string email, string password);
+        Task<StudentAuthResponse> UpdateStudentLevelAsync(Guid studentId, int level);
     }
 
     // ── User Repository ────────────────────────────────────────────────────────────
@@ -131,6 +133,7 @@ namespace Application.Interfaces
         Task<Student>        SaveAsync(Student student);
         Task<List<Student>>  GetByParentIdAsync(Guid parentId);
         Task<List<Student>>  GetByTeacherIdAsync(Guid teacherId);
+        Task<bool>           UpdateLevelAsync(Guid id, int level);
     }
 
     // ── Level Word Config ──────────────────────────────────────────────────────────
@@ -186,7 +189,7 @@ namespace Application.Interfaces
     {
         Task<StudentDashboardDto?> GetStudentDashboardAsync(string childName);
         Task<ParentDashboardDto?> GetParentDashboardAsync(string childName);
-        Task<TeacherDashboardDto> GetTeacherDashboardAsync();
+        Task<TeacherDashboardDto> GetTeacherDashboardAsync(Guid teacherId);
         Task<SchoolDashboardDto> GetSchoolDashboardAsync();
         Task<List<string>> GetKnownChildNamesAsync();
         Task<List<LevelProgressDto>> GetLevelProgressAsync(string childName);

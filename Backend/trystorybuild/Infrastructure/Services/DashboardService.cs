@@ -82,9 +82,12 @@ namespace Infrastructure.Services
         }
 
         // ── Teacher ───────────────────────────────────────────────────────────
-        public async Task<TeacherDashboardDto> GetTeacherDashboardAsync()
+        public async Task<TeacherDashboardDto> GetTeacherDashboardAsync(Guid teacherId)
         {
-            var childNames   = await GetKnownChildNamesAsync();
+            var childNames = await db.Students
+                .Where(s => s.TeacherId == teacherId)
+                .Select(s => s.Name)
+                .ToListAsync();
             var allProgress  = await db.StudentProgress.Where(p => p.ExamCompleted).ToListAsync();
             var cutoff       = DateTime.UtcNow.AddDays(-7);
             int activeWeek   = await db.StudentProgress

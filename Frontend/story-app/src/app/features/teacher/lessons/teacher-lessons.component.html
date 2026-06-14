@@ -45,7 +45,7 @@
         </a>
       </div>
     } @else {
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px">
         @for (lesson of filtered(); track lesson.id) {
           <div style="background:var(--bg-card);border-radius:18px;overflow:hidden;border:1.5px solid rgba(244,120,138,.08)">
             @if (lesson.coverImageUrl) {
@@ -60,10 +60,104 @@
               </div>
               <h5 style="font-weight:800;font-size:14px;margin-bottom:4px;line-height:1.4">{{ lesson.title }}</h5>
               <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">{{ lesson.pageCount }} صفحة</p>
-              <a [routerLink]="['/lessons', lesson.id]"
-                 style="display:block;text-align:center;padding:7px;border-radius:10px;background:rgba(244,120,138,.08);color:var(--primary);text-decoration:none;font-size:13px;font-weight:800">
-                معاينة ▶
-              </a>
+              <div style="display:flex;gap:6px;margin-bottom:8px">
+                <a [routerLink]="['/lessons', lesson.id]"
+                   style="flex:1;display:block;text-align:center;padding:7px;border-radius:10px;background:rgba(244,120,138,.08);color:var(--primary);text-decoration:none;font-size:13px;font-weight:800">
+                  معاينة ▶
+                </a>
+                <button type="button" (click)="openAssign(lesson.id)"
+                   style="flex:1;padding:7px;border-radius:10px;background:rgba(99,102,241,.08);color:#6366F1;border:none;font-size:12px;font-weight:800;cursor:pointer">
+                  {{ assignPanel()?.lessonId === lesson.id ? '✕ إغلاق' : '📤 تعيين' }}
+                </button>
+                <button type="button" (click)="deleteLesson(lesson.id)"
+                   style="padding:7px 10px;border-radius:10px;background:rgba(239,68,68,.08);color:#EF4444;border:none;font-size:13px;font-weight:800;cursor:pointer">
+                  🗑️
+                </button>
+              </div>
+
+              <!-- Inline assign panel -->
+              @if (assignPanel()?.lessonId === lesson.id; as panel) {
+                @if (assignPanel(); as p) {
+                  <div style="border-top:1.5px solid rgba(244,120,138,.1);padding-top:12px;margin-top:4px">
+
+                    <!-- Mode tabs -->
+                    <div style="display:flex;gap:4px;margin-bottom:10px">
+                      @for (m of [['Student','طالب'],['Level','مستوى'],['Group','مجموعة']]; track m[0]) {
+                        <button type="button" (click)="setMode(m[0] === 'Student' ? 'Student' : m[0] === 'Level' ? 'Level' : 'Group')"
+                                style="flex:1;padding:5px;border-radius:8px;border:none;font-family:'Cairo',sans-serif;font-size:11px;font-weight:800;cursor:pointer;transition:.2s"
+                                [style.background]="p.mode === m[0] ? 'var(--primary-gradient)' : 'rgba(244,120,138,.06)'"
+                                [style.color]="p.mode === m[0] ? '#fff' : 'var(--text-muted)'">
+                          {{ m[1] }}
+                        </button>
+                      }
+                    </div>
+
+                    <!-- Student selector -->
+                    @if (p.mode === 'Student') {
+                      @if (students().length === 0) {
+                        <p style="font-size:11px;color:var(--text-muted);margin:0 0 8px">لا يوجد طلاب مسجّلون.</p>
+                      } @else {
+                        <select [(ngModel)]="p.studentId"
+                                style="width:100%;padding:7px 10px;border-radius:9px;border:1.5px solid rgba(244,120,138,.2);font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;margin-bottom:8px">
+                          <option value="">اختر طالباً…</option>
+                          @for (s of students(); track s.id) {
+                            <option [value]="s.id">{{ s.name }} — المستوى {{ s.level }}</option>
+                          }
+                        </select>
+                      }
+                    }
+
+                    <!-- Level selector -->
+                    @if (p.mode === 'Level') {
+                      <div style="display:flex;gap:6px;margin-bottom:8px">
+                        @for (lv of [1,2,3]; track lv) {
+                          <button type="button" (click)="p.level = lv"
+                                  style="flex:1;padding:6px;border-radius:8px;border:2px solid;font-family:'Cairo',sans-serif;font-size:11px;font-weight:800;cursor:pointer;transition:.2s"
+                                  [style.background]="p.level === lv ? 'var(--primary-gradient)' : 'transparent'"
+                                  [style.color]="p.level === lv ? '#fff' : 'var(--primary)'"
+                                  [style.border-color]="'var(--primary)'">
+                            {{ lv }}
+                          </button>
+                        }
+                      </div>
+                      <p style="font-size:11px;color:var(--text-muted);margin:0 0 8px">
+                        سيُعيَّن الدرس لـ {{ students().filter(s => s.level === p?.level).length }} طلاب في المستوى {{ p?.level }}
+                      </p>
+                    }
+
+                    <!-- Group selector -->
+                    @if (p.mode === 'Group') {
+                      @if (groups().length === 0) {
+                        <p style="font-size:11px;color:var(--text-muted);margin:0 0 8px">لا توجد مجموعات. أنشئ مجموعة أولاً.</p>
+                      } @else {
+                        <select [(ngModel)]="p.groupId"
+                                style="width:100%;padding:7px 10px;border-radius:9px;border:1.5px solid rgba(244,120,138,.2);font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;margin-bottom:8px">
+                          <option value="">اختر مجموعة…</option>
+                          @for (g of groups(); track g.id) {
+                            <option [value]="g.id">{{ g.name }} ({{ g.memberCount }} طالب)</option>
+                          }
+                        </select>
+                      }
+                    }
+
+                    <!-- Feedback -->
+                    @if (p.error) {
+                      <p style="font-size:11px;color:#DC2626;font-weight:700;margin:0 0 6px">{{ p.error }}</p>
+                    }
+                    @if (p.success) {
+                      <p style="font-size:11px;color:#16A34A;font-weight:700;margin:0 0 6px">{{ p.success }}</p>
+                    }
+
+                    <button type="button" (click)="assign()" [disabled]="p.saving"
+                            style="width:100%;padding:8px;border-radius:9px;border:none;background:var(--primary-gradient);color:#fff;font-family:'Cairo',sans-serif;font-size:12px;font-weight:800;cursor:pointer"
+                            [style.opacity]="p.saving ? '0.6' : '1'">
+                      {{ p.saving ? 'جارٍ التعيين…' : '✅ تعيين الدرس' }}
+                    </button>
+
+                  </div>
+                }
+              }
+
             </div>
           </div>
         }

@@ -37,10 +37,6 @@
               </select>
             </div>
           </div>
-          <div class="d-flex flex-column gap-1">
-            <label class="fw-700 small">وسوم (اختياري)</label>
-            <input class="form-control fw-600" type="text" placeholder="حيوانات، أرقام، ألوان..." [(ngModel)]="form.tags" />
-          </div>
         </div>
 
         <!-- PDF Upload -->
@@ -71,45 +67,6 @@
           <button class="btn btn-primary rounded-pill fw-800 align-self-start px-4"
             [disabled]="!selectedPdf || isPublishing()" (click)="publishFromPdf()">
             @if (isPublishing()) { ⏳ جارٍ الاستيراد... } @else { 📤 استيراد وتحليل }
-          </button>
-        </div>
-
-        <!-- AI Generation -->
-        <div class="card p-4 d-flex flex-column gap-3">
-          <h5 class="fw-800 mb-0">✨ توليد بالذكاء الاصطناعي</h5>
-          <p class="small text-muted mb-0">سيستخدم Gemini وقاعدة المعرفة لتوليد جمل مناسبة وصور كرتونية</p>
-
-          <!-- Target selection -->
-          <div class="d-flex flex-column gap-2">
-            <label class="fw-700 small">تعيين الدرس بعد التوليد (اختياري)</label>
-            <div class="d-flex gap-2 flex-wrap">
-              <label class="d-flex align-items-center gap-1 small fw-600">
-                <input type="radio" name="targetType" value="none" [(ngModel)]="targetType" /> بدون تعيين
-              </label>
-              <label class="d-flex align-items-center gap-1 small fw-600">
-                <input type="radio" name="targetType" value="student" [(ngModel)]="targetType" /> طالب محدد
-              </label>
-              <label class="d-flex align-items-center gap-1 small fw-600">
-                <input type="radio" name="targetType" value="group" [(ngModel)]="targetType" /> مجموعة
-              </label>
-            </div>
-            @if (targetType === 'student') {
-              <input class="form-control fw-600" type="text"
-                     placeholder="معرّف الطالب (UUID)" [(ngModel)]="targetStudentId" />
-            }
-            @if (targetType === 'group') {
-              <select class="form-select fw-600" [(ngModel)]="targetGroupId">
-                <option value="">-- اختر مجموعة --</option>
-                @for (g of groups(); track g.id) {
-                  <option [value]="g.id">{{ g.name }} ({{ g.memberCount }} طالب)</option>
-                }
-              </select>
-            }
-          </div>
-
-          <button class="btn btn-outline-primary rounded-pill fw-800 align-self-start px-4"
-            [disabled]="!form.title.trim() || isPublishing()" (click)="publishFromAi()">
-            @if (isPublishing()) { ⏳ جارٍ التوليد... } @else { 🤖 توليد الدرس بالذكاء الاصطناعي }
           </button>
         </div>
 
@@ -145,6 +102,12 @@
             <button class="btn btn-sm rounded-pill fw-700 add-audio"    type="button" (click)="addBlock('audio')"   >+ صوت</button>
             <button class="btn btn-sm rounded-pill fw-700 add-activity" type="button" (click)="addBlock('activity')">+ نشاط</button>
           </div>
+          @if (blocks().length > 0) {
+            <button class="btn btn-primary rounded-pill fw-800 align-self-start px-4 mt-2"
+              [disabled]="!form.title.trim() || isPublishing()" (click)="publishManual()">
+              @if (isPublishing()) { ⏳ جارٍ النشر... } @else { 💾 نشر الدرس }
+            </button>
+          }
         </div>
 
       </div>

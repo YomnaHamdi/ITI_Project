@@ -30,6 +30,12 @@
       </a>
     </nav>
 
+    @if (saveError()) {
+      <div style="background:#FEF2F2;border:1.5px solid #FECACA;color:#DC2626;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;font-weight:700">
+        {{ saveError() }}
+      </div>
+    }
+
     @if (isLoading()) {
       <div style="text-align:center;padding:60px;color:var(--text-muted)">جارٍ التحميل…</div>
     } @else if (error()) {
@@ -74,16 +80,42 @@
               }
             </div>
 
+            <!-- Level editor -->
+            @if (editingId() === child.id) {
+              <div style="background:rgba(244,120,138,.05);border-radius:12px;padding:12px;margin-bottom:14px;border:1.5px solid rgba(244,120,138,.15)">
+                <p style="font-size:12px;font-weight:800;color:var(--text-muted);margin:0 0 8px">اختر المستوى:</p>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  @for (lvl of levels; track lvl.value) {
+                    <button (click)="setLevel(child, lvl.value)"
+                            [disabled]="savingId() === child.id"
+                            style="padding:6px 14px;border-radius:99px;border:2px solid;font-family:'Cairo',sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:.2s"
+                            [style.background]="child.level === lvl.value ? lvl.color : 'transparent'"
+                            [style.color]="child.level === lvl.value ? '#fff' : lvl.color"
+                            [style.border-color]="lvl.color">
+                      {{ lvl.label }}
+                    </button>
+                  }
+                </div>
+                @if (savingId() === child.id) {
+                  <p style="font-size:11px;color:var(--text-muted);margin:8px 0 0">جارٍ الحفظ…</p>
+                }
+              </div>
+            }
+
             <!-- Actions -->
-            <div style="display:flex;gap:8px">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
               <a [routerLink]="['/parent/child', child.name, 'progress']"
                  style="flex:1;text-align:center;padding:9px 0;border-radius:12px;background:var(--primary-gradient);color:#fff;text-decoration:none;font-size:13px;font-weight:800">
                 📊 التقدّم
               </a>
-              <a routerLink="/parent/notifications"
+              <a [routerLink]="['/parent/notifications']" [queryParams]="{ child: child.name }"
                  style="flex:1;text-align:center;padding:9px 0;border-radius:12px;background:rgba(244,120,138,.08);color:var(--primary);text-decoration:none;font-size:13px;font-weight:800">
                 🔔 الإشعارات
               </a>
+              <button (click)="toggleEdit(child.id)"
+                      style="padding:9px 14px;border-radius:12px;border:none;background:rgba(99,102,241,.1);color:#6366F1;font-size:13px;font-weight:800;cursor:pointer;font-family:'Cairo',sans-serif">
+                {{ editingId() === child.id ? '✕' : '✏️ المستوى' }}
+              </button>
             </div>
 
           </div>

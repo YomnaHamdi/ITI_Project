@@ -75,6 +75,14 @@
           </div>
           <p class="fw-800 mb-3" style="font-size:18px;line-height:1.5">{{ q.text }}</p>
 
+          <!-- Question image (for "ما هذا؟" type questions) -->
+          @if (getQuestionImage(q); as imgUrl) {
+            <div class="d-flex justify-content-center mb-3">
+              <img [src]="imgUrl" alt="صورة السؤال"
+                   style="max-width:220px;max-height:180px;border-radius:14px;object-fit:contain;border:2px solid rgba(244,120,138,.2);box-shadow:0 4px 16px rgba(0,0,0,.08)" />
+            </div>
+          }
+
           <!-- MCQ -->
           @if (q.type === 0) {
             <div class="d-flex flex-column gap-2">

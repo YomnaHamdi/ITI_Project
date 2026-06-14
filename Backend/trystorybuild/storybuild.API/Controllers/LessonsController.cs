@@ -61,6 +61,56 @@ public class LessonsController(
         }
     }
 
+    // ── Create manual lesson (teacher block builder) ───────────────────────────
+    [HttpPost("manual")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> CreateManual([FromBody] CreateManualLessonRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Title))
+            return BadRequest(new { error = "يرجى إدخال عنوان الدرس." });
+        if (request.Pages == null || request.Pages.Count == 0)
+            return BadRequest(new { error = "يرجى إضافة صفحة واحدة على الأقل." });
+
+        var lesson = new Domain.Entities.Lesson
+        {
+            Title       = request.Title.Trim(),
+            Level       = request.Level,
+            Letter      = request.Letter.Trim(),
+            LetterName  = request.Letter.Trim(),
+            CreatorId   = request.CreatorId,
+            CreatorRole = "Teacher",
+            IsGenerated = false,
+        };
+
+        int pageNum = 1;
+        foreach (var p in request.Pages)
+        {
+            lesson.Pages.Add(new Domain.Entities.LessonPage
+            {
+                PageNumber  = pageNum++,
+                Sentence    = p.Type == "text"  ? p.Content.Trim() : string.Empty,
+                ImagePath   = p.Type == "image" ? p.Content.Trim() : string.Empty,
+                ImagePrompt = p.Type == "image" ? p.Content.Trim() : string.Empty,
+                IsUnlocked  = true,
+            });
+        }
+
+        var created = await lessonRepository.CreateManualAsync(lesson);
+        return Ok(Application.Mapping.LessonMapper.ToDetail(created));
+    }
+
+    // ── Delete lesson ──────────────────────────────────────────────────────────
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var deleted = await lessonRepository.DeleteAsync(id);
+        if (!deleted) return NotFound(new { error = "الدرس غير موجود." });
+        return NoContent();
+    }
+
     // ── Get lessons created by a specific user (my lessons) ───────────────────
     [HttpGet("my/{creatorId:guid}")]
     [ProducesResponseType(typeof(List<LessonSummaryDto>), 200)]

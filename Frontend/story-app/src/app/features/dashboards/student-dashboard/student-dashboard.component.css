@@ -1,3 +1,7 @@
 .sidebar-link { font-size: 15px; color: var(--text-muted); transition: all 0.2s ease; }
 .sidebar-link:hover { background: rgba(244,120,138,.08) !important; color: var(--primary) !important; }
 .sidebar-link.active { background: rgba(244,120,138,.08) !important; color: var(--primary) !important; font-weight: 800 !important; }
+
+.mob-nav-item { color: var(--text-muted); transition: color .2s; }
+.mob-nav-item:hover { color: var(--primary); }
+.mob-nav-item.mob-active { color: var(--primary); }

@@ -47,6 +47,15 @@ namespace storybuild.API.Controllers
             return Ok(stories.Select(StoryAgent.MapToResponse).ToList());
         }
 
+        /// <summary>List stories belonging to a specific child.</summary>
+        [HttpGet("mine/{childName}")]
+        [ProducesResponseType(typeof(List<GenerateStoryResponse>), 200)]
+        public async Task<IActionResult> GetMine(string childName)
+        {
+            var stories = await storyRepository.GetByChildNameAsync(childName);
+            return Ok(stories.Select(StoryAgent.MapToResponse).ToList());
+        }
+
         /// <summary>Delete a story by ID.</summary>
         [HttpDelete("{id:guid}")]
         [ProducesResponseType(204)]

@@ -74,7 +74,6 @@ export class TeacherSidebarComponent {
   readonly navItems = [
     { icon: '👥', label: 'الطلاب',           route: '/teacher/students' },
     { icon: '➕', label: 'إضافة طالب',       route: '/auth/create-student' },
-    { icon: '🗂️', label: 'المجموعات',        route: '/teacher/groups' },
     { icon: '📚', label: 'الدروس',            route: '/teacher/lessons' },
     { icon: '✨', label: 'المولّد الذكي',     route: '/teacher/ai-generator' },
     { icon: '📝', label: 'إنشاء درس',        route: '/teacher/lessons/create' },

@@ -29,11 +29,14 @@ export class MyStoriesComponent implements OnInit {
     { icon: '✨', label: 'قصص ذكية', route: '/ai-story' },
   ];
 
+  readonly childName = signal('');
+
   ngOnInit(): void {
-    const childName = this.state.childName() || this.state.currentUser()?.name || '';
-    if (!childName) { this.router.navigate(['/dashboard']); return; }
+    const name = this.state.childName() || this.state.currentUser()?.name || '';
+    if (!name) { this.router.navigate(['/dashboard']); return; }
+    this.childName.set(name);
     this.isLoading.set(true);
-    this.svc.getAllStories().subscribe({
+    this.svc.getMyStories(name).subscribe({
       next:  s => { this.stories.set(s); this.isLoading.set(false); },
       error: () => { this.isLoading.set(false); this.error.set('تعذّر تحميل القصص.'); }
     });

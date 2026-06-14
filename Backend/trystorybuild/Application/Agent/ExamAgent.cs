@@ -57,6 +57,12 @@ namespace Application.Agent
             var lesson = await lessonRepository.GetByIdAsync(lessonId)
                 ?? throw new InvalidOperationException($"Lesson {lessonId} not found.");
 
+            // Pages with images — used to attach to "ما هذا؟" questions
+            var pagesWithImages = lesson.Pages
+                .OrderBy(p => p.PageNumber)
+                .Where(p => !p.IsCoverPage && !string.IsNullOrWhiteSpace(p.ImagePath))
+                .ToList();
+
             var sentences = lesson.Pages
                 .OrderBy(p => p.PageNumber)
                 .Select(p => p.Sentence)
@@ -72,6 +78,16 @@ namespace Application.Agent
             foreach (var q in aiOutput.Questions)
             {
                 var question = BuildQuestion(q, exam.Id, qNum++);
+
+                // Attach a page image for "ما هذا؟" questions
+                if (question.Type == QuizType.MCQ
+                    && question.Text.Contains("ما هذا", StringComparison.OrdinalIgnoreCase)
+                    && pagesWithImages.Count > 0)
+                {
+                    var imgPath = pagesWithImages[0].ImagePath;
+                    question.DataJson = JsonSerializer.Serialize(new { imageUrl = imgPath });
+                }
+
                 exam.Questions.Add(question);
             }
 

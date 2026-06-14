@@ -30,7 +30,7 @@ export class LessonCreateComponent implements OnInit {
   readonly publishError   = signal<string | null>(null);
   readonly publishSuccess = signal<string | null>(null);
 
-  form = { title: '', letter: '', level: 1, tags: '' };
+  form = { title: '', letter: '', level: 1 };
 
   readonly levels = [
     { value: 1, label: 'المستوى 1 — الحروف' },
@@ -113,6 +113,31 @@ export class LessonCreateComponent implements OnInit {
       },
       error: (err: any) => {
         this.publishError.set(err?.message ?? 'فشل الاستيراد. حاول مرة أخرى.');
+        this.isPublishing.set(false);
+      }
+    });
+  }
+
+  publishManual(): void {
+    if (!this.form.title.trim()) { this.publishError.set('يرجى إدخال عنوان الدرس.'); return; }
+    if (this.blocks().length === 0) { this.publishError.set('يرجى إضافة محتوى على الأقل.'); return; }
+    this.isPublishing.set(true);
+    this.publishError.set(null);
+    const user = this.state.currentUser();
+    this.service.createManualLesson({
+      title:     this.form.title.trim(),
+      level:     this.form.level,
+      letter:    this.form.letter.trim(),
+      creatorId: user?.id,
+      pages:     this.blocks().map(b => ({ content: b.content, type: b.type }))
+    }).subscribe({
+      next: lesson => {
+        this.isPublishing.set(false);
+        this.publishSuccess.set(`✅ تم نشر الدرس: ${lesson.title}`);
+        setTimeout(() => this.router.navigate(['/lessons', lesson.id]), 1500);
+      },
+      error: (err: any) => {
+        this.publishError.set(err?.message ?? 'فشل النشر. حاول مرة أخرى.');
         this.isPublishing.set(false);
       }
     });

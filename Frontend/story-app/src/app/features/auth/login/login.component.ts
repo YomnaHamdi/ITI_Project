@@ -1,7 +1,6 @@
 import { Component, signal, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 import { AppStateService } from '../../../services/app-state-service';
 import { AuthService } from '../../../services/auth.service';
 
@@ -10,7 +9,7 @@ type LoginFlow = 'idle' | 'adult' | 'student';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, RouterLink, NavbarComponent],
+  imports: [FormsModule, RouterLink],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })

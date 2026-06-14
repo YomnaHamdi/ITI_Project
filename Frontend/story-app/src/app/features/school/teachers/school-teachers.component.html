@@ -23,10 +23,56 @@
       </a>
     </nav>
 
-    <div style="margin-bottom:24px">
-      <h2 style="font-size:24px;font-weight:900;margin:0">👩‍🏫 المعلمون</h2>
-      <p style="color:var(--text-muted);font-size:13px;margin-top:4px">{{ teachers().length }} معلم في المدرسة</p>
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <div>
+        <h2 style="font-size:24px;font-weight:900;margin:0">👩‍🏫 المعلمون</h2>
+        <p style="color:var(--text-muted);font-size:13px;margin-top:4px">{{ teachers().length }} معلم في المدرسة</p>
+      </div>
+      <button (click)="toggleForm()"
+              style="background:var(--primary-gradient);color:#fff;border:none;padding:11px 22px;border-radius:99px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:800;cursor:pointer">
+        {{ showForm() ? '✕ إلغاء' : '+ إضافة معلم' }}
+      </button>
     </div>
+
+    <!-- Create teacher form -->
+    @if (showForm()) {
+      <div style="background:var(--bg-card);border-radius:18px;padding:24px;margin-bottom:28px;border:2px solid rgba(244,120,138,.18)">
+        <h3 style="font-size:16px;font-weight:900;margin:0 0 18px">➕ إضافة معلم جديد</h3>
+
+        @if (formError) {
+          <div style="background:#FEF2F2;border:1.5px solid #FECACA;color:#DC2626;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px">{{ formError }}</div>
+        }
+        @if (formSuccess) {
+          <div style="background:#F0FFF4;border:1.5px solid #86EFAC;color:#16A34A;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:700">{{ formSuccess }}</div>
+        }
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div>
+            <label style="font-size:12px;font-weight:800;color:var(--text-muted);display:block;margin-bottom:6px">الاسم الكامل</label>
+            <input [(ngModel)]="form.name" type="text" placeholder="مثال: فاطمة محمد"
+                   style="width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid rgba(244,120,138,.2);font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;box-sizing:border-box" />
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:800;color:var(--text-muted);display:block;margin-bottom:6px">البريد الإلكتروني</label>
+            <input [(ngModel)]="form.email" type="email" placeholder="teacher@school.edu"
+                   style="width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid rgba(244,120,138,.2);font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;direction:ltr;box-sizing:border-box" />
+          </div>
+        </div>
+
+        <div style="margin-bottom:20px">
+          <label style="font-size:12px;font-weight:800;color:var(--text-muted);display:block;margin-bottom:6px">كلمة المرور</label>
+          <input [(ngModel)]="form.password" type="password" placeholder="6 أحرف على الأقل"
+                 style="width:100%;max-width:300px;padding:10px 14px;border-radius:12px;border:1.5px solid rgba(244,120,138,.2);font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;box-sizing:border-box" />
+        </div>
+
+        <button (click)="createTeacher()" [disabled]="isSaving()"
+                style="background:var(--primary-gradient);color:#fff;border:none;padding:11px 28px;border-radius:12px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:800;cursor:pointer;opacity:1;transition:.2s"
+                [style.opacity]="isSaving() ? '0.6' : '1'">
+          {{ isSaving() ? 'جارٍ الإنشاء…' : '✅ إنشاء الحساب' }}
+        </button>
+      </div>
+    }
 
     <!-- Search -->
     <input type="text" [value]="searchTerm()" (input)="setSearch($any($event.target).value)"

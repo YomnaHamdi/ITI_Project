@@ -13,12 +13,13 @@ import { TeacherSidebarComponent } from '../teacher-shell/teacher-sidebar.compon
 export class TeacherReportsComponent implements OnInit {
   private readonly service = inject(StoryService);
 
-  readonly isLoading = signal(false);
-  readonly data      = signal<any>(null);
+  readonly isLoading       = signal(false);
+  readonly data            = signal<any>(null);
+  readonly expandedStudent = signal<string | null>(null);
 
   readonly maxScore = computed(() => {
     const students = this.data()?.students ?? [];
-    return Math.max(...students.map((s: any) => s.averageExamScore), 1);
+    return Math.max(...students.map((s: any) => s.avgScore ?? 0), 1);
   });
 
   ngOnInit(): void {
@@ -29,9 +30,20 @@ export class TeacherReportsComponent implements OnInit {
     });
   }
 
+  toggleStudent(name: string): void {
+    this.expandedStudent.update(cur => cur === name ? null : name);
+  }
+
   barHeight(score: number): number { return Math.round(score / this.maxScore() * 100); }
 
   barColor(score: number): string {
     return score >= 80 ? '#22C55E' : score >= 50 ? '#F59E0B' : '#EF4444';
+  }
+
+  levelLabel(lvl: string): string {
+    const map: Record<string, string> = {
+      Excellent: '🌟 ممتاز', Good: '👍 جيد', NeedsSupport: '💪 يحتاج دعم'
+    };
+    return map[lvl] ?? lvl;
   }
 }

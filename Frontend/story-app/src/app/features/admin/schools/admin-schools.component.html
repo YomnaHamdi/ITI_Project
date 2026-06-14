@@ -3,58 +3,125 @@
 
   <main class="flex-grow-1 p-4" style="min-width:0;overflow-y:auto">
 
-    <h1 class="fw-800 mb-1" style="font-size:24px">🏫 إضافة مدرسة</h1>
-    <p class="text-muted small mb-4">أنشئ حساب مدير مدرسة جديد</p>
-
-    <div class="card p-4" style="max-width:520px">
-
-      @if (created(); as res) {
-        <div class="text-center py-3">
-          <div style="font-size:56px" class="mb-2">🎉</div>
-          <h5 class="fw-800 mb-3">تم إنشاء المدرسة بنجاح!</h5>
-          <div class="d-flex flex-column gap-2 text-end mb-4 p-3 rounded-3" style="background:#F0FFF4;border:1.5px solid #86EFAC">
-            <div><span class="fw-700 text-muted small">اسم المدرسة: </span><strong>{{ res.schoolName }}</strong></div>
-            <div><span class="fw-700 text-muted small">البريد الإلكتروني: </span><strong dir="ltr">{{ res.adminEmail }}</strong></div>
-            <div>
-              <span class="fw-700 text-muted small">كود المدرسة: </span>
-              <code class="fw-800 px-2 py-1 rounded-2" style="background:#DCFCE7;color:#16A34A;font-size:15px">{{ res.schoolCode }}</code>
-            </div>
-          </div>
-          <p class="small text-muted mb-4">احتفظ بكود المدرسة — المعلمون يحتاجونه عند التسجيل.</p>
-          <button class="btn btn-primary rounded-pill px-4" type="button" (click)="reset()">+ إضافة مدرسة أخرى</button>
-        </div>
-
-      } @else {
-        <form (ngSubmit)="submit()">
-
-          <div class="mb-3">
-            <label class="form-label fw-700 small mb-1">اسم المدرسة</label>
-            <input class="form-control" [(ngModel)]="form.schoolName" name="schoolName"
-              placeholder="مثال: مدرسة النور الابتدائية" required />
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label fw-700 small mb-1">البريد الإلكتروني للمدير</label>
-            <input class="form-control" type="email" [(ngModel)]="form.adminEmail" name="adminEmail"
-              placeholder="admin@school.com" dir="ltr" required />
-          </div>
-
-          <div class="mb-4">
-            <label class="form-label fw-700 small mb-1">كلمة مرور المدير</label>
-            <input class="form-control" type="password" [(ngModel)]="form.adminPassword" name="adminPassword"
-              placeholder="6 أحرف على الأقل" dir="ltr" required minlength="6" />
-          </div>
-
-          @if (error()) {
-            <div class="alert alert-danger py-2 small">{{ error() }}</div>
-          }
-
-          <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-700" [disabled]="isLoading()">
-            {{ isLoading() ? 'جارٍ الإنشاء...' : '🏫 إنشاء المدرسة' }}
-          </button>
-        </form>
-      }
-
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-1">
+      <h1 class="fw-800 mb-0" style="font-size:24px">🏫 المدارس</h1>
+      <button class="btn btn-primary rounded-pill px-4 fw-700" style="font-size:13px"
+        (click)="showForm.set(!showForm())">
+        {{ showForm() ? '✕ إغلاق' : '+ إضافة مدرسة' }}
+      </button>
     </div>
+    <p class="text-muted small mb-4">{{ schools().length }} مدرسة في النظام</p>
+
+    <!-- Create form (collapsible) -->
+    @if (showForm()) {
+      <div class="card p-4 mb-4" style="max-width:520px;border:1.5px solid rgba(244,120,138,.2)">
+        <h5 class="fw-800 mb-3">إنشاء مدرسة جديدة</h5>
+
+        @if (created(); as res) {
+          <div class="text-center py-3">
+            <div style="font-size:48px" class="mb-2">🎉</div>
+            <h6 class="fw-800 mb-3">تم إنشاء المدرسة بنجاح!</h6>
+            <div class="d-flex flex-column gap-2 text-end mb-3 p-3 rounded-3" style="background:#F0FFF4;border:1.5px solid #86EFAC;font-size:13px">
+              <div><span class="fw-700 text-muted">اسم المدرسة: </span><strong>{{ res.schoolName }}</strong></div>
+              <div><span class="fw-700 text-muted">البريد: </span><strong dir="ltr">{{ res.adminEmail }}</strong></div>
+              <div>
+                <span class="fw-700 text-muted">كود المدرسة: </span>
+                <code class="fw-800 px-2 py-1 rounded-2" style="background:#DCFCE7;color:#16A34A;font-size:14px">{{ res.schoolCode }}</code>
+              </div>
+            </div>
+            <p class="small text-muted mb-3">احتفظ بكود المدرسة — المعلمون يحتاجونه عند التسجيل.</p>
+            <button class="btn btn-outline-primary rounded-pill px-4 fw-700 small" (click)="reset()">+ إضافة مدرسة أخرى</button>
+          </div>
+
+        } @else {
+          <form (ngSubmit)="submit()">
+            <div class="mb-3">
+              <label class="form-label fw-700 small mb-1">اسم المدرسة</label>
+              <input class="form-control" [(ngModel)]="form.schoolName" name="schoolName"
+                placeholder="مثال: مدرسة النور الابتدائية" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-700 small mb-1">البريد الإلكتروني للمدير</label>
+              <input class="form-control" type="email" [(ngModel)]="form.adminEmail" name="adminEmail"
+                placeholder="admin@school.com" dir="ltr" required />
+            </div>
+            <div class="mb-4">
+              <label class="form-label fw-700 small mb-1">كلمة مرور المدير</label>
+              <input class="form-control" type="password" [(ngModel)]="form.adminPassword" name="adminPassword"
+                placeholder="6 أحرف على الأقل" dir="ltr" required minlength="6" />
+            </div>
+            @if (error()) {
+              <div class="alert alert-danger py-2 small">{{ error() }}</div>
+            }
+            <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-700" [disabled]="isLoading()">
+              {{ isLoading() ? 'جارٍ الإنشاء...' : '🏫 إنشاء المدرسة' }}
+            </button>
+          </form>
+        }
+      </div>
+    }
+
+    <!-- Search -->
+    <div class="card d-flex flex-row align-items-center gap-2 p-3 mb-3">
+      <span>🔍</span>
+      <input class="border-0 bg-transparent fw-600 flex-grow-1" type="text"
+        placeholder="ابحث باسم المدرسة أو البريد..."
+        style="font-family:Cairo,sans-serif;font-size:14px;outline:none"
+        [value]="searchTerm()" (input)="setSearch($any($event.target).value)" />
+    </div>
+
+    <!-- Schools list -->
+    @if (isLoading() && schools().length === 0) {
+      <div class="d-flex justify-content-center py-5">
+        <div class="spinner-border" style="color:var(--primary);width:44px;height:44px" role="status"></div>
+      </div>
+    } @else if (filtered().length === 0) {
+      <div class="text-center py-5">
+        <div style="font-size:56px" class="mb-2">🏫</div>
+        <p class="fw-800 text-muted">لا توجد مدارس مسجلة</p>
+      </div>
+    } @else {
+      <div class="card overflow-hidden p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 align-middle" style="font-size:14px;min-width:600px">
+            <thead>
+              <tr style="border-bottom:2px solid #F3F4F6">
+                <th class="fw-800 text-muted small px-4 py-3">المدرسة</th>
+                <th class="fw-800 text-muted small px-4 py-3">البريد الإلكتروني</th>
+                <th class="fw-800 text-muted small px-4 py-3">كود المدرسة</th>
+                <th class="fw-800 text-muted small px-4 py-3">الحالة</th>
+                <th class="fw-800 text-muted small px-4 py-3">تاريخ الإنشاء</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (school of filtered(); track school.id) {
+                <tr [style.opacity]="school.isBlocked ? '0.55' : '1'">
+                  <td class="px-4 py-3 fw-800">
+                    <span style="font-size:18px" class="me-2">🏫</span>{{ school.schoolName }}
+                  </td>
+                  <td class="px-4 py-3 small text-muted" dir="ltr">{{ school.adminEmail }}</td>
+                  <td class="px-4 py-3">
+                    <code class="fw-800 px-2 py-1 rounded-2" style="background:#DCFCE7;color:#16A34A;font-size:13px">
+                      {{ school.schoolCode }}
+                    </code>
+                  </td>
+                  <td class="px-4 py-3">
+                    <span class="badge rounded-pill fw-800 px-2 py-1"
+                      [style.background]="school.isBlocked ? '#FEF2F2' : '#F0FDF4'"
+                      [style.color]="school.isBlocked ? '#EF4444' : '#22C55E'"
+                      style="font-size:12px">
+                      {{ school.isBlocked ? 'محظور' : 'نشط' }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3 small text-muted">{{ school.createdAt | date:'yyyy/MM/dd' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
   </main>
 </div>

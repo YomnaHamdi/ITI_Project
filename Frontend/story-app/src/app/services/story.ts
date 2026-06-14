@@ -43,6 +43,10 @@ export class StoryService {
     return this.http.get<StoryResponse[]>(`${this.api}/api/story`);
   }
 
+  getMyStories(childName: string): Observable<StoryResponse[]> {
+    return this.http.get<StoryResponse[]>(`${this.api}/api/story/mine/${encodeURIComponent(childName)}`);
+  }
+
   deleteStory(id: string): Observable<void> {
     return this.http.delete<void>(`${this.api}/api/story/${id}`);
   }
@@ -97,6 +101,14 @@ export class StoryService {
   // ── Lessons ────────────────────────────────────────────────────────────────
   getLessonsByLevel(level: number): Observable<LessonSummary[]> {
     return this.http.get<LessonSummary[]>(`${this.api}/api/lessons?level=${level}`);
+  }
+
+  deleteLesson(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.api}/api/lessons/${id}`);
+  }
+
+  createManualLesson(req: { title: string; level: number; letter: string; creatorId?: string; pages: { content: string; type: string }[] }): Observable<any> {
+    return this.http.post<any>(`${this.api}/api/lessons/manual`, req);
   }
 
   getLesson(id: string): Observable<LessonDetail> {
@@ -177,6 +189,14 @@ export class StoryService {
 
   updateProgress(progress: ProgressResponse): Observable<ProgressResponse> {
     return this.http.put<ProgressResponse>(`${this.api}/api/progress`, progress);
+  }
+
+  updateLessonProgress(req: {
+    lessonId: string; childName: string;
+    totalQuestions: number; correctAnswers: number;
+    scorePercentage: number; examCompleted: boolean;
+  }): Observable<any> {
+    return this.http.put<any>(`${this.api}/api/progress/lesson`, req);
   }
 
   // ── RAG ────────────────────────────────────────────────────────────────────
@@ -268,6 +288,10 @@ export class StoryService {
     return this.http.post<void>(`${this.api}/api/admin/users/${id}/unblock`, {});
   }
 
+  getSchools(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/api/admin/schools`);
+  }
+
   createSchool(body: { schoolName: string; adminEmail: string; adminPassword: string }): Observable<any> {
     return this.http.post<any>(`${this.api}/api/admin/schools`, body);
   }
@@ -279,6 +303,10 @@ export class StoryService {
 
   submitPlacement(request: { answers: { questionId: string; answer: string }[] }): Observable<any> {
     return this.http.post<any>(`${this.api}/api/placement/submit`, request);
+  }
+
+  updateStudentLevel(level: number): Observable<any> {
+    return this.http.patch<any>(`${this.api}/api/auth/students/me/level`, { level });
   }
 
   // ── PDF Library ───────────────────────────────────────────────────────────

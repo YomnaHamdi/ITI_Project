@@ -195,13 +195,22 @@ export class Exam implements OnInit {
         this.result.set(res);
         this.state.setExamResult(res);
         this.isLoading.set(false);
-        // Only track progress for story exams
-        const story = this.state.currentStory();
+        const story  = this.state.currentStory();
+        const lesson = this.state.currentLesson();
         if (story && !this.isLessonExam) {
           this.storyService.updateProgress({
             storyId:         story.id,
-            childName:       this.state.childName(),
+            childName,
             currentPage:     this.state.totalPages(),
+            totalQuestions:  res.totalQuestions,
+            correctAnswers:  res.correctAnswers,
+            scorePercentage: res.scorePercentage,
+            examCompleted:   true
+          }).subscribe();
+        } else if (lesson && this.isLessonExam) {
+          this.storyService.updateLessonProgress({
+            lessonId:        lesson.id,
+            childName,
             totalQuestions:  res.totalQuestions,
             correctAnswers:  res.correctAnswers,
             scorePercentage: res.scorePercentage,
@@ -215,6 +224,15 @@ export class Exam implements OnInit {
 
   getFeedback(qId: string) {
     return this.result()?.feedback.find(f => f.questionId === qId);
+  }
+
+  getQuestionImage(q: QuestionDto): string | null {
+    if (q.imageUrl) return q.imageUrl;
+    if (!q.dataJson || q.dataJson === '{}') return null;
+    try {
+      const parsed = JSON.parse(q.dataJson) as { imageUrl?: string };
+      return parsed.imageUrl ?? null;
+    } catch { return null; }
   }
 
   getCorrectAnswerDisplay(q: QuestionDto, correctAnswer: string): string {

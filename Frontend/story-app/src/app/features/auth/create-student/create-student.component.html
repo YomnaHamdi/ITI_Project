@@ -32,20 +32,22 @@
           <div class="form-text">أحرف إنجليزية وأرقام فقط</div>
         </div>
 
-        <div class="mb-3">
-          <label class="form-label fw-bold small mb-1">المستوى الابتدائي</label>
-          <div class="d-flex gap-2">
-            @for (l of [1,2,3]; track l) {
-              <button type="button"
-                class="btn btn-sm rounded-pill flex-fill"
-                [class.btn-primary]="form.level === l"
-                [class.btn-outline-secondary]="form.level !== l"
-                (click)="form.level = l">
-                المستوى {{ l }}
-              </button>
-            }
+        @if (returnTo === 'teacher') {
+          <div class="mb-3">
+            <label class="form-label fw-bold small mb-1">المستوى الابتدائي</label>
+            <div class="d-flex gap-2">
+              @for (l of [1,2,3]; track l) {
+                <button type="button"
+                  class="btn btn-sm rounded-pill flex-fill"
+                  [class.btn-primary]="form.level === l"
+                  [class.btn-outline-secondary]="form.level !== l"
+                  (click)="form.level = l">
+                  المستوى {{ l }}
+                </button>
+              }
+            </div>
           </div>
-        </div>
+        }
 
         <div class="mb-4">
           <label class="form-label fw-bold small mb-1">رمز الدخول (اختر 1 أو 2 صورة)</label>

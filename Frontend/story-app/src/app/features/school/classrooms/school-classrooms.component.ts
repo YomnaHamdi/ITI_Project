@@ -1,22 +1,23 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 import { StoryService } from '../../../services/story';
 
 interface Classroom {
-  id:          string;
-  name:        string;
-  teacher:     string;
+  id:           string;
+  name:         string;
+  teacher:      string;
   studentCount: number;
-  avgProgress: number;
-  level:       number;
+  avgProgress:  number;
+  level:        number;
 }
 
 @Component({
   selector: 'app-school-classrooms',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, NavbarComponent],
+  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive, NavbarComponent],
   templateUrl: './school-classrooms.component.html',
 })
 export class SchoolClassroomsComponent implements OnInit {
@@ -24,6 +25,10 @@ export class SchoolClassroomsComponent implements OnInit {
 
   readonly isLoading  = signal(false);
   readonly classrooms = signal<Classroom[]>([]);
+  readonly showForm   = signal(false);
+
+  form = { name: '', teacher: '', level: 1 };
+  formError = '';
 
   ngOnInit(): void {
     this.isLoading.set(true);
@@ -40,6 +45,29 @@ export class SchoolClassroomsComponent implements OnInit {
       },
       error: () => this.isLoading.set(false)
     });
+  }
+
+  toggleForm(): void {
+    this.showForm.update(v => !v);
+    this.form = { name: '', teacher: '', level: 1 };
+    this.formError = '';
+  }
+
+  createClassroom(): void {
+    if (!this.form.name.trim() || !this.form.teacher.trim()) {
+      this.formError = 'يرجى تعبئة اسم الفصل والمعلم.';
+      return;
+    }
+    const newClassroom: Classroom = {
+      id:           Date.now().toString(),
+      name:         this.form.name.trim(),
+      teacher:      this.form.teacher.trim(),
+      studentCount: 0,
+      avgProgress:  0,
+      level:        this.form.level,
+    };
+    this.classrooms.update(list => [newClassroom, ...list]);
+    this.toggleForm();
   }
 
   progressColor(p: number): string { return p >= 80 ? '#22C55E' : p >= 50 ? '#F59E0B' : '#EF4444'; }

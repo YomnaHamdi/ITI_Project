@@ -248,6 +248,28 @@ public class AdminController(
         return Ok(new { message = "تم إلغاء حظر المستخدم." });
     }
 
+    // ── List schools ──────────────────────────────────────────────────────────
+    [HttpGet("schools")]
+    [ProducesResponseType(200)]
+    public async Task<IActionResult> GetSchools()
+    {
+        var schools = await db.Users
+            .Where(u => u.Role == UserRole.SchoolAdmin)
+            .OrderByDescending(u => u.CreatedAt)
+            .Select(u => new
+            {
+                id         = u.Id,
+                schoolName = u.Name,
+                adminEmail = u.Email,
+                schoolCode = u.Id.ToString("N").Substring(0, 8).ToUpper(),
+                createdAt  = u.CreatedAt,
+                isBlocked  = u.IsBlocked
+            })
+            .ToListAsync();
+
+        return Ok(schools);
+    }
+
     // ── Create school admin account ────────────────────────────────────────────
     [HttpPost("schools")]
     [ProducesResponseType(200)]
