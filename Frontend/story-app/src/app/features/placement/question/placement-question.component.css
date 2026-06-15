@@ -1,4 +1,3 @@
-/* ── Placement question-specific styles ──────────────────────────────────── */
 .options-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -18,10 +17,42 @@
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(0,0,0,.04);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.opt-btn:hover { border-color: var(--primary-light); background: #FFF0F3; transform: translateY(-2px); }
-.opt-btn.correct { border-color: #22C55E; background: #F0FFF4; color: #16A34A; }
-.opt-btn.wrong   { border-color: #FC8181; background: #FFF5F5; color: #C53030; animation: shake 0.4s ease; }
+.opt-btn:hover:not(:disabled) {
+  border-color: var(--primary-light);
+  background: #FFF0F3;
+  transform: translateY(-2px);
+}
+.opt-btn:disabled { cursor: default; }
+
+.opt-btn.correct {
+  border-color: #22C55E !important;
+  background: #F0FFF4 !important;
+  color: #16A34A !important;
+  animation: correctPop 0.35s ease;
+}
+.opt-btn.wrong {
+  border-color: #FC8181 !important;
+  background: #FFF5F5 !important;
+  color: #C53030 !important;
+  animation: shake 0.4s ease;
+}
+
+.opt-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(244,120,138,.12);
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
 
 .feedback-toast {
   position: absolute;
@@ -35,12 +66,19 @@
   white-space: nowrap;
   z-index: 10;
 }
-.feedback-toast.good { background: #F0FFF4; color: #16A34A; box-shadow: 0 4px 16px rgba(34,197,94,.2); }
-.feedback-toast.bad  { background: #EEF2FF; color: #4F46E5; box-shadow: 0 4px 16px rgba(79,70,229,.15); }
+.feedback-toast.good {
+  background: #F0FFF4;
+  color: #16A34A;
+  box-shadow: 0 4px 16px rgba(34,197,94,.2);
+}
+.feedback-toast.bad {
+  background: #EEF2FF;
+  color: #4F46E5;
+  box-shadow: 0 4px 16px rgba(79,70,229,.15);
+}
 
 .audio-btn.playing { animation: pulse-audio 1s ease infinite; }
 
-/* ── Audio-only question icon ──────────────────────────────────────────────── */
 .audio-only-icon {
   font-size: 88px;
   line-height: 1;
@@ -60,4 +98,23 @@
 @keyframes pulse-audio {
   0%, 100% { box-shadow: 0 4px 14px rgba(244,120,138,.35); }
   50%       { box-shadow: 0 4px 28px rgba(244,120,138,.65); }
+}
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%     { transform: translateX(-6px); }
+  40%     { transform: translateX(6px); }
+  60%     { transform: translateX(-4px); }
+  80%     { transform: translateX(4px); }
+}
+@keyframes correctPop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.animate-pop {
+  animation: pop .35s cubic-bezier(.175,.885,.32,1.275);
+}
+@keyframes pop {
+  from { opacity:0; transform: translateX(-50%) scale(.7); }
+  to   { opacity:1; transform: translateX(-50%) scale(1); }
 }

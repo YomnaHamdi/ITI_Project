@@ -23,6 +23,8 @@ export class PlacementQuestionComponent implements OnInit, OnDestroy {
   readonly showFeedback = signal(false);
   readonly isPlaying    = signal(false);
   readonly isLoading    = signal(false);
+  // NEW: track if correct answer is revealed after wrong pick
+  readonly revealCorrect = signal(false);
 
   readonly currentQ  = computed(() => this.questions()[this.currentIdx()]);
   readonly total     = computed(() => this.questions().length);
@@ -34,13 +36,12 @@ export class PlacementQuestionComponent implements OnInit, OnDestroy {
     return q ? `الجزء ${q.part ?? q.Part} من 3` : '';
   });
 
-  // True when the question is audio-only (student hears the letter, must not see it)
-  readonly isAudioOnly = computed(() => {
+  // All questions are audio-only — no letter image shown
+  readonly isAudioOnly = computed(() => true);
+
+  readonly isCorrect = computed(() => {
     const q = this.currentQ();
-    if (!q) return false;
-    if (q.isAudioOnly === true) return true;
-    const text: string = (q.questionText ?? '').trim();
-    return text.includes('تسمع') || text.includes('صوت') || text.includes('تسمعه');
+    return q && this.selected() === q.correctAnswer;
   });
 
   private readonly mockQuestions: any[] = [
@@ -100,8 +101,24 @@ export class PlacementQuestionComponent implements OnInit, OnDestroy {
     this.selected.set(key);
     this.showFeedback.set(true);
     const q = this.currentQ();
-    this.answers.update(a => ({ ...a, [q.id]: key }));
-    setTimeout(() => this.advance(), 1200);
+    const correct = key === q.correctAnswer;
+
+    if (correct) {
+      // Correct: speak praise, advance after short delay
+      this.speakText('شاطر');
+      this.answers.update(a => ({ ...a, [q.id]: key }));
+      setTimeout(() => this.advance(), 1400);
+    } else {
+      // Wrong: reveal correct answer in green, speak encouragement
+      this.revealCorrect.set(true);
+      this.speakText('حاول مجدداً');
+      // After showing correct answer for 2s, advance
+      setTimeout(() => {
+        this.answers.update(a => ({ ...a, [q.id]: key }));
+        this.revealCorrect.set(false);
+        this.advance();
+      }, 2000);
+    }
   }
 
   private advance(): void {
@@ -110,6 +127,7 @@ export class PlacementQuestionComponent implements OnInit, OnDestroy {
       this.currentIdx.set(idx + 1);
       this.selected.set(null);
       this.showFeedback.set(false);
+      this.revealCorrect.set(false);
       this.speakQuestion();
     } else {
       this.submitAll();
@@ -133,7 +151,6 @@ export class PlacementQuestionComponent implements OnInit, OnDestroy {
           p2: result.part2Score,
           p3: result.part3Score
         }));
-        // Persist level to DB and update local session
         if (this.state.isLoggedIn()) {
           this.service.updateStudentLevel(assignedLevel).subscribe({
             next: updated => this.state.updateStudentLevel(assignedLevel, updated.token),
@@ -157,13 +174,14 @@ export class PlacementQuestionComponent implements OnInit, OnDestroy {
   optionClass(key: string): string {
     if (!this.showFeedback()) return 'opt-btn';
     const correct = this.currentQ()?.correctAnswer;
-    if (key === correct)                     return 'opt-btn correct';
-    if (key === this.selected() && key !== correct) return 'opt-btn wrong';
+    const sel = this.selected();
+    if (key === correct) return 'opt-btn correct';
+    if (key === sel && key !== correct) return 'opt-btn wrong';
     return 'opt-btn';
   }
 
   feedbackText(): string {
-    return this.selected() === this.currentQ()?.correctAnswer ? 'ممتاز! 🌟' : 'حاول مجدداً 💙';
+    return this.isCorrect() ? 'شاطر! 🌟' : 'حاول مجدداً 💙';
   }
 
   speakQuestion(): void {
@@ -172,6 +190,12 @@ export class PlacementQuestionComponent implements OnInit, OnDestroy {
     const q = this.currentQ();
     if (!q) return;
     const text = q.audioText || q.questionText;
+    this.speakText(text);
+  }
+
+  speakText(text: string): void {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang  = 'ar-SA';
     u.rate  = 0.85;

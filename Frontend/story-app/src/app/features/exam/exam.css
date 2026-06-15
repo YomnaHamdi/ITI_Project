@@ -5,29 +5,3 @@
   from { opacity: 0; transform: scale(.85); }
   to   { opacity: 1; transform: scale(1); }
 }
-
-.opt {
-  border: 2.5px solid #E0E7FF !important;
-  background: #F8FAFF !important;
-  color: var(--text-main, #1a1a2e) !important;
-  transition: border-color .15s, background .15s;
-}
-.opt:hover:not(:disabled) {
-  border-color: var(--primary) !important;
-  background: #EEF2FF !important;
-}
-.opt-sel {
-  border: 2.5px solid var(--primary) !important;
-  background: #EEF2FF !important;
-  color: var(--primary) !important;
-}
-.opt-correct {
-  border: 2.5px solid #22C55E !important;
-  background: #F0FFF4 !important;
-  color: #15803D !important;
-}
-.opt-wrong {
-  border: 2.5px solid #EF4444 !important;
-  background: #FFF5F5 !important;
-  color: #B91C1C !important;
-}

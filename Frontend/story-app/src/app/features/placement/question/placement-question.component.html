@@ -23,20 +23,15 @@
   @if (currentQ()) {
     <div class="card animate-fade-up w-100 overflow-hidden position-relative pb-4 d-flex flex-column" style="max-width:680px">
 
-      <!-- Image area -->
-      <div class="d-flex flex-column align-items-center justify-content-center gap-2"
+      <!-- Audio area — always audio-only, no letter shown -->
+      <div class="d-flex flex-column align-items-center justify-content-center gap-3"
            style="background:linear-gradient(135deg,#FFE4E8,#F3E8FF);min-height:200px;padding:40px 20px">
-        @if (isAudioOnly()) {
-          <!-- Audio-only: show a pulsing speaker, hide the letter -->
-          <div class="audio-only-icon" [class.playing]="isPlaying()" (click)="speakQuestion()">
-            🔊
-          </div>
-          <p class="fw-800 mb-0" style="font-size:15px;color:var(--primary)">استمع ثم اختر الحرف</p>
-        } @else {
-          <div class="amiri" style="font-size:clamp(72px,18vw,140px);line-height:1;user-select:none">
-            {{ currentQ().imageContent }}
-          </div>
-        }
+        <div class="audio-only-icon" [class.playing]="isPlaying()" (click)="speakQuestion()">
+          🔊
+        </div>
+        <p class="fw-800 mb-0" style="font-size:15px;color:var(--primary)">
+          استمع ثم اختر الإجابة
+        </p>
       </div>
 
       <!-- Question text -->
@@ -47,7 +42,10 @@
       <!-- Options -->
       <div class="options-grid">
         @for (opt of currentQ().options; track opt.key) {
-          <button [class]="optionClass(opt.key)" type="button" (click)="selectOption(opt.key)">
+          <button [class]="optionClass(opt.key)" type="button"
+                  (click)="selectOption(opt.key)"
+                  [disabled]="showFeedback()">
+            <span class="opt-key">{{ opt.key }}</span>
             {{ opt.label }}
           </button>
         }
@@ -56,8 +54,8 @@
       <!-- Feedback toast -->
       @if (showFeedback()) {
         <div class="feedback-toast animate-pop"
-          [class.good]="selected() === currentQ().correctAnswer"
-          [class.bad]="selected() !== currentQ().correctAnswer">
+          [class.good]="isCorrect()"
+          [class.bad]="!isCorrect()">
           {{ feedbackText() }}
         </div>
       }

@@ -1,5 +1,5 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
-import { DecimalPipe, NgClass } from '@angular/common';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { AppStateService } from '../../services/app-state-service';
 import { StoryService } from '../../services/story';
@@ -7,13 +7,13 @@ import { SimpleLoadingComponent } from '../../shared/simple-loading/simple-loadi
 import { ErrorToastComponent } from '../../shared/error-toast/error-toast';
 import {
   ExamResponse, ExamResult, SubmitAnswer,
-  QuestionDto, QuizType, MatchPair
+  QuestionDto, QuizType
 } from '../../models/story.models';
 
 @Component({
   selector: 'app-exam',
   standalone: true,
-  imports: [SimpleLoadingComponent, ErrorToastComponent, DecimalPipe, NgClass],
+  imports: [SimpleLoadingComponent, ErrorToastComponent, DecimalPipe],
   templateUrl: './exam.html',
   styleUrl: './exam.css',
 })
@@ -24,18 +24,16 @@ export class Exam implements OnInit {
 
   readonly QuizType = QuizType;
 
-  readonly isLoading = signal(false);
-  readonly error     = signal<string | null>(null);
-  readonly exam      = signal<ExamResponse | null>(null);
-  readonly result    = signal<ExamResult | null>(null);
-  readonly answers   = signal<Map<string, string>>(new Map());
+  readonly isLoading  = signal(false);
+  readonly error      = signal<string | null>(null);
+  readonly exam       = signal<ExamResponse | null>(null);
+  readonly result     = signal<ExamResult | null>(null);
+  readonly answers    = signal<Map<string, string>>(new Map());
+  readonly activeQ    = signal(0);           // current question index
+  readonly isPlaying  = signal(false);
 
-  // Drag-drop state: questionId -> word currently being dragged
-  dragWord = signal<string | null>(null);
-  // Matching state: questionId -> { left: string, selectedRight: string }[]
-  matchSelections = signal<Map<string, string>>(new Map());
-  // Ordering state: questionId -> string[]
-  orderItems = signal<Map<string, string[]>>(new Map());
+  // Per-question feedback shown immediately after answering (before moving on)
+  readonly currentFeedback = signal<{ isCorrect: boolean; correctAnswer: string; chosenAnswer: string } | null>(null);
 
   isLessonExam = false;
 
@@ -56,7 +54,7 @@ export class Exam implements OnInit {
   private loadExam(storyId: string): void {
     this.isLoading.set(true);
     this.storyService.generateExam(storyId).subscribe({
-      next: exam => { this.exam.set(exam); this.initQuestionState(exam); this.isLoading.set(false); },
+      next: exam => { this.exam.set(exam); this.isLoading.set(false); },
       error: (err: Error) => { this.error.set(err.message); this.isLoading.set(false); }
     });
   }
@@ -64,117 +62,57 @@ export class Exam implements OnInit {
   private loadLessonExam(lessonId: string): void {
     this.isLoading.set(true);
     this.storyService.generateLessonExam(lessonId).subscribe({
-      next: exam => { this.exam.set(exam); this.initQuestionState(exam); this.isLoading.set(false); },
+      next: exam => { this.exam.set(exam); this.isLoading.set(false); },
       error: (err: Error) => { this.error.set(err.message); this.isLoading.set(false); }
     });
   }
 
-  private initQuestionState(exam: ExamResponse): void {
-    const orderMap = new Map<string, string[]>();
-    for (const q of exam.questions) {
-      if (q.type === QuizType.Ordering && q.dataJson) {
-        try {
-          const parsed = JSON.parse(q.dataJson) as { words?: string[] };
-          orderMap.set(q.questionId, [...(parsed.words ?? [])]);
-        } catch { orderMap.set(q.questionId, []); }
-      }
-    }
-    this.orderItems.set(orderMap);
-  }
-
-  // ── MCQ ──────────────────────────────────────────────────────────────────────
-  selectAnswer(qId: string, choice: string): void {
-    if (this.result()) return;
-    this.answers.update(m => { const n = new Map(m); n.set(qId, choice); return n; });
+  // ── MCQ helpers ──────────────────────────────────────────────────────────────
+  mcqOptions(q: QuestionDto): { key: string; label: string }[] {
+    return [
+      { key: 'A', label: q.optionA ?? '' },
+      { key: 'B', label: q.optionB ?? '' },
+      { key: 'C', label: q.optionC ?? '' },
+      { key: 'D', label: q.optionD ?? '' },
+    ];
   }
 
   getAnswer(qId: string): string { return this.answers().get(qId) ?? ''; }
 
-  // ── Matching ──────────────────────────────────────────────────────────────────
-  getPairs(q: QuestionDto): MatchPair[] {
-    if (!q.dataJson) return [];
-    try {
-      const parsed = JSON.parse(q.dataJson) as { pairs?: MatchPair[] };
-      return parsed.pairs ?? [];
-    } catch { return []; }
+  // Feedback for the currently active question (before submission)
+  qFeedback(): { isCorrect: boolean; correctAnswer: string; chosenAnswer: string } | null {
+    return this.currentFeedback();
   }
 
-  selectMatch(qId: string, pairIndex: number, right: string): void {
-    if (this.result()) return;
-    this.matchSelections.update(m => { const n = new Map(m); n.set(`${qId}:${pairIndex}`, right); return n; });
-    this.syncMatchAnswer(qId);
-  }
+  pickAnswer(qId: string, choice: string): void {
+    if (this.currentFeedback()) return;  // already answered this Q
+    this.answers.update(m => { const n = new Map(m); n.set(qId, choice); return n; });
 
-  private syncMatchAnswer(qId: string): void {
+    // Determine correct answer locally
     const q = this.exam()?.questions.find(x => x.questionId === qId);
     if (!q) return;
-    const pairs = this.getPairs(q);
-    const arr   = pairs.map((p, i) => ({
-      left:  p.left,
-      right: this.matchSelections().get(`${qId}:${i}`) ?? ''
-    }));
-    if (arr.every(a => a.right)) {
-      // Backend expects a flat string[] of right-side values (not objects)
-      this.answers.update(m => { const n = new Map(m); n.set(qId, JSON.stringify(arr.map(a => a.right))); return n; });
+    const correct = q.correctAnswer ?? '';
+    const isCorrect = choice === correct;
+
+    // Speak feedback
+    this.speakText(isCorrect ? 'شاطر' : 'حاول مجدداً');
+
+    this.currentFeedback.set({ isCorrect, correctAnswer: correct, chosenAnswer: choice });
+  }
+
+  nextQ(): void {
+    this.currentFeedback.set(null);
+    const e = this.exam();
+    if (!e) return;
+    const next = this.activeQ() + 1;
+    if (next < e.questions.length) {
+      this.activeQ.set(next);
+    } else {
+      this.submitExam();
     }
   }
 
-  getMatchedRight(qId: string, pairIndex: number): string {
-    return this.matchSelections().get(`${qId}:${pairIndex}`) ?? '';
-  }
-
-  // ── DragDrop ─────────────────────────────────────────────────────────────────
-  getDragWords(q: QuestionDto): string[] {
-    if (!q.dataJson) return [];
-    try {
-      const parsed = JSON.parse(q.dataJson) as { options?: string[] };
-      return parsed.options ?? [];
-    } catch { return []; }
-  }
-
-  getDragSentence(q: QuestionDto): string {
-    if (!q.dataJson) return '';
-    try {
-      const parsed = JSON.parse(q.dataJson) as { sentence?: string };
-      return parsed.sentence ?? '';
-    } catch { return ''; }
-  }
-
-  onDragStart(word: string): void { this.dragWord.set(word); }
-
-  onDrop(qId: string): void {
-    const word = this.dragWord();
-    if (!word || this.result()) return;
-    this.answers.update(m => { const n = new Map(m); n.set(qId, word); return n; });
-    this.dragWord.set(null);
-  }
-
-  onDragOver(event: DragEvent): void { event.preventDefault(); }
-
-  // ── Ordering ─────────────────────────────────────────────────────────────────
-  getOrderItems(qId: string): string[] {
-    return this.orderItems().get(qId) ?? [];
-  }
-
-  moveItem(qId: string, fromIdx: number, toIdx: number): void {
-    if (this.result()) return;
-    this.orderItems.update(m => {
-      const n    = new Map(m);
-      const arr  = [...(n.get(qId) ?? [])];
-      const item = arr.splice(fromIdx, 1)[0];
-      arr.splice(toIdx, 0, item);
-      n.set(qId, arr);
-      this.answers.update(a => { const na = new Map(a); na.set(qId, JSON.stringify(arr)); return na; });
-      return n;
-    });
-  }
-
   // ── Submission ────────────────────────────────────────────────────────────────
-  allAnswered(): boolean {
-    const exam = this.exam();
-    return !!exam && exam.questions.every(q => this.answers().has(q.questionId));
-  }
-
   submitExam(): void {
     const exam = this.exam();
     if (!exam) return;
@@ -218,65 +156,46 @@ export class Exam implements OnInit {
           }).subscribe();
         }
       },
-      error: (err: Error) => { this.error.set(err.message); this.isLoading.set(false); }
+      error: (err: Error) => {
+        // Fallback: calculate locally
+        const qs  = exam.questions;
+        const ans = this.answers();
+        const correct = qs.filter(q => ans.get(q.questionId) === (q.correctAnswer ?? '')).length;
+        const pct = Math.round(correct / qs.length * 100);
+        this.result.set({
+          examId:          exam.examId,
+          correctAnswers:  correct,
+          totalQuestions:  qs.length,
+          scorePercentage: pct,
+          feedback: qs.map(q => ({
+            questionId:    q.questionId,
+            isCorrect:     ans.get(q.questionId) === (q.correctAnswer ?? ''),
+            correctAnswer: q.correctAnswer ?? '',
+            chosenAnswer:  ans.get(q.questionId) ?? ''
+          }))
+        } as ExamResult);
+        this.isLoading.set(false);
+      }
     });
   }
 
+  // ── Result helpers ────────────────────────────────────────────────────────────
   getFeedback(qId: string) {
     return this.result()?.feedback.find(f => f.questionId === qId);
   }
 
-  getQuestionImage(q: QuestionDto): string | null {
-    if (q.imageUrl) return q.imageUrl;
-    if (!q.dataJson || q.dataJson === '{}') return null;
-    try {
-      const parsed = JSON.parse(q.dataJson) as { imageUrl?: string };
-      return parsed.imageUrl ?? null;
-    } catch { return null; }
-  }
-
   getCorrectAnswerDisplay(q: QuestionDto, correctAnswer: string): string {
-    // MCQ: resolve letter key → option text
-    if (q.type === QuizType.MCQ) {
+    if (q.type === QuizType.MCQ || q.type == null) {
       const map: Record<string, string | undefined> = {
         A: q.optionA, B: q.optionB, C: q.optionC, D: q.optionD
       };
       return map[correctAnswer] ?? correctAnswer;
     }
-
-    // Matching / Ordering: parse JSON → display readable Arabic
-    if (q.type === QuizType.Matching || q.type === QuizType.Ordering) {
-      try {
-        const parsed = JSON.parse(correctAnswer);
-        if (Array.isArray(parsed)) {
-          if (parsed.length > 0 && typeof parsed[0] === 'object') {
-            // [{left, right}] pairs
-            return (parsed as { left: string; right: string }[])
-              .map(p => `${p.right}`)
-              .join('، ');
-          }
-          // string[]
-          return (parsed as string[]).join(' ← ');
-        }
-      } catch { /* show as-is */ }
-    }
-
+    try {
+      const parsed = JSON.parse(correctAnswer);
+      if (Array.isArray(parsed)) return (parsed as string[]).join(' ← ');
+    } catch { /* ignore */ }
     return correctAnswer;
-  }
-
-  optionClass(qId: string, opt: string): string {
-    const sel = this.getAnswer(qId) === opt;
-    const fb  = this.getFeedback(qId);
-    if (!fb)                                             return sel ? 'opt-sel' : 'opt';
-    if (opt === fb.correctAnswer)                        return 'opt-correct';
-    if (sel && opt === fb.chosenAnswer && !fb.isCorrect) return 'opt-wrong';
-    return 'opt';
-  }
-
-  questionStatusClass(qId: string): string {
-    const fb = this.getFeedback(qId);
-    if (!fb) return '';
-    return fb.isCorrect ? 'q-correct' : 'q-wrong';
   }
 
   scoreEmoji(): string {
@@ -291,6 +210,20 @@ export class Exam implements OnInit {
 
   readonly starsArr = [1, 2, 3];
 
+  // ── Audio ─────────────────────────────────────────────────────────────────────
+  speakQ(text: string): void { this.speakText(text); }
+
+  speakText(text: string): void {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ar-SA'; u.rate = 0.85;
+    u.onstart = () => this.isPlaying.set(true);
+    u.onend   = () => this.isPlaying.set(false);
+    window.speechSynthesis.speak(u);
+  }
+
+  // ── Navigation ────────────────────────────────────────────────────────────────
   goHome():  void { this.state.reset(); this.router.navigate(['/dashboard']); }
   goStory(): void {
     if (this.isLessonExam) {
