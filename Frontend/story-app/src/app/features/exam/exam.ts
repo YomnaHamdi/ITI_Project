@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { AppStateService } from '../../services/app-state-service';
@@ -7,7 +7,7 @@ import { SimpleLoadingComponent } from '../../shared/simple-loading/simple-loadi
 import { ErrorToastComponent } from '../../shared/error-toast/error-toast';
 import {
   ExamResponse, ExamResult, SubmitAnswer,
-  QuestionDto, QuizType
+  QuestionDto, QuizType, AnswerFeedback
 } from '../../models/story.models';
 
 @Component({
@@ -24,16 +24,15 @@ export class Exam implements OnInit {
 
   readonly QuizType = QuizType;
 
-  readonly isLoading  = signal(false);
-  readonly error      = signal<string | null>(null);
-  readonly exam       = signal<ExamResponse | null>(null);
-  readonly result     = signal<ExamResult | null>(null);
-  readonly answers    = signal<Map<string, string>>(new Map());
-  readonly activeQ    = signal(0);           // current question index
-  readonly isPlaying  = signal(false);
-
-  // Per-question feedback shown immediately after answering (before moving on)
-  readonly currentFeedback = signal<{ isCorrect: boolean; correctAnswer: string; chosenAnswer: string } | null>(null);
+  readonly isLoading = signal(false);
+  readonly error     = signal<string | null>(null);
+  readonly exam      = signal<ExamResponse | null>(null);
+  readonly result    = signal<ExamResult | null>(null);
+  readonly answers   = signal<Map<string, string>>(new Map());
+  readonly activeQ   = signal(0);
+  readonly isPlaying = signal(false);
+  // After picking an answer: show confirmation UI before moving to next Q
+  readonly answered  = signal(false);
 
   isLessonExam = false;
 
@@ -41,20 +40,14 @@ export class Exam implements OnInit {
     const story  = this.state.currentStory();
     const lesson = this.state.currentLesson();
     if (!story && !lesson) { this.router.navigate(['/']); return; }
-
-    if (story) {
-      this.isLessonExam = false;
-      this.loadExam(story.id);
-    } else if (lesson) {
-      this.isLessonExam = true;
-      this.loadLessonExam(lesson.id);
-    }
+    if (story)  { this.isLessonExam = false; this.loadExam(story.id); }
+    else if (lesson) { this.isLessonExam = true; this.loadLessonExam(lesson.id); }
   }
 
   private loadExam(storyId: string): void {
     this.isLoading.set(true);
     this.storyService.generateExam(storyId).subscribe({
-      next: exam => { this.exam.set(exam); this.isLoading.set(false); },
+      next: e  => { this.exam.set(e); this.isLoading.set(false); },
       error: (err: Error) => { this.error.set(err.message); this.isLoading.set(false); }
     });
   }
@@ -62,7 +55,7 @@ export class Exam implements OnInit {
   private loadLessonExam(lessonId: string): void {
     this.isLoading.set(true);
     this.storyService.generateLessonExam(lessonId).subscribe({
-      next: exam => { this.exam.set(exam); this.isLoading.set(false); },
+      next: e  => { this.exam.set(e); this.isLoading.set(false); },
       error: (err: Error) => { this.error.set(err.message); this.isLoading.set(false); }
     });
   }
@@ -74,34 +67,39 @@ export class Exam implements OnInit {
       { key: 'B', label: q.optionB ?? '' },
       { key: 'C', label: q.optionC ?? '' },
       { key: 'D', label: q.optionD ?? '' },
-    ];
+    ].filter(o => !!o.label);
   }
 
   getAnswer(qId: string): string { return this.answers().get(qId) ?? ''; }
 
-  // Feedback for the currently active question (before submission)
-  qFeedback(): { isCorrect: boolean; correctAnswer: string; chosenAnswer: string } | null {
-    return this.currentFeedback();
+  // After final result arrives: feedback per question
+  getFeedback(qId: string): AnswerFeedback | undefined {
+    return this.result()?.feedback.find(f => f.questionId === qId);
+  }
+
+  // Option class DURING answering (before result)
+  optionClass(qId: string, key: string): string {
+    if (this.result()) {
+      // Post-result: colour from backend feedback
+      const fb = this.getFeedback(qId);
+      if (!fb) return 'opt-card';
+      if (key === fb.correctAnswer) return 'opt-card correct';
+      if (key === fb.chosenAnswer && !fb.isCorrect) return 'opt-card wrong';
+      return 'opt-card';
+    }
+    // During answering: just highlight selected
+    return this.getAnswer(qId) === key ? 'opt-card selected' : 'opt-card';
   }
 
   pickAnswer(qId: string, choice: string): void {
-    if (this.currentFeedback()) return;  // already answered this Q
+    if (this.answered()) return;
     this.answers.update(m => { const n = new Map(m); n.set(qId, choice); return n; });
-
-    // Determine correct answer locally
-    const q = this.exam()?.questions.find(x => x.questionId === qId);
-    if (!q) return;
-    const correct = q.correctAnswer ?? '';
-    const isCorrect = choice === correct;
-
-    // Speak feedback
-    this.speakText(isCorrect ? 'شاطر' : 'حاول مجدداً');
-
-    this.currentFeedback.set({ isCorrect, correctAnswer: correct, chosenAnswer: choice });
+    this.answered.set(true);
+    this.speakText('ممتاز');
   }
 
   nextQ(): void {
-    this.currentFeedback.set(null);
+    this.answered.set(false);
     const e = this.exam();
     if (!e) return;
     const next = this.activeQ() + 1;
@@ -116,103 +114,59 @@ export class Exam implements OnInit {
   submitExam(): void {
     const exam = this.exam();
     if (!exam) return;
-
     const submitAnswers: SubmitAnswer[] = exam.questions.map(q => ({
       questionId:   q.questionId,
       chosenAnswer: this.answers().get(q.questionId) ?? ''
     }));
-
     this.isLoading.set(true);
     const childName = this.state.childName() || this.state.currentUser()?.name || 'طالب';
-    this.storyService.submitExam({
-      examId:    exam.examId,
-      childName,
-      answers:   submitAnswers
-    }).subscribe({
+    this.storyService.submitExam({ examId: exam.examId, childName, answers: submitAnswers }).subscribe({
       next: res => {
         this.result.set(res);
         this.state.setExamResult(res);
         this.isLoading.set(false);
+        // Show correct/wrong feedback via result screen
         const story  = this.state.currentStory();
         const lesson = this.state.currentLesson();
         if (story && !this.isLessonExam) {
           this.storyService.updateProgress({
-            storyId:         story.id,
-            childName,
-            currentPage:     this.state.totalPages(),
-            totalQuestions:  res.totalQuestions,
-            correctAnswers:  res.correctAnswers,
-            scorePercentage: res.scorePercentage,
-            examCompleted:   true
+            storyId: story.id, childName,
+            currentPage: this.state.totalPages(),
+            totalQuestions: res.totalQuestions, correctAnswers: res.correctAnswers,
+            scorePercentage: res.scorePercentage, examCompleted: true
           }).subscribe();
         } else if (lesson && this.isLessonExam) {
           this.storyService.updateLessonProgress({
-            lessonId:        lesson.id,
-            childName,
-            totalQuestions:  res.totalQuestions,
-            correctAnswers:  res.correctAnswers,
-            scorePercentage: res.scorePercentage,
-            examCompleted:   true
+            lessonId: lesson.id, childName,
+            totalQuestions: res.totalQuestions, correctAnswers: res.correctAnswers,
+            scorePercentage: res.scorePercentage, examCompleted: true
           }).subscribe();
         }
       },
-      error: (err: Error) => {
-        // Fallback: calculate locally
-        const qs  = exam.questions;
-        const ans = this.answers();
-        const correct = qs.filter(q => ans.get(q.questionId) === (q.correctAnswer ?? '')).length;
-        const pct = Math.round(correct / qs.length * 100);
-        this.result.set({
-          examId:          exam.examId,
-          correctAnswers:  correct,
-          totalQuestions:  qs.length,
-          scorePercentage: pct,
-          feedback: qs.map(q => ({
-            questionId:    q.questionId,
-            isCorrect:     ans.get(q.questionId) === (q.correctAnswer ?? ''),
-            correctAnswer: q.correctAnswer ?? '',
-            chosenAnswer:  ans.get(q.questionId) ?? ''
-          }))
-        } as ExamResult);
-        this.isLoading.set(false);
-      }
+      error: (err: Error) => { this.error.set(err.message); this.isLoading.set(false); }
     });
   }
 
   // ── Result helpers ────────────────────────────────────────────────────────────
-  getFeedback(qId: string) {
-    return this.result()?.feedback.find(f => f.questionId === qId);
-  }
-
   getCorrectAnswerDisplay(q: QuestionDto, correctAnswer: string): string {
-    if (q.type === QuizType.MCQ || q.type == null) {
-      const map: Record<string, string | undefined> = {
-        A: q.optionA, B: q.optionB, C: q.optionC, D: q.optionD
-      };
-      return map[correctAnswer] ?? correctAnswer;
-    }
-    try {
-      const parsed = JSON.parse(correctAnswer);
-      if (Array.isArray(parsed)) return (parsed as string[]).join(' ← ');
-    } catch { /* ignore */ }
-    return correctAnswer;
+    const map: Record<string, string | undefined> = {
+      A: q.optionA, B: q.optionB, C: q.optionC, D: q.optionD
+    };
+    return map[correctAnswer] ?? correctAnswer;
   }
 
   scoreEmoji(): string {
     const s = this.result()?.scorePercentage ?? 0;
     return s >= 80 ? '🌟' : s >= 60 ? '👍' : '💪';
   }
-
   starsCount(): number {
     const s = this.result()?.scorePercentage ?? 0;
     return s >= 80 ? 3 : s >= 50 ? 2 : 1;
   }
-
   readonly starsArr = [1, 2, 3];
 
   // ── Audio ─────────────────────────────────────────────────────────────────────
   speakQ(text: string): void { this.speakText(text); }
-
   speakText(text: string): void {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
@@ -223,15 +177,11 @@ export class Exam implements OnInit {
     window.speechSynthesis.speak(u);
   }
 
-  // ── Navigation ────────────────────────────────────────────────────────────────
   goHome():  void { this.state.reset(); this.router.navigate(['/dashboard']); }
   goStory(): void {
-    if (this.isLessonExam) {
-      this.router.navigate(['/lessons-list']);
-    } else {
-      const story = this.state.currentStory();
-      if (story) this.router.navigate(['/books', story.id, 'read']);
-      else       this.router.navigate(['/dashboard']);
-    }
+    if (this.isLessonExam) { this.router.navigate(['/lessons-list']); return; }
+    const story = this.state.currentStory();
+    if (story) this.router.navigate(['/books', story.id, 'read']);
+    else       this.router.navigate(['/dashboard']);
   }
 }
