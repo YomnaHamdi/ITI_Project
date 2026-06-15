@@ -24,23 +24,18 @@
       </div>
     </div>
 
-    <!-- Quick nav cards -->
+    <!-- Quick nav cards — notifications removed -->
     <div class="row g-3 mb-4">
-      @for (nav of [
-        { icon:'👨‍👧‍👦', label:'إدارة الأطفال',    sub:'عرض وتعديل حسابات أطفالك',       route:'/parent/children',       color:'#F4788A' },
-        { icon:'🔔',     label:'الإشعارات',        sub:'آخر أنشطة أطفالك',                route:'/parent/notifications',   color:'#8B5CF6' }
-      ]; track nav.route) {
-        <div class="col-sm-6 col-md-3">
-          <a [routerLink]="nav.route" class="card text-decoration-none d-flex flex-row align-items-center gap-3 p-3 h-100">
-            <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
-                 [style.background]="nav.color + '18'" style="width:48px;height:48px;font-size:22px">{{ nav.icon }}</div>
-            <div>
-              <div class="fw-800" style="font-size:14px" [style.color]="nav.color">{{ nav.label }}</div>
-              <div class="text-muted" style="font-size:12px">{{ nav.sub }}</div>
-            </div>
-          </a>
-        </div>
-      }
+      <div class="col-sm-6 col-md-3">
+        <a routerLink="/parent/children" class="card text-decoration-none d-flex flex-row align-items-center gap-3 p-3 h-100">
+          <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+               style="background:#F4788A18;width:48px;height:48px;font-size:22px">👨‍👧‍👦</div>
+          <div>
+            <div class="fw-800" style="font-size:14px;color:#F4788A">إدارة الأطفال</div>
+            <div class="text-muted" style="font-size:12px">عرض وتعديل حسابات أطفالك</div>
+          </div>
+        </a>
+      </div>
     </div>
 
     <!-- Empty state when no children yet -->
@@ -78,8 +73,8 @@
         </div>
         <div class="col-6 col-md-3">
           <div class="card p-4 text-center d-flex flex-column align-items-center gap-2 h-100">
-            <span style="font-size:28px">⭐</span>
-            <span class="fw-800 fs-3" style="color:var(--primary)">{{ d.stars }}</span>
+            <span style="font-size:28px" [style.filter]="(d.stars ?? 0) === 0 ? 'grayscale(1) opacity(0.4)' : 'none'">⭐</span>
+            <span class="fw-800 fs-3" [style.color]="(d.stars ?? 0) > 0 ? 'var(--primary)' : 'var(--text-muted)'">{{ d.stars }}</span>
             <span class="small fw-semibold text-muted">نجمات مكتسبة</span>
           </div>
         </div>

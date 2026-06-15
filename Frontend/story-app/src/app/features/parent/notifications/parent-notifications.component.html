@@ -3,19 +3,11 @@
 
   <div class="container" style="max-width:760px;padding-top:88px;padding-bottom:60px">
 
-    <!-- Parent nav tabs -->
+    <!-- Parent nav tabs — without "لوحتي" and without notifications (we are on this page) -->
     <nav style="display:flex;gap:6px;margin-bottom:28px;background:var(--bg-card);padding:7px;border-radius:14px;border:1.5px solid rgba(244,120,138,.08)">
-      <a routerLink="/parent/dashboard" routerLinkActive="parent-nav-active" [routerLinkActiveOptions]="{exact:true}"
-         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
-        🏠 لوحتي
-      </a>
       <a routerLink="/parent/children" routerLinkActive="parent-nav-active"
          style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
         👨‍👧‍👦 أطفالي
-      </a>
-      <a routerLink="/parent/notifications" routerLinkActive="parent-nav-active"
-         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
-        🔔 الإشعارات
       </a>
     </nav>
 
