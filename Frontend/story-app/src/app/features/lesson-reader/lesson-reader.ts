@@ -250,6 +250,12 @@ export class LessonReaderComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!canvas || !this.hasDrawing()) return;
     const page = this.activePage();
     if (!page) return;
+    const pageId = page.pageId ?? page.id ?? page.pageNumber?.toString();
+    if (!pageId) {
+        console.error('No pageId found for page:', page);
+        alert('خطأ: معرف الصفحة غير موجود');
+        return;
+    }
 
     this.isChecking.set(true);
     this.checkResult.set(null);

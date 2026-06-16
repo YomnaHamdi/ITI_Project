@@ -11,40 +11,93 @@ namespace Infrastructure.Services
         AppDbContext db,
         ILogger<DashboardService> logger) : IDashboardService
     {
-        // ── Student ───────────────────────────────────────────────────────────
-        public async Task<StudentDashboardDto?> GetStudentDashboardAsync(string childName)
-        {
-            var name     = childName.Trim();
-            var progress = await db.StudentProgress.Where(p => p.ChildName == name).ToListAsync();
+      public async Task<StudentDashboardDto?> GetStudentDashboardAsync(string childName)
+{
+    var name = childName.Trim();
 
-            if (progress.Count == 0 && !await HasAnyActivityAsync(name))
-                return null;
+    // 1️⃣ تأكد إن الطالب موجود
+    var student = await db.Students
+        .FirstOrDefaultAsync(s => s.Name == name || s.Username == name);
 
-            var writing = await db.WritingAttempts.Where(w => w.ChildName == name).ToListAsync();
+    if (student == null)
+        return null;
 
-            int storiesRead      = progress.Count(p => p.StoryId.HasValue  && p.ExamCompleted);
-            int lessonsCompleted = progress.Count(p => p.LessonId.HasValue && p.ExamCompleted);
-            int examsCompleted   = progress.Count(p => p.ExamCompleted);
-            double avgScore      = progress.Any(p => p.ExamCompleted)
-                ? progress.Where(p => p.ExamCompleted).Average(p => p.ScorePercentage) : 0;
-            int writingAccepted  = writing.Count(w => w.IsAccepted);
-            int stars            = CalculateStars(progress, writing);
+    // 2️⃣ البيانات
+    var progress = await db.StudentProgress
+        .Where(p => p.ChildName == name)
+        .ToListAsync();
 
-            return new StudentDashboardDto(
-                name, stars,
-                storiesRead, lessonsCompleted, examsCompleted,
-                Math.Round(avgScore, 1),
-                writing.Count, writingAccepted,
-                writing.Count > 0 ? Math.Round((double)writingAccepted / writing.Count * 100, 1) : 0,
-                GetPerformanceLevel(avgScore),
-                await CalculateStreakAsync(name),
-                await BuildWeeklyActivityAsync(name),
-                await GetInProgressLessonsAsync(name),
-                await GetStudentTopContentAsync(name, storyOnly: true),
-                await GetStudentTopContentAsync(name, storyOnly: false),
-                await BuildExamHistoryAsync(name),
-                await BuildRecentActivityAsync(name));
-        }
+    var writing = await db.WritingAttempts
+        .Where(w => w.ChildName == name)
+        .ToListAsync();
+
+    // 3️⃣ check activity
+    bool hasActivity =
+        progress.Any() ||
+        writing.Any() ||
+        await HasAnyActivityAsync(name);
+
+    // 4️⃣ DASHBOARD فاضي (بدون 404)
+    if (!hasActivity)
+    {
+        return new StudentDashboardDto(
+            student.Name,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            "مبتدئ",
+            0,
+
+            new int[7], // ⭐ FIX HERE
+
+            new List<LessonSummaryDto>(),
+            new List<TopContentDto>(),
+            new List<TopContentDto>(),
+            new List<ExamHistoryDto>(),
+            new List<RecentActivityDto>()
+        );
+    }
+
+    // 5️⃣ الحساب الطبيعي
+    int storiesRead = progress.Count(p => p.StoryId.HasValue && p.ExamCompleted);
+    int lessonsCompleted = progress.Count(p => p.LessonId.HasValue && p.ExamCompleted);
+    int examsCompleted = progress.Count(p => p.ExamCompleted);
+
+    double avgScore = progress.Any(p => p.ExamCompleted)
+        ? progress.Where(p => p.ExamCompleted).Average(p => p.ScorePercentage)
+        : 0;
+
+    int writingAccepted = writing.Count(w => w.IsAccepted);
+    int stars = CalculateStars(progress, writing);
+
+    return new StudentDashboardDto(
+        student.Name,
+        stars,
+        storiesRead,
+        lessonsCompleted,
+        examsCompleted,
+        Math.Round(avgScore, 1),
+        writing.Count,
+        writingAccepted,
+        writing.Count > 0
+            ? Math.Round((double)writingAccepted / writing.Count * 100, 1)
+            : 0,
+        GetPerformanceLevel(avgScore),
+        await CalculateStreakAsync(name),
+
+        await BuildWeeklyActivityAsync(name),
+        await GetInProgressLessonsAsync(name),
+        await GetStudentTopContentAsync(name, true),
+        await GetStudentTopContentAsync(name, false),
+        await BuildExamHistoryAsync(name),
+        await BuildRecentActivityAsync(name)
+    );
+}
 
         // ── Parent ────────────────────────────────────────────────────────────
         public async Task<ParentDashboardDto?> GetParentDashboardAsync(string childName)

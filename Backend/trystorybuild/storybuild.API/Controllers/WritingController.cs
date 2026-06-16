@@ -19,6 +19,8 @@ namespace storybuild.API.Controllers
             [FromForm] string childName,
             IFormFile image)
         {
+             Console.WriteLine($"Received: lessonId={lessonId}, lessonPageId={lessonPageId}, childName={childName}, image={image?.FileName}");
+    
             if (image is null || image.Length == 0)
                 return BadRequest(new { error = "يرجى رفع صورة الكتابة." });
 
