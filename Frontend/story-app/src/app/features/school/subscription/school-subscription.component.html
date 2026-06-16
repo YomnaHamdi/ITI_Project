@@ -1,0 +1,145 @@
+<div dir="rtl" style="min-height:100vh;background:var(--bg-base)">
+  <app-navbar />
+
+  <div class="container" style="max-width:1060px;padding-top:88px;padding-bottom:60px">
+
+    <!-- Nav tabs -->
+    <nav style="display:flex;gap:6px;margin-bottom:28px;background:var(--bg-card);padding:7px;border-radius:14px;border:1.5px solid rgba(244,120,138,.08)">
+      <a routerLink="/school/dashboard" routerLinkActive="school-nav-active" [routerLinkActiveOptions]="{exact:true}"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">🏠 لوحة المدرسة</a>
+      <a routerLink="/school/teachers" routerLinkActive="school-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">👩‍🏫 المعلمون</a>
+      <a routerLink="/school/classrooms" routerLinkActive="school-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">🏫 الفصول</a>
+      <a routerLink="/school/reports" routerLinkActive="school-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">📊 التقارير</a>
+      <a routerLink="/school/subscription" routerLinkActive="school-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">💳 الاشتراك</a>
+    </nav>
+
+    <!-- Page header -->
+    <div style="margin-bottom:28px">
+      <h2 style="font-size:24px;font-weight:900;margin:0">💳 إدارة الاشتراك</h2>
+      <p style="color:var(--text-muted);font-size:13px;margin-top:4px">تتبع خطتك الحالية واستخدامك ومعلومات التجديد</p>
+    </div>
+
+    @if (isLoading()) {
+      <div style="text-align:center;padding:60px;color:var(--text-muted)">جارٍ التحميل…</div>
+    } @else {
+
+      <!-- Current plan card -->
+      <div style="background:var(--primary-gradient);border-radius:20px;padding:28px 32px;margin-bottom:28px;color:#fff;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-30px;left:-30px;width:160px;height:160px;background:rgba(255,255,255,.08);border-radius:50%"></div>
+        <div style="position:absolute;bottom:-50px;right:-10px;width:200px;height:200px;background:rgba(255,255,255,.05);border-radius:50%"></div>
+        <div style="position:relative">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px">
+            <div>
+              <div style="font-size:13px;opacity:.85;font-weight:600;margin-bottom:6px">الخطة الحالية</div>
+              <div style="font-size:28px;font-weight:900">{{ planName }}</div>
+              <div style="font-size:13px;opacity:.85;margin-top:8px">تاريخ التجديد: {{ renewDate }}</div>
+            </div>
+            <div style="text-align:center;background:rgba(255,255,255,.15);border-radius:14px;padding:16px 24px">
+              <div style="font-size:11px;opacity:.85;margin-bottom:4px">الحالة</div>
+              <div style="font-size:18px;font-weight:900">✅ نشط</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Usage meters -->
+      <div style="background:var(--bg-card);border-radius:18px;padding:24px;margin-bottom:24px;border:1.5px solid rgba(244,120,138,.08)">
+        <h5 style="font-weight:900;margin-bottom:20px;font-size:16px">📊 استخدام الخطة</h5>
+        <div style="display:flex;flex-direction:column;gap:20px">
+
+          @for (meter of [
+            { icon:'👨‍🎓', label:'الطلاب',         used: totalStudents(),   limit: planLimit.students   },
+            { icon:'👩‍🏫', label:'المعلمون',        used: totalTeachers(),   limit: planLimit.teachers   },
+            { icon:'🏫', label:'الفصول الدراسية', used: totalClassrooms(), limit: planLimit.classrooms }
+          ]; track meter.label) {
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <span style="font-weight:800;font-size:14px">{{ meter.icon }} {{ meter.label }}</span>
+                <span style="font-size:13px;color:var(--text-muted)">
+                  <strong [style.color]="usageColor(usagePct(meter.used, meter.limit))">{{ meter.used }}</strong>
+                  / {{ meter.limit }}
+                </span>
+              </div>
+              <div style="height:10px;background:#F3F4F6;border-radius:99px;overflow:hidden">
+                <div [style.width.%]="usagePct(meter.used, meter.limit)"
+                     [style.background]="usageColor(usagePct(meter.used, meter.limit))"
+                     style="height:100%;border-radius:99px;transition:.6s"></div>
+              </div>
+              @if (usagePct(meter.used, meter.limit) >= 90) {
+                <p style="font-size:11px;color:#EF4444;margin-top:4px;font-weight:700">
+                  ⚠️ اقتربت من الحد الأقصى — تواصل معنا للترقية
+                </p>
+              }
+            </div>
+          }
+
+        </div>
+      </div>
+
+      <!-- Plan options -->
+      <div style="margin-bottom:24px">
+        <h5 style="font-weight:900;font-size:16px;margin-bottom:16px">🚀 خطط الترقية</h5>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+
+          <!-- Free -->
+          <div style="background:var(--bg-card);border-radius:18px;padding:22px;border:2px solid var(--primary);position:relative">
+            <div style="position:absolute;top:14px;left:14px;background:var(--primary-gradient);color:#fff;border-radius:99px;padding:3px 10px;font-size:11px;font-weight:800">خطتك الحالية</div>
+            <div style="font-size:22px;margin-bottom:8px">🎓</div>
+            <div style="font-weight:900;font-size:18px;margin-bottom:4px">المجانية</div>
+            <div style="font-size:26px;font-weight:900;color:var(--primary);margin-bottom:12px">مجاني</div>
+            <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--text-muted)">
+              <li>✅ حتى 50 طالب</li>
+              <li>✅ حتى 5 معلمين</li>
+              <li>✅ حتى 10 فصول</li>
+              <li>✅ جميع المستويات الدراسية</li>
+              <li>✅ تقارير أساسية</li>
+            </ul>
+          </div>
+
+          <!-- Pro -->
+          <div style="background:var(--bg-card);border-radius:18px;padding:22px;border:1.5px solid rgba(244,120,138,.12)">
+            <div style="font-size:22px;margin-bottom:8px">⭐</div>
+            <div style="font-weight:900;font-size:18px;margin-bottom:4px">الاحترافية</div>
+            <div style="font-size:26px;font-weight:900;color:#8B5CF6;margin-bottom:12px">
+              تواصل معنا
+            </div>
+            <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--text-muted)">
+              <li>✅ طلاب غير محدودين</li>
+              <li>✅ معلمون غير محدودين</li>
+              <li>✅ فصول غير محدودة</li>
+              <li>✅ تقارير تفصيلية متقدمة</li>
+              <li>✅ دعم أولوية</li>
+            </ul>
+            <a href="mailto:support@lughati.com"
+               style="display:block;margin-top:16px;background:var(--primary-gradient);color:#fff;text-align:center;padding:10px;border-radius:10px;text-decoration:none;font-weight:800;font-size:14px">
+              تواصل للترقية
+            </a>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Contact support -->
+      <div style="background:var(--bg-card);border-radius:18px;padding:24px;border:1.5px solid rgba(244,120,138,.08);text-align:center">
+        <div style="font-size:32px;margin-bottom:10px">💬</div>
+        <h5 style="font-weight:900;margin-bottom:6px">هل تحتاج مساعدة؟</h5>
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">
+          فريق دعم لغتي متاح للإجابة على أسئلتك وإتمام الترقية بسهولة
+        </p>
+        <a href="mailto:{{ contactEmail }}"
+           style="display:inline-block;background:var(--primary-gradient);color:#fff;padding:11px 28px;border-radius:12px;text-decoration:none;font-weight:800;font-size:14px">
+          📧 {{ contactEmail }}
+        </a>
+      </div>
+
+    }
+  </div>
+</div>
+
+<style>
+  .school-nav-active { background: var(--primary-gradient) !important; color: #fff !important; }
+</style>

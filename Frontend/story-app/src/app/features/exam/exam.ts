@@ -207,6 +207,11 @@ export class Exam implements OnInit {
             scorePercentage: res.scorePercentage,
             examCompleted:   true
           }).subscribe();
+          sessionStorage.setItem('quiz_result', JSON.stringify({
+            correct: res.correctAnswers,
+            total:   res.totalQuestions
+          }));
+          this.router.navigate(['/books', story.id, 'quiz-result']);
         } else if (lesson && this.isLessonExam) {
           this.storyService.updateLessonProgress({
             lessonId:        lesson.id,

@@ -87,6 +87,7 @@ export class TeacherSidebarComponent {
     return [
       { icon: '🏠', label: 'لوحتي',            route: '/teacher/students' },
       { icon: '👥', label: 'طلابي بالمستوى',  route: '/teacher/students' },
+      { icon: '🗂️', label: 'مجموعاتي',        route: '/teacher/groups' },
       { icon: '➕', label: 'إضافة طالب',       route: '/auth/create-student' },
       { icon: '📚', label: 'الدروس',            route: '/teacher/lessons' },
       { icon: '✨', label: 'المولّد الذكي',     route: '/teacher/ai-generator' },

@@ -246,6 +246,46 @@ export class StoryService {
     return this.http.get<SchoolDashboardDto>(`${this.api}/api/dashboard/school`);
   }
 
+  getSchoolClassrooms(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/api/classrooms`);
+  }
+
+  createClassroom(body: { name: string; level: number; teacherId: string }): Observable<any> {
+    return this.http.post<any>(`${this.api}/api/classrooms`, body);
+  }
+
+  addStudentToClassroom(classroomId: string, studentId: string): Observable<any> {
+    return this.http.post<any>(`${this.api}/api/classrooms/${classroomId}/students`, { studentId });
+  }
+
+  getMyTeacherClassrooms(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/api/classrooms/my`);
+  }
+
+  getClassroomDetail(id: string): Observable<any> {
+    return this.http.get<any>(`${this.api}/api/classrooms/${id}`);
+  }
+
+  editClassroom(id: string, body: { name?: string; level?: number; teacherId?: string }): Observable<any> {
+    return this.http.put<any>(`${this.api}/api/classrooms/${id}`, body);
+  }
+
+  deleteClassroom(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.api}/api/classrooms/${id}`);
+  }
+
+  removeStudentFromClassroom(classroomId: string, studentId: string): Observable<void> {
+    return this.http.delete<void>(`${this.api}/api/classrooms/${classroomId}/students/${studentId}`);
+  }
+
+  searchSchoolStudents(q: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/api/classrooms/school-students?q=${encodeURIComponent(q)}`);
+  }
+
+  getClassroomsReport(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/api/classrooms/report`);
+  }
+
   getKnownStudentNames(): Observable<string[]> {
     return this.http.get<string[]>(`${this.api}/api/dashboard/students`);
   }

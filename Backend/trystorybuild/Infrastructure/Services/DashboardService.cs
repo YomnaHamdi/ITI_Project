@@ -84,10 +84,29 @@ namespace Infrastructure.Services
         // ── Teacher ───────────────────────────────────────────────────────────
         public async Task<TeacherDashboardDto> GetTeacherDashboardAsync(Guid teacherId)
         {
-            var childEntries = await db.Students
+            // Include students directly assigned AND students enrolled via classrooms
+            var directStudents = await db.Students
                 .Where(s => s.TeacherId == teacherId)
                 .Select(s => new { s.Name, s.Level })
                 .ToListAsync();
+
+            var classroomStudentIds = await db.Classrooms
+                .Where(c => c.TeacherId == teacherId)
+                .SelectMany(c => c.Students.Select(cs => cs.StudentId))
+                .Distinct()
+                .ToListAsync();
+
+            var classroomStudents = classroomStudentIds.Any()
+                ? await db.Students
+                    .Where(s => classroomStudentIds.Contains(s.Id) && s.TeacherId != teacherId)
+                    .Select(s => new { s.Name, s.Level })
+                    .ToListAsync()
+                : new();
+
+            var childEntries = directStudents
+                .Concat(classroomStudents)
+                .DistinctBy(e => e.Name)
+                .ToList();
             var childNames   = childEntries.Select(e => e.Name).ToList();
             var allProgress  = await db.StudentProgress.Where(p => p.ExamCompleted).ToListAsync();
             var cutoff       = DateTime.UtcNow.AddDays(-7);
@@ -377,27 +396,47 @@ namespace Infrastructure.Services
 
         private async Task<List<ClassroomStatsDto>> GetClassroomsAsync()
         {
-            var tIds = await db.Students
-                .Where(s => s.TeacherId.HasValue)
-                .Select(s => s.TeacherId!.Value).Distinct().ToListAsync();
+            var classrooms = await db.Classrooms
+                .Include(c => c.Students).ThenInclude(cs => cs.Student)
+                .OrderBy(c => c.Level).ThenBy(c => c.Name)
+                .Take(10)
+                .ToListAsync();
 
-            if (tIds.Count == 0) return new List<ClassroomStatsDto>();
-
-            var teachers = await db.Users.Where(u => tIds.Contains(u.Id) && u.IsActive).ToListAsync();
-            var result   = new List<ClassroomStatsDto>();
-
-            foreach (var t in teachers.Take(8))
+            if (classrooms.Count == 0)
             {
-                var usernames = await db.Students
-                    .Where(s => s.TeacherId == t.Id)
-                    .Select(s => s.Username).ToListAsync();
-                if (usernames.Count == 0) continue;
+                // Fallback: derive from teachers when no classrooms created yet
+                var tIds = await db.Students
+                    .Where(s => s.TeacherId.HasValue)
+                    .Select(s => s.TeacherId!.Value).Distinct().Take(8).ToListAsync();
+                if (tIds.Count == 0) return new();
+                var teachers = await db.Users.Where(u => tIds.Contains(u.Id) && u.IsActive).ToListAsync();
+                var fallback = new List<ClassroomStatsDto>();
+                foreach (var t in teachers)
+                {
+                    var names = await db.Students.Where(s => s.TeacherId == t.Id)
+                        .Select(s => s.Name).ToListAsync();
+                    if (names.Count == 0) continue;
+                    var prog = await db.StudentProgress
+                        .Where(p => names.Contains(p.ChildName) && p.ExamCompleted).ToListAsync();
+                    double avg = prog.Any() ? prog.Average(p => p.ScorePercentage) : 0;
+                    fallback.Add(new ClassroomStatsDto($"فصل {t.Name}", t.Name, names.Count, Math.Round(avg, 1)));
+                }
+                return fallback;
+            }
 
-                var prog = await db.StudentProgress
-                    .Where(p => usernames.Contains(p.ChildName) && p.ExamCompleted).ToListAsync();
+            var teacherIds = classrooms.Select(c => c.TeacherId).Distinct().ToList();
+            var teacherMap = await db.Users.Where(u => teacherIds.Contains(u.Id))
+                                           .ToDictionaryAsync(u => u.Id, u => u.Name);
+            var allProgress = await db.StudentProgress.Where(p => p.ExamCompleted).ToListAsync();
+            var result = new List<ClassroomStatsDto>();
+
+            foreach (var c in classrooms)
+            {
+                var names = c.Students.Select(cs => cs.Student.Name).ToList();
+                var prog  = allProgress.Where(p => names.Contains(p.ChildName)).ToList();
                 double avg = prog.Any() ? prog.Average(p => p.ScorePercentage) : 0;
-
-                result.Add(new ClassroomStatsDto($"فصل {t.Name}", t.Name, usernames.Count, Math.Round(avg, 1)));
+                var teacherName = teacherMap.GetValueOrDefault(c.TeacherId, "");
+                result.Add(new ClassroomStatsDto(c.Name, teacherName, names.Count, Math.Round(avg, 1)));
             }
             return result;
         }
