@@ -211,6 +211,13 @@ export const routes: Routes = [
         .then(m => m.TeacherGroupsComponent),
     canActivate: [teacherGuard]
   },
+  {
+    path: 'teacher/classes',
+    loadComponent: () =>
+      import('./features/teacher/teacher-classes/teacher-classes.component')
+        .then(m => m.TeacherClassesComponent),
+    canActivate: [teacherGuard]
+  },
 
   // ── School ───────────────────────────────────────────────────────────────────
   {

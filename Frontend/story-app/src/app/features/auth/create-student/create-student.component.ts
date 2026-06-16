@@ -2,6 +2,7 @@ import { Component, signal, inject, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
+import { AppStateService } from '../../../services/app-state-service';
 
 @Component({
   selector: 'app-create-student',
@@ -12,6 +13,7 @@ import { AuthService } from '../../../services/auth.service';
 })
 export class CreateStudentComponent implements OnInit {
   private readonly auth   = inject(AuthService);
+  private readonly state  = inject(AppStateService);
   private readonly router = inject(Router);
   private readonly route  = inject(ActivatedRoute);
 
@@ -46,7 +48,17 @@ export class CreateStudentComponent implements OnInit {
   readonly selectedPins = signal<number[]>([]);
 
   ngOnInit(): void {
-    this.returnTo = this.route.snapshot.queryParamMap.get('returnTo') ?? 'parent';
+    const queryReturnTo = this.route.snapshot.queryParamMap.get('returnTo');
+    const role = this.state.userRole();
+    if (queryReturnTo) {
+      this.returnTo = queryReturnTo;
+    } else if (role === 'teacher') {
+      this.returnTo = 'teacher';
+    } else if (role === 'school') {
+      this.returnTo = 'school';
+    } else {
+      this.returnTo = 'parent';
+    }
   }
 
   goBack(): void {

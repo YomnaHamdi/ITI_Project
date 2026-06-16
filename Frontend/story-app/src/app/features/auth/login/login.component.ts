@@ -74,7 +74,7 @@ export class LoginComponent {
 
     this.auth.login(this.adultForm.email, this.adultForm.password).subscribe({
       next: res => {
-        this.state.setUser({ id: res.userId, name: res.name, role: res.role as any });
+        this.state.setUser({ id: res.userId, name: res.name, role: res.role as any, schoolCode: res.schoolCode });
         this.isLoading.set(false);
         this.redirectByRole(res.role);
       },

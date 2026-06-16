@@ -1,7 +1,7 @@
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ActivatedRoute, RouterLink, RouterLinkActive } from '@angular/router';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 import { StoryService } from '../../../services/story';
 import { AuthService } from '../../../services/auth.service';
@@ -27,6 +27,7 @@ export class SchoolTeachersComponent implements OnInit {
   private readonly svc   = inject(StoryService);
   private readonly auth  = inject(AuthService);
   private readonly state = inject(AppStateService);
+  private readonly route = inject(ActivatedRoute);
 
   readonly isLoading  = signal(false);
   readonly isSaving   = signal(false);
@@ -46,16 +47,21 @@ export class SchoolTeachersComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    if (this.route.snapshot.queryParamMap.get('openForm') === '1') {
+      this.showForm.set(true);
+    }
     this.isLoading.set(true);
-    this.svc.getSchoolDashboard().subscribe({
-      next: d => {
-        const mock: TeacherRow[] = [
-          { id: '1', name: 'أ. فاطمة الزهراء', email: 'fatima@school.edu', subject: 'اللغة العربية', students: 18, avgScore: 75, joinedAt: '2024-09-01' },
-          { id: '2', name: 'أ. سارة العمري',    email: 'sara@school.edu',   subject: 'اللغة العربية', students: 20, avgScore: 82, joinedAt: '2024-09-01' },
-          { id: '3', name: 'أ. منى الشريف',     email: 'mona@school.edu',   subject: 'اللغة العربية', students: 16, avgScore: 90, joinedAt: '2024-09-15' },
-          { id: '4', name: 'أ. ليلى حسن',       email: 'laila@school.edu',  subject: 'اللغة العربية', students: 19, avgScore: 68, joinedAt: '2024-10-01' },
-        ].slice(0, d.totalTeachers || 4);
-        this.teachers.set(mock);
+    this.auth.getSchoolTeachers().subscribe({
+      next: list => {
+        this.teachers.set(list.map(t => ({
+          id:       t.id,
+          name:     t.name,
+          email:    t.email,
+          subject:  'اللغة العربية',
+          students: 0,
+          avgScore: 0,
+          joinedAt: '',
+        })));
         this.isLoading.set(false);
       },
       error: () => this.isLoading.set(false)

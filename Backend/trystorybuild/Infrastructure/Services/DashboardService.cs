@@ -84,10 +84,11 @@ namespace Infrastructure.Services
         // ── Teacher ───────────────────────────────────────────────────────────
         public async Task<TeacherDashboardDto> GetTeacherDashboardAsync(Guid teacherId)
         {
-            var childNames = await db.Students
+            var childEntries = await db.Students
                 .Where(s => s.TeacherId == teacherId)
-                .Select(s => s.Name)
+                .Select(s => new { s.Name, s.Level })
                 .ToListAsync();
+            var childNames   = childEntries.Select(e => e.Name).ToList();
             var allProgress  = await db.StudentProgress.Where(p => p.ExamCompleted).ToListAsync();
             var cutoff       = DateTime.UtcNow.AddDays(-7);
             int activeWeek   = await db.StudentProgress
@@ -98,8 +99,8 @@ namespace Infrastructure.Services
             logger.LogInformation("[Dashboard] Teacher — {Count} students, avg {Avg}%", childNames.Count, Math.Round(avgScore,1));
 
             var students = new List<StudentSummaryDto>();
-            foreach (var name in childNames)
-                students.Add(await BuildStudentSummaryAsync(name));
+            foreach (var entry in childEntries)
+                students.Add(await BuildStudentSummaryAsync(entry.Name, entry.Level));
 
             return new TeacherDashboardDto(
                 childNames.Count,
@@ -328,7 +329,7 @@ namespace Infrastructure.Services
             return list.OrderByDescending(a => a.OccurredAt).Take(15).ToList();
         }
 
-        private async Task<StudentSummaryDto> BuildStudentSummaryAsync(string name)
+        private async Task<StudentSummaryDto> BuildStudentSummaryAsync(string name, int level = 1)
         {
             var progress = await db.StudentProgress.Where(p => p.ChildName == name).ToListAsync();
             var writing  = await db.WritingAttempts.Where(w => w.ChildName == name).ToListAsync();
@@ -344,7 +345,7 @@ namespace Infrastructure.Services
                 progress.Count(p => p.LessonId.HasValue && p.ExamCompleted),
                 Math.Round(avg, 1),
                 writing.Count(w => w.IsAccepted), writing.Count,
-                GetPerformanceLevel(avg), last);
+                GetPerformanceLevel(avg), last, level);
         }
 
         private async Task<List<TopContentDto>> BuildTopStoriesAsync() =>

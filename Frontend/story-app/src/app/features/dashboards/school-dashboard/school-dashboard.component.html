@@ -19,6 +19,43 @@
       </div>
     }
 
+    <!-- Quick action cards -->
+    <div class="row g-3">
+      <div class="col-md-4">
+        <a routerLink="/school/teachers" [queryParams]="{openForm:1}"
+           class="card p-4 text-decoration-none d-flex flex-row align-items-center gap-3 border-0"
+           style="background:linear-gradient(135deg,#F4788A,#C084FC);color:#fff;border-radius:18px">
+          <div style="font-size:36px">👩‍🏫</div>
+          <div>
+            <div class="fw-800" style="font-size:16px">إضافة معلم جديد</div>
+            <div style="font-size:13px;opacity:.9">أنشئ حساباً لمعلم في مدرستك</div>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-4">
+        <a routerLink="/school/classrooms" [queryParams]="{openForm:1}"
+           class="card p-4 text-decoration-none d-flex flex-row align-items-center gap-3 border-0"
+           style="background:linear-gradient(135deg,#8B5CF6,#6366F1);color:#fff;border-radius:18px">
+          <div style="font-size:36px">🏫</div>
+          <div>
+            <div class="fw-800" style="font-size:16px">إنشاء فصل دراسي</div>
+            <div style="font-size:13px;opacity:.9">أضف فصلاً وعيّن له معلمًا</div>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-4">
+        <a routerLink="/school/teachers"
+           class="card p-4 text-decoration-none d-flex flex-row align-items-center gap-3 border-0"
+           style="background:linear-gradient(135deg,#10B981,#0EA5E9);color:#fff;border-radius:18px">
+          <div style="font-size:36px">📋</div>
+          <div>
+            <div class="fw-800" style="font-size:16px">إدارة المعلمين</div>
+            <div style="font-size:13px;opacity:.9">عرض جميع معلمي المدرسة</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
     <!-- Hero stat circles -->
     <div class="row g-3 justify-content-center">
       @if (data(); as d) {

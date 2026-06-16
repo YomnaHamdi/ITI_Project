@@ -1,9 +1,10 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ActivatedRoute, RouterLink, RouterLinkActive } from '@angular/router';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 import { StoryService } from '../../../services/story';
+import { AuthService } from '../../../services/auth.service';
 
 interface Classroom {
   id:           string;
@@ -21,47 +22,59 @@ interface Classroom {
   templateUrl: './school-classrooms.component.html',
 })
 export class SchoolClassroomsComponent implements OnInit {
-  private readonly svc = inject(StoryService);
+  private readonly svc   = inject(StoryService);
+  private readonly auth  = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
 
-  readonly isLoading  = signal(false);
-  readonly classrooms = signal<Classroom[]>([]);
-  readonly showForm   = signal(false);
+  readonly isLoading        = signal(false);
+  readonly classrooms       = signal<Classroom[]>([]);
+  readonly showForm         = signal(false);
+  readonly schoolTeachers   = signal<{ id: string; name: string }[]>([]);
 
-  form = { name: '', teacher: '', level: 1 };
+  form = { name: '', teacherId: '', level: 1 };
   formError = '';
 
   ngOnInit(): void {
+    if (this.route.snapshot.queryParamMap.get('openForm') === '1') {
+      this.showForm.set(true);
+    }
     this.isLoading.set(true);
     this.svc.getSchoolDashboard().subscribe({
       next: d => {
-        this.classrooms.set([
-          { id: '1', name: 'KG1 A', teacher: 'أ. فاطمة الزهراء', studentCount: 18, avgProgress: 75, level: 1 },
-          { id: '2', name: 'KG1 B', teacher: 'أ. سارة العمري',   studentCount: 20, avgProgress: 60, level: 1 },
-          { id: '3', name: 'KG2 A', teacher: 'أ. منى الشريف',    studentCount: 16, avgProgress: 88, level: 2 },
-          { id: '4', name: 'KG2 B', teacher: 'أ. ليلى حسن',      studentCount: 19, avgProgress: 45, level: 2 },
-          { id: '5', name: 'KG3 A', teacher: 'أ. فاطمة الزهراء', studentCount: 14, avgProgress: 92, level: 3 },
-        ]);
+        this.classrooms.set((d.classrooms ?? []).map((c: any, i: number) => ({
+          id:           String(i + 1),
+          name:         c.name,
+          teacher:      c.teacher,
+          studentCount: c.students,
+          avgProgress:  c.avgProgress,
+          level:        1,
+        })));
         this.isLoading.set(false);
       },
       error: () => this.isLoading.set(false)
+    });
+    this.auth.getSchoolTeachers().subscribe({
+      next: list => this.schoolTeachers.set(list),
+      error: () => {}
     });
   }
 
   toggleForm(): void {
     this.showForm.update(v => !v);
-    this.form = { name: '', teacher: '', level: 1 };
+    this.form = { name: '', teacherId: '', level: 1 };
     this.formError = '';
   }
 
   createClassroom(): void {
-    if (!this.form.name.trim() || !this.form.teacher.trim()) {
-      this.formError = 'يرجى تعبئة اسم الفصل والمعلم.';
+    if (!this.form.name.trim() || !this.form.teacherId) {
+      this.formError = 'يرجى تعبئة اسم الفصل واختيار المعلم.';
       return;
     }
+    const teacher = this.schoolTeachers().find(t => t.id === this.form.teacherId);
     const newClassroom: Classroom = {
       id:           Date.now().toString(),
       name:         this.form.name.trim(),
-      teacher:      this.form.teacher.trim(),
+      teacher:      teacher?.name ?? '',
       studentCount: 0,
       avgProgress:  0,
       level:        this.form.level,

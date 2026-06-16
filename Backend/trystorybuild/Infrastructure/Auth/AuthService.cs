@@ -46,7 +46,7 @@ namespace Infrastructure.Auth
                     SchoolCode = request.SchoolCode
                 });
 
-            return ToAuthResponse(user);
+            return ToAuthResponse(user, request.SchoolCode);
         }
 
         // ── Adult login ─────────────────────────────────────────────────────────
@@ -61,7 +61,14 @@ namespace Infrastructure.Auth
             if (!user.IsActive || user.IsBlocked)
                 throw new InvalidOperationException("الحساب موقوف. تواصل مع الدعم.");
 
-            return ToAuthResponse(user);
+            string? schoolCode = null;
+            if (user.Role == UserRole.Teacher)
+            {
+                var teacher = await userRepo.GetTeacherByIdAsync(user.Id);
+                schoolCode = teacher?.SchoolCode;
+            }
+
+            return ToAuthResponse(user, schoolCode);
         }
 
         // ── Create student (by parent/teacher) ──────────────────────────────────
@@ -165,7 +172,7 @@ namespace Infrastructure.Auth
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        private AuthResponse ToAuthResponse(User user)
+        private AuthResponse ToAuthResponse(User user, string? schoolCode = null)
         {
             var claims = new[]
             {
@@ -180,7 +187,8 @@ namespace Infrastructure.Auth
                 user.Id.ToString(),
                 user.Name,
                 user.Role.ToString().ToLower(),
-                expiry);
+                expiry,
+                schoolCode);
         }
 
         private StudentAuthResponse ToStudentResponse(Student student)

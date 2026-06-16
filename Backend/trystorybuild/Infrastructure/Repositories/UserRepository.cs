@@ -33,5 +33,14 @@ namespace Infrastructure.Repositories
             await db.SaveChangesAsync();
             return teacher;
         }
+
+        public Task<Teacher?> GetTeacherByIdAsync(Guid userId) =>
+            db.Teachers.FirstOrDefaultAsync(t => t.Id == userId);
+
+        public Task<List<Teacher>> GetTeachersBySchoolCodeAsync(string schoolCode) =>
+            db.Teachers
+              .Include(t => t.User)
+              .Where(t => t.SchoolCode == schoolCode)
+              .ToListAsync();
     }
 }

@@ -5,11 +5,12 @@ import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 
 export interface AuthResponse {
-  token:     string;
-  userId:    string;
-  name:      string;
-  role:      string;
-  expiresAt: string;
+  token:       string;
+  userId:      string;
+  name:        string;
+  role:        string;
+  expiresAt:   string;
+  schoolCode?: string;
 }
 
 export interface StudentAuthResponse {
@@ -110,6 +111,11 @@ export class AuthService {
   // ── Parent/teacher updates a child's level ─────────────────────────────────
   updateChildLevel(studentId: string, level: number): Observable<StudentAuthResponse> {
     return this.http.patch<StudentAuthResponse>(`${this.api}/api/auth/students/${studentId}/level`, { level });
+  }
+
+  // ── School admin: get teachers belonging to this school ───────────────────
+  getSchoolTeachers(): Observable<{ id: string; name: string; email: string }[]> {
+    return this.http.get<{ id: string; name: string; email: string }[]>(`${this.api}/api/auth/school/teachers`);
   }
 
   // ── Logout ─────────────────────────────────────────────────────────────────

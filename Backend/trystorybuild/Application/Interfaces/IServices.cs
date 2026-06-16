@@ -118,11 +118,13 @@ namespace Application.Interfaces
     // ── User Repository ────────────────────────────────────────────────────────────
     public interface IUserRepository
     {
-        Task<User?>   FindByEmailAsync(string email);
-        Task<User?>   FindByIdAsync(Guid id);
-        Task<User>    SaveAsync(User user);
-        Task<Parent>  SaveParentAsync(Parent parent);
-        Task<Teacher> SaveTeacherAsync(Teacher teacher);
+        Task<User?>         FindByEmailAsync(string email);
+        Task<User?>         FindByIdAsync(Guid id);
+        Task<User>          SaveAsync(User user);
+        Task<Parent>        SaveParentAsync(Parent parent);
+        Task<Teacher>       SaveTeacherAsync(Teacher teacher);
+        Task<Teacher?>      GetTeacherByIdAsync(Guid userId);
+        Task<List<Teacher>> GetTeachersBySchoolCodeAsync(string schoolCode);
     }
 
     // ── Student Repository ─────────────────────────────────────────────────────────

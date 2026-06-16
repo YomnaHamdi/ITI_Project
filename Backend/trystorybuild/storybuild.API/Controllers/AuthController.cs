@@ -9,7 +9,7 @@ namespace storybuild.API.Controllers
 {
     [ApiController]
     [Route("api/auth")]
-    public class AuthController(IAuthService authService) : ControllerBase
+    public class AuthController(IAuthService authService, IUserRepository userRepository) : ControllerBase
     {
         // ── Adult register ──────────────────────────────────────────────────────
         [HttpPost("register")]
@@ -121,6 +121,30 @@ namespace storybuild.API.Controllers
 
             try   { return Ok(await authService.UpdateStudentLevelAsync(studentId, request.Level)); }
             catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
+        }
+
+        // ── School admin: list teachers belonging to this school ─────────────────
+        [HttpGet("school/teachers")]
+        [Authorize(Roles = "SchoolAdmin")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> GetSchoolTeachers()
+        {
+            var adminId    = Guid.Parse(
+                User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? throw new InvalidOperationException("Invalid token."));
+
+            var schoolCode = adminId.ToString("N")[..8].ToUpper();
+            var teachers   = await userRepository.GetTeachersBySchoolCodeAsync(schoolCode);
+
+            var result = teachers.Select(t => new
+            {
+                id    = t.Id,
+                name  = t.User?.Name ?? "",
+                email = t.User?.Email ?? "",
+            });
+
+            return Ok(result);
         }
     }
 

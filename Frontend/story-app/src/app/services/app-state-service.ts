@@ -2,11 +2,12 @@ import { Injectable, signal, computed } from '@angular/core';
 import { StoryResponse, StoryPage, ExamResult, LessonDetail, LessonPage } from '../models/story.models';
 
 export interface CurrentUser {
-  id:      string;
-  name:    string;
-  role:    'student' | 'parent' | 'teacher' | 'school' | 'admin';
-  level?:  number;
-  avatar?: string;
+  id:          string;
+  name:        string;
+  role:        'student' | 'parent' | 'teacher' | 'school' | 'admin';
+  level?:      number;
+  avatar?:     string;
+  schoolCode?: string;
 }
 
 @Injectable({ providedIn: 'root' })
