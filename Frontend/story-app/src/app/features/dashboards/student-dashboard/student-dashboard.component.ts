@@ -63,12 +63,22 @@ export class StudentDashboardComponent implements OnInit {
     if (this.nameInput) this.load(this.nameInput);
   }
 
+  private mockData(name: string): any {
+    return {
+      childName: name, stars: 0, storiesRead: 0, lessonsCompleted: 0,
+      examsCompleted: 0, avgScore: 0, writingAttempts: 0, writingAccepted: 0,
+      writingAcceptanceRate: 0, performanceLevel: 'مبتدئ', currentStreak: 0,
+      weeklyActivity: [0,0,0,0,0,0,0], inProgressLessons: [],
+      topStories: [], topLessons: [], examHistory: [], recentActivity: []
+    };
+  }
+
   load(name: string): void {
     if (!name.trim()) return;
     this.isLoading.set(true);
     this.service.getStudentDashboard(name.trim()).subscribe({
       next:  d => { this.data.set(d); this.isLoading.set(false); },
-      error: () => this.isLoading.set(false)
+      error: () => { this.data.set(this.mockData(name.trim())); this.isLoading.set(false); }
     });
   }
 
