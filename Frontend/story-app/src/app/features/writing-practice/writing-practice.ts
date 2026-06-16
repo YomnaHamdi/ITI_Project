@@ -1,10 +1,12 @@
 import {
   Component, signal, ViewChild, ElementRef,
-  AfterViewInit, OnDestroy, inject, effect
+  AfterViewInit, OnDestroy, inject, effect,
+  Inject, PLATFORM_ID
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
 import { StoryService } from '../../services/story';
 import { AppStateService } from '../../services/app-state-service';
 import { WritingCorrectionResponse } from '../../models/story.models';
@@ -35,7 +37,9 @@ export class WritingPracticeComponent implements AfterViewInit, OnDestroy {
   private ctx!: CanvasRenderingContext2D;
   private isDrawing = false;
 
-  constructor() {
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
     // Redraw watermark when expected text changes
     effect(() => {
       const text = this.expectedText();
@@ -44,17 +48,21 @@ export class WritingPracticeComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    }
     this.setupCanvas();
   }
 
   ngOnDestroy(): void {
-    document.body.style.overflow = '';
-    document.documentElement.style.overflow = '';
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
   }
 
-  // ── Canvas setup ─────────────────────────────────────────────────────────────
+  // ── Canvas setup ──────────────────────────────────────────────────────────
   private setupCanvas(): void {
     const canvas = this.canvasRef?.nativeElement;
     if (!canvas) return;
@@ -74,7 +82,6 @@ export class WritingPracticeComponent implements AfterViewInit, OnDestroy {
     this.ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if (text.trim()) {
-      // Draw faint watermark guide text
       this.ctx.save();
       this.ctx.fillStyle   = 'rgba(200,200,220,0.35)';
       this.ctx.font        = 'bold 56px "Cairo", "Baloo Bhaijaan 2", sans-serif';
@@ -109,7 +116,6 @@ export class WritingPracticeComponent implements AfterViewInit, OnDestroy {
     canvas.onpointermove = (e: PointerEvent) => {
       if (!this.isDrawing) return;
       const { x, y } = this.pos(e, canvas);
-      // Stylus pressure support
       if (this.tool() === 'pen' && e.pressure > 0) {
         this.ctx.lineWidth = Math.max(2, e.pressure * 10);
       }
@@ -132,13 +138,13 @@ export class WritingPracticeComponent implements AfterViewInit, OnDestroy {
     };
   }
 
-  // ── Tool switching ────────────────────────────────────────────────────────────
+  // ── Tool switching ────────────────────────────────────────────────────────
   setTool(t: Tool): void {
     this.tool.set(t);
     this.applyToolStyle();
   }
 
-  // ── Clear ─────────────────────────────────────────────────────────────────────
+  // ── Clear ─────────────────────────────────────────────────────────────────
   clearCanvas(): void {
     this.hasDrawing.set(false);
     this.result.set(null);
@@ -146,7 +152,7 @@ export class WritingPracticeComponent implements AfterViewInit, OnDestroy {
     this.drawBackground(this.expectedText());
   }
 
-  // ── Submit ────────────────────────────────────────────────────────────────────
+  // ── Submit ────────────────────────────────────────────────────────────────
   submit(): void {
     const expected = this.expectedText().trim();
     if (!expected) { this.error.set('يرجى كتابة الجملة المطلوبة أولاً.'); return; }
@@ -154,15 +160,22 @@ export class WritingPracticeComponent implements AfterViewInit, OnDestroy {
 
     // Composite canvas onto pure white (strips any transparency)
     const canvas = this.canvasRef.nativeElement;
-    const off    = document.createElement('canvas');
-    off.width  = canvas.width;
-    off.height = canvas.height;
-    const offCtx = off.getContext('2d')!;
-    offCtx.fillStyle = '#ffffff';
-    offCtx.fillRect(0, 0, off.width, off.height);
-    offCtx.drawImage(canvas, 0, 0);
+    let base64: string;
 
-    const base64 = off.toDataURL('image/png').split(',')[1];
+    if (isPlatformBrowser(this.platformId)) {
+      const off = document.createElement('canvas');
+      off.width  = canvas.width;
+      off.height = canvas.height;
+      const offCtx = off.getContext('2d')!;
+      offCtx.fillStyle = '#ffffff';
+      offCtx.fillRect(0, 0, off.width, off.height);
+      offCtx.drawImage(canvas, 0, 0);
+      base64 = off.toDataURL('image/png').split(',')[1];
+    } else {
+      // SSR fallback - shouldn't happen but safe to handle
+      this.error.set('لا يمكن إرسال الرسم من الخادم.');
+      return;
+    }
 
     this.isLoading.set(true);
     this.error.set(null);

@@ -1,10 +1,11 @@
 import {
   Component, signal, computed, inject,
   OnInit, OnDestroy, AfterViewInit,
-  ViewChild, ElementRef, HostListener
+  ViewChild, ElementRef, HostListener,
+  Inject, PLATFORM_ID
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { StoryService } from '../../services/story';
 import { AppStateService } from '../../services/app-state-service';
 import { WritingCorrectionResponse } from '../../models/story.models';
@@ -17,6 +18,7 @@ import { environment } from '../../../environments/environment';
   templateUrl: './lesson-reader.html',
   styleUrl: './lesson-reader.css'
 })
+
 export class LessonReaderComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('drawingCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
 
@@ -55,6 +57,10 @@ export class LessonReaderComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private canvasReady = false;
 
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) { this.router.navigate(['/levels']); return; }
@@ -67,14 +73,21 @@ export class LessonReaderComponent implements OnInit, OnDestroy, AfterViewInit {
         this.saveProgress(1, l.pages?.length ?? 0, false);
         this.isLoading.set(false);
         // Let Angular render the @if block, then setup canvas
-        setTimeout(() => this.setupCanvas(), 80);
+        if (isPlatformBrowser(this.platformId)) {
+          setTimeout(() => this.setupCanvas(), 80);
+        }
       },
       error: () => { this.isLoading.set(false); this.router.navigate(['/levels']); }
     });
   }
 
   ngAfterViewInit(): void { /* canvas set up after lesson loads */ }
-  ngOnDestroy(): void { window.speechSynthesis.cancel(); }
+
+  ngOnDestroy(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      window.speechSynthesis.cancel();
+    }
+  }
 
   @HostListener('window:keydown', ['$event'])
   onKey(e: KeyboardEvent): void {
@@ -88,7 +101,9 @@ export class LessonReaderComponent implements OnInit, OnDestroy, AfterViewInit {
     this.imageLoaded.set(false);
     this.checkResult.set(null);
     this.clearCanvas();
-    window.speechSynthesis.cancel();
+    if (isPlatformBrowser(this.platformId)) {
+      window.speechSynthesis.cancel();
+    }
     this.isPlaying.set(false);
   }
 
@@ -103,7 +118,9 @@ export class LessonReaderComponent implements OnInit, OnDestroy, AfterViewInit {
     this.saveProgress(next, this.totalPages(), false);
     this.imageLoaded.set(false);
     this.clearCanvas();
-    window.speechSynthesis.cancel();
+    if (isPlatformBrowser(this.platformId)) {
+      window.speechSynthesis.cancel();
+    }
     this.isPlaying.set(false);
   }
 
@@ -115,13 +132,15 @@ export class LessonReaderComponent implements OnInit, OnDestroy, AfterViewInit {
   playAudio(): void {
     const page = this.activePage();
     if (!page) return;
-    if (this.isPlaying()) { window.speechSynthesis.cancel(); this.isPlaying.set(false); return; }
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(page.sentence);
-    u.lang = 'ar-SA'; u.rate = 0.8;
-    u.onstart = () => this.isPlaying.set(true);
-    u.onend   = () => this.isPlaying.set(false);
-    window.speechSynthesis.speak(u);
+    if (isPlatformBrowser(this.platformId)) {
+      if (this.isPlaying()) { window.speechSynthesis.cancel(); this.isPlaying.set(false); return; }
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(page.sentence);
+      u.lang = 'ar-SA'; u.rate = 0.8;
+      u.onstart = () => this.isPlaying.set(true);
+      u.onend   = () => this.isPlaying.set(false);
+      window.speechSynthesis.speak(u);
+    }
   }
 
   private setupCanvas(): void {

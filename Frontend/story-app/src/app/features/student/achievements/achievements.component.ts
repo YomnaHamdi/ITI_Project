@@ -59,7 +59,27 @@ export class AchievementsComponent implements OnInit {
     this.isLoading.set(true);
     this.svc.getStudentDashboard(childName).subscribe({
       next:  d => { this.data.set(d); this.isLoading.set(false); },
-      error: () => this.isLoading.set(false)
+      error: (err) => {
+        console.warn('Achievements load failed:', err);
+        // Set fallback empty data
+        this.data.set({
+          name: childName,
+          level: 1,
+          lessonsCompleted: 0,
+          totalLessons: 0,
+          percentage: 0,
+          currentStreak: 0,
+          storiesRead: 0,
+          stars: 0,
+          examsCompleted: 0,
+          avgScore: 0,
+          weeklyActivity: [0,0,0,0,0,0,0],
+          achievements: [],
+          recentActivity: [],
+          recentLessons: []
+        } as any);
+        this.isLoading.set(false);
+      }
     });
   }
 

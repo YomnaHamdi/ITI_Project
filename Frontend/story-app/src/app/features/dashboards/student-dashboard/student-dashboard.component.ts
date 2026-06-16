@@ -68,7 +68,27 @@ export class StudentDashboardComponent implements OnInit {
     this.isLoading.set(true);
     this.service.getStudentDashboard(name.trim()).subscribe({
       next:  d => { this.data.set(d); this.isLoading.set(false); },
-      error: () => this.isLoading.set(false)
+      error: (err) => {
+        console.warn('Dashboard load failed:', err);
+        // Set fallback data so page doesn't crash
+        this.data.set({
+          name: name.trim(),
+          level: 1,
+          lessonsCompleted: 0,
+          totalLessons: 0,
+          percentage: 0,
+          currentStreak: 0,
+          storiesRead: 0,
+          stars: 0,
+          examsCompleted: 0,
+          avgScore: 0,
+          weeklyActivity: [0,0,0,0,0,0,0],
+          achievements: [],
+          recentActivity: [],
+          recentLessons: []
+        });
+        this.isLoading.set(false);
+      }
     });
   }
 
