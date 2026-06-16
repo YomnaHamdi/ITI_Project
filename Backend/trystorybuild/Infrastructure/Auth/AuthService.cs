@@ -189,7 +189,7 @@ namespace Infrastructure.Auth
             {
                 new Claim(JwtRegisteredClaimNames.Sub, student.Id.ToString()),
                 new Claim(ClaimTypes.Name,             student.Name),
-                new Claim(ClaimTypes.Role,             "Student"),
+                new Claim(ClaimTypes.Role,             "student"),
                 new Claim("level",                     student.Level.ToString()),
             };
             var expiry = DateTime.UtcNow.AddDays(30);

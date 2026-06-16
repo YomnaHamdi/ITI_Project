@@ -9,11 +9,13 @@ namespace storybuild.API.Controllers
 {
     [ApiController]
     [Route("api/dashboard")]
+    [Authorize]
     public class DashboardController(IDashboardService dashboardService) : ControllerBase
     {
         [HttpGet("student/{childName}")]
         [ProducesResponseType(typeof(StudentDashboardDto), 200)]
         [ProducesResponseType(404)]
+        [Authorize(Roles = "student,parent,teacher,schooladmin,admin,systemadmin")]
         public async Task<IActionResult> GetStudent(string childName)
         {
             var data = await dashboardService.GetStudentDashboardAsync(childName);
@@ -25,6 +27,7 @@ namespace storybuild.API.Controllers
         [HttpGet("parent/{childName}")]
         [ProducesResponseType(typeof(ParentDashboardDto), 200)]
         [ProducesResponseType(404)]
+        [Authorize(Roles = "parent,teacher,schooladmin,admin,systemadmin")]
         public async Task<IActionResult> GetParent(string childName)
         {
             var data = await dashboardService.GetParentDashboardAsync(childName);
@@ -34,7 +37,7 @@ namespace storybuild.API.Controllers
         }
 
         [HttpGet("teacher")]
-        [Authorize(Roles = "Teacher")]
+        [Authorize(Roles = "teacher,schooladmin,admin,systemadmin")]  // ✅ صغير + أدوار إضافية
         [ProducesResponseType(typeof(TeacherDashboardDto), 200)]
         public async Task<IActionResult> GetTeacher()
         {
@@ -48,6 +51,7 @@ namespace storybuild.API.Controllers
         }
 
         [HttpGet("school")]
+        [Authorize(Roles = "schooladmin,admin,systemadmin")]  // ✅ Added
         [ProducesResponseType(typeof(SchoolDashboardDto), 200)]
         public async Task<IActionResult> GetSchool()
         {
@@ -56,6 +60,7 @@ namespace storybuild.API.Controllers
         }
 
         [HttpGet("students")]
+        [Authorize(Roles = "parent,teacher,schooladmin,admin,systemadmin")]  // ✅ Added
         [ProducesResponseType(typeof(List<string>), 200)]
         public async Task<IActionResult> GetStudentNames()
         {
@@ -64,6 +69,7 @@ namespace storybuild.API.Controllers
         }
 
         [HttpGet("levels/progress/{childName}")]
+        [Authorize(Roles = "student,parent,teacher,schooladmin,admin,systemadmin")]  // ✅ Added
         [ProducesResponseType(typeof(List<LevelProgressDto>), 200)]
         public async Task<IActionResult> GetLevelProgress(string childName)
         {
