@@ -50,7 +50,7 @@ export class QuizResultComponent implements OnInit {
     );
   }
 
-  tryAgain(): void { this.router.navigate(['/books', this.storyId(), 'quiz']); }
+  tryAgain(): void { this.router.navigate(['/books', this.storyId(), 'read']); }
   nextBook():  void { this.router.navigate(['/levels']); }
   share():     void { alert('تمت مشاركة الوسام! 🎉'); }
 }

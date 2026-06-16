@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AppStateService } from '../../../services/app-state-service';
 
@@ -9,14 +9,14 @@ import { AppStateService } from '../../../services/app-state-service';
   template: `
     <aside class="teacher-sidebar" dir="rtl">
       <div class="ts-profile">
-        <div class="ts-avatar">🦁</div>
+        <div class="ts-avatar">{{ isSchoolTeacher() ? '🏫' : '🦁' }}</div>
         <div>
           <div class="ts-name">{{ state.currentUserName() || 'أ. فاطمة' }}</div>
-          <div class="ts-role">معلمة عربية</div>
+          <div class="ts-role">{{ isSchoolTeacher() ? 'معلم مدرسة' : 'معلم خاص' }}</div>
         </div>
       </div>
       <nav class="ts-nav">
-        @for (item of navItems; track item.route) {
+        @for (item of navItems(); track item.route) {
           <a class="ts-link" [routerLink]="item.route" routerLinkActive="active">
             <span>{{ item.icon }}</span>
             <span>{{ item.label }}</span>
@@ -71,14 +71,30 @@ export class TeacherSidebarComponent {
   readonly state  = inject(AppStateService);
   private readonly router = inject(Router);
 
-  readonly navItems = [
-    { icon: '👥', label: 'الطلاب',           route: '/teacher/students' },
-    { icon: '➕', label: 'إضافة طالب',       route: '/auth/create-student' },
-    { icon: '📚', label: 'الدروس',            route: '/teacher/lessons' },
-    { icon: '✨', label: 'المولّد الذكي',     route: '/teacher/ai-generator' },
-    { icon: '📝', label: 'إنشاء درس',        route: '/teacher/lessons/create' },
-    { icon: '📊', label: 'التقارير',          route: '/teacher/reports' },
-  ];
+  readonly isSchoolTeacher = computed(() => !!this.state.currentUser()?.schoolCode);
+
+  readonly navItems = computed(() => {
+    if (this.isSchoolTeacher()) {
+      return [
+        { icon: '🏠', label: 'لوحتي',          route: '/teacher/students' },
+        { icon: '🏫', label: 'فصولي',           route: '/teacher/classes' },
+        { icon: '➕', label: 'إضافة طالب',     route: '/auth/create-student' },
+        { icon: '📚', label: 'الدروس',          route: '/teacher/lessons' },
+        { icon: '✨', label: 'المولّد الذكي',   route: '/teacher/ai-generator' },
+        { icon: '📊', label: 'التقارير',        route: '/teacher/reports' },
+      ];
+    }
+    return [
+      { icon: '🏠', label: 'لوحتي',            route: '/teacher/students' },
+      { icon: '👥', label: 'طلابي بالمستوى',  route: '/teacher/students' },
+      { icon: '🗂️', label: 'مجموعاتي',        route: '/teacher/groups' },
+      { icon: '➕', label: 'إضافة طالب',       route: '/auth/create-student' },
+      { icon: '📚', label: 'الدروس',            route: '/teacher/lessons' },
+      { icon: '✨', label: 'المولّد الذكي',     route: '/teacher/ai-generator' },
+      { icon: '📝', label: 'إنشاء درس',        route: '/teacher/lessons/create' },
+      { icon: '📊', label: 'التقارير',          route: '/teacher/reports' },
+    ];
+  });
 
   logout(): void {
     this.state.logout();

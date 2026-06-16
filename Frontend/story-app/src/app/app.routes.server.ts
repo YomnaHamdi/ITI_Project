@@ -4,6 +4,7 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'lessons/:id',                  renderMode: RenderMode.Server },
   { path: 'levels/:id/books',             renderMode: RenderMode.Server },
   { path: 'books/:id/read',               renderMode: RenderMode.Server },
+  { path: 'books/:id/quiz-result',        renderMode: RenderMode.Client },
   { path: 'teacher/students/:name',       renderMode: RenderMode.Server },
   { path: 'parent/child/:name/progress',  renderMode: RenderMode.Server },
   { path: 'writing-practice',             renderMode: RenderMode.Client },

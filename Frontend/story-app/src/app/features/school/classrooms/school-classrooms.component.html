@@ -1,26 +1,20 @@
 <div dir="rtl" style="min-height:100vh;background:var(--bg-base)">
   <app-navbar />
 
-  <div class="container" style="max-width:960px;padding-top:88px;padding-bottom:60px">
+  <div class="container" style="max-width:1000px;padding-top:88px;padding-bottom:60px">
 
-    <!-- School nav tabs -->
+    <!-- Nav tabs -->
     <nav style="display:flex;gap:6px;margin-bottom:28px;background:var(--bg-card);padding:7px;border-radius:14px;border:1.5px solid rgba(244,120,138,.08)">
       <a routerLink="/school/dashboard" routerLinkActive="school-nav-active" [routerLinkActiveOptions]="{exact:true}"
-         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
-        🏠 لوحة المدرسة
-      </a>
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">🏠 لوحة المدرسة</a>
       <a routerLink="/school/teachers" routerLinkActive="school-nav-active"
-         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
-        👩‍🏫 المعلمون
-      </a>
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">👩‍🏫 المعلمون</a>
       <a routerLink="/school/classrooms" routerLinkActive="school-nav-active"
-         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
-        🏫 الفصول
-      </a>
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">🏫 الفصول</a>
       <a routerLink="/school/reports" routerLinkActive="school-nav-active"
-         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
-        📊 التقارير
-      </a>
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">📊 التقارير</a>
+      <a routerLink="/school/subscription" routerLinkActive="school-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">💳 الاشتراك</a>
     </nav>
 
     <!-- Header -->
@@ -35,15 +29,13 @@
       </button>
     </div>
 
-    <!-- Create classroom form -->
+    <!-- Create form -->
     @if (showForm()) {
       <div style="background:var(--bg-card);border-radius:18px;padding:24px;margin-bottom:28px;border:2px solid rgba(244,120,138,.18)">
         <h3 style="font-size:16px;font-weight:900;margin:0 0 18px">➕ إضافة فصل جديد</h3>
-
         @if (formError) {
           <div style="background:#FEF2F2;border:1.5px solid #FECACA;color:#DC2626;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px">{{ formError }}</div>
         }
-
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
           <div>
             <label style="font-size:12px;font-weight:800;color:var(--text-muted);display:block;margin-bottom:6px">اسم الفصل</label>
@@ -51,12 +43,20 @@
                    style="width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid rgba(244,120,138,.2);font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;box-sizing:border-box" />
           </div>
           <div>
-            <label style="font-size:12px;font-weight:800;color:var(--text-muted);display:block;margin-bottom:6px">اسم المعلم</label>
-            <input [(ngModel)]="form.teacher" type="text" placeholder="مثال: أ. فاطمة"
-                   style="width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid rgba(244,120,138,.2);font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;box-sizing:border-box" />
+            <label style="font-size:12px;font-weight:800;color:var(--text-muted);display:block;margin-bottom:6px">المعلم المسؤول</label>
+            @if (schoolTeachers().length === 0) {
+              <p style="font-size:12px;color:#EF4444;margin:0">أضف معلمًا أولاً.</p>
+            } @else {
+              <select [(ngModel)]="form.teacherId"
+                      style="width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid rgba(244,120,138,.2);font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;box-sizing:border-box">
+                <option value="">اختر المعلم…</option>
+                @for (t of schoolTeachers(); track t.id) {
+                  <option [value]="t.id">{{ t.name }}</option>
+                }
+              </select>
+            }
           </div>
         </div>
-
         <div style="margin-bottom:18px">
           <label style="font-size:12px;font-weight:800;color:var(--text-muted);display:block;margin-bottom:8px">المستوى</label>
           <div style="display:flex;gap:8px">
@@ -71,61 +71,183 @@
             }
           </div>
         </div>
-
-        <button (click)="createClassroom()"
+        <button (click)="createClassroom()" [disabled]="saving()"
+                [style.opacity]="saving() ? '0.7' : '1'"
                 style="background:var(--primary-gradient);color:#fff;border:none;padding:11px 28px;border-radius:12px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:800;cursor:pointer">
-          ✅ إنشاء الفصل
+          {{ saving() ? '⏳ جارٍ الحفظ...' : '✅ إنشاء الفصل' }}
         </button>
       </div>
     }
 
+    <!-- Add-student modal -->
+    @if (addStudentFor()) {
+      <div style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:center;justify-content:center">
+        <div dir="rtl" style="background:var(--bg-card);border-radius:20px;padding:28px;width:420px;max-width:94vw;max-height:80vh;display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <h3 style="font-size:17px;font-weight:900;margin:0">➕ إضافة طالب للفصل</h3>
+            <button (click)="closeAddStudent()" style="border:none;background:none;font-size:20px;cursor:pointer;color:var(--text-muted)">✕</button>
+          </div>
+          <input [value]="studentSearch()" (input)="onSearchInput($any($event.target).value)"
+                 type="text" placeholder="🔍 ابحث باسم الطالب أو اسم المستخدم..."
+                 style="padding:10px 14px;border-radius:12px;border:1.5px solid rgba(244,120,138,.2);font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;width:100%;box-sizing:border-box" />
+          @if (searching()) {
+            <p style="text-align:center;color:var(--text-muted);font-size:13px">جارٍ البحث…</p>
+          }
+          <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px">
+            @for (s of searchResults(); track s.id) {
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg-base);border-radius:12px;border:1.5px solid rgba(244,120,138,.06)">
+                <div>
+                  <div style="font-weight:800;font-size:14px">{{ s.name }}</div>
+                  <div style="font-size:12px;color:var(--text-muted)">&#64;{{ s.username }} · المستوى {{ s.level }}</div>
+                </div>
+                <button (click)="addStudentToClass(addStudentFor()!, s)" [disabled]="addingStudent()"
+                        style="background:var(--primary-gradient);color:#fff;border:none;padding:8px 16px;border-radius:99px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:800;cursor:pointer">
+                  إضافة
+                </button>
+              </div>
+            }
+            @if (studentSearch().length >= 2 && searchResults().length === 0 && !searching()) {
+              <p style="text-align:center;color:var(--text-muted);font-size:13px">لا توجد نتائج.</p>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Classrooms list -->
     @if (isLoading()) {
       <div style="text-align:center;padding:60px;color:var(--text-muted)">جارٍ التحميل…</div>
+    } @else if (classrooms().length === 0) {
+      <div style="text-align:center;padding:80px 20px">
+        <div style="font-size:64px;margin-bottom:16px">🏫</div>
+        <h3 style="font-weight:900;margin-bottom:8px">لا توجد فصول بعد</h3>
+        <p style="color:var(--text-muted);margin-bottom:20px">أنشئ أول فصل دراسي لمدرستك</p>
+        <button (click)="toggleForm()"
+                style="background:var(--primary-gradient);color:#fff;border:none;padding:12px 28px;border-radius:99px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:800;cursor:pointer">
+          + إضافة فصل
+        </button>
+      </div>
     } @else {
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px">
+      <div style="display:flex;flex-direction:column;gap:16px">
         @for (cls of classrooms(); track cls.id) {
-          <div style="background:var(--bg-card);border-radius:20px;padding:22px;border:1.5px solid rgba(244,120,138,.08)">
+          <div style="background:var(--bg-card);border-radius:20px;border:1.5px solid rgba(244,120,138,.08);overflow:hidden">
 
-            <!-- Header -->
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-              <h4 style="font-weight:900;font-size:18px;margin:0">{{ cls.name }}</h4>
-              <span [style.background]="levelColor(cls.level) + '22'" [style.color]="levelColor(cls.level)"
-                    style="font-size:11px;font-weight:800;padding:3px 10px;border-radius:99px">
-                المستوى {{ cls.level }}
-              </span>
-            </div>
-
-            <!-- Teacher -->
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-              <span style="font-size:18px">👩‍🏫</span>
-              <span style="font-size:13px;font-weight:700;color:var(--text-muted)">{{ cls.teacher }}</span>
-            </div>
-
-            <!-- Stats row -->
-            <div style="display:flex;gap:12px;margin-bottom:14px">
-              <div style="flex:1;background:rgba(244,120,138,.05);border-radius:12px;padding:10px;text-align:center">
-                <div style="font-size:20px;font-weight:900;color:var(--primary)">{{ cls.studentCount }}</div>
-                <div style="font-size:11px;color:var(--text-muted)">طالب</div>
+            <!-- Card header -->
+            @if (editId() === cls.id) {
+              <!-- Edit mode -->
+              <div style="padding:20px;background:rgba(244,120,138,.03);border-bottom:1px solid rgba(244,120,138,.08)">
+                <p style="font-size:12px;font-weight:800;color:var(--primary);margin:0 0 12px">✏️ تعديل الفصل</p>
+                @if (editError) {
+                  <div style="color:#DC2626;font-size:12px;margin-bottom:8px">{{ editError }}</div>
+                }
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+                  <input [(ngModel)]="editForm.name" type="text" placeholder="اسم الفصل"
+                         style="padding:9px 12px;border-radius:10px;border:1.5px solid rgba(244,120,138,.2);font-family:'Cairo',sans-serif;font-size:13px;font-weight:700" />
+                  <select [(ngModel)]="editForm.teacherId"
+                          style="padding:9px 12px;border-radius:10px;border:1.5px solid rgba(244,120,138,.2);font-family:'Cairo',sans-serif;font-size:13px;font-weight:700">
+                    @for (t of schoolTeachers(); track t.id) {
+                      <option [value]="t.id">{{ t.name }}</option>
+                    }
+                  </select>
+                </div>
+                <div style="display:flex;gap:8px;margin-bottom:12px">
+                  @for (l of [1,2,3]; track l) {
+                    <button type="button" (click)="editForm.level = l"
+                            style="padding:6px 14px;border-radius:99px;border:2px solid;font-family:'Cairo',sans-serif;font-size:12px;font-weight:800;cursor:pointer"
+                            [style.background]="editForm.level === l ? levelColor(l) : 'transparent'"
+                            [style.color]="editForm.level === l ? '#fff' : levelColor(l)"
+                            [style.border-color]="levelColor(l)">المستوى {{ l }}</button>
+                  }
+                </div>
+                <div style="display:flex;gap:8px">
+                  <button (click)="saveEdit(cls)" [disabled]="saving()"
+                          style="background:var(--primary-gradient);color:#fff;border:none;padding:9px 20px;border-radius:10px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:800;cursor:pointer">
+                    {{ saving() ? '⏳' : '✅ حفظ' }}
+                  </button>
+                  <button (click)="cancelEdit()"
+                          style="background:#F3F4F6;color:var(--text-muted);border:none;padding:9px 16px;border-radius:10px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer">
+                    إلغاء
+                  </button>
+                </div>
               </div>
-              <div style="flex:1;background:rgba(34,197,94,.05);border-radius:12px;padding:10px;text-align:center">
-                <div style="font-size:20px;font-weight:900" [style.color]="progressColor(cls.avgProgress)">{{ cls.avgProgress }}%</div>
-                <div style="font-size:11px;color:var(--text-muted)">متوسط التقدّم</div>
+            } @else {
+              <!-- View mode header -->
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px">
+                <div style="display:flex;align-items:center;gap:12px;flex:1">
+                  <div style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0"
+                       [style.background]="levelColor(cls.level) + '22'">🏫</div>
+                  <div>
+                    <div style="font-weight:900;font-size:16px">{{ cls.name }}</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px">
+                      <span [style.background]="levelColor(cls.level) + '22'" [style.color]="levelColor(cls.level)"
+                            style="padding:2px 8px;border-radius:99px;font-weight:800;font-size:11px;margin-left:6px">
+                        {{ levelLabel(cls.level) }}
+                      </span>
+                      👩‍🏫 {{ cls.teacherName || 'غير محدد' }} · {{ cls.studentCount }} طالب
+                    </div>
+                  </div>
+                </div>
+                <!-- Actions -->
+                <div style="display:flex;gap:6px;flex-shrink:0">
+                  <button (click)="openAddStudent(cls.id)"
+                          style="background:rgba(34,197,94,.1);color:#16A34A;border:none;padding:8px 12px;border-radius:10px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:800;cursor:pointer">
+                    ➕ طالب
+                  </button>
+                  <button (click)="startEdit(cls)"
+                          style="background:rgba(244,120,138,.08);color:var(--primary);border:none;padding:8px 12px;border-radius:10px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:800;cursor:pointer">
+                    ✏️ تعديل
+                  </button>
+                  <button (click)="toggleExpand(cls)"
+                          style="background:#F3F4F6;color:var(--text-muted);border:none;padding:8px 12px;border-radius:10px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer">
+                    {{ cls.expanded ? '▲ إخفاء' : '▼ الطلاب' }}
+                  </button>
+                  <button (click)="deleteClassroom(cls.id)"
+                          style="background:rgba(239,68,68,.08);color:#DC2626;border:none;padding:8px 10px;border-radius:10px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:800;cursor:pointer">
+                    🗑️
+                  </button>
+                </div>
               </div>
-            </div>
+            }
 
-            <!-- Progress bar -->
-            <div style="margin-bottom:4px;display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted)">
-              <span>تقدّم الفصل</span><span>{{ cls.avgProgress }}%</span>
-            </div>
-            <div style="height:8px;background:#F3F4F6;border-radius:99px;overflow:hidden">
-              <div [style.width.%]="cls.avgProgress" [style.background]="progressColor(cls.avgProgress)"
-                   style="height:100%;border-radius:99px;transition:.5s"></div>
-            </div>
+            <!-- Expanded students list -->
+            @if (cls.expanded) {
+              <div style="padding:0 20px 20px;border-top:1px solid rgba(244,120,138,.06)">
+                @if (cls.loadingStudents) {
+                  <p style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">جارٍ تحميل الطلاب…</p>
+                } @else if (!cls.students || cls.students.length === 0) {
+                  <div style="text-align:center;padding:24px">
+                    <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px">لا يوجد طلاب في هذا الفصل بعد.</p>
+                    <button (click)="openAddStudent(cls.id)"
+                            style="background:var(--primary-gradient);color:#fff;border:none;padding:9px 20px;border-radius:99px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:800;cursor:pointer">
+                      ➕ أضف أول طالب
+                    </button>
+                  </div>
+                } @else {
+                  <div style="padding-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px">
+                    @for (s of cls.students; track s.id) {
+                      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg-base);border-radius:12px;border:1.5px solid rgba(244,120,138,.06)">
+                        <div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;flex-shrink:0"
+                             [style.background]="levelColor(s.level) + '22'" [style.color]="levelColor(s.level)">
+                          {{ s.name.charAt(0) }}
+                        </div>
+                        <div style="flex:1;min-width:0">
+                          <div style="font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</div>
+                          <div style="font-size:11px;color:var(--text-muted)">&#64;{{ s.username }}</div>
+                        </div>
+                        <button (click)="removeStudent(cls.id, s.id)"
+                                style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:16px;flex-shrink:0;padding:2px">🗑️</button>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
 
           </div>
         }
       </div>
     }
+
   </div>
 </div>
 

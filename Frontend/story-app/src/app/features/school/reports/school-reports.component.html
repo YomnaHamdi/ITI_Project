@@ -1,110 +1,178 @@
 <div dir="rtl" style="min-height:100vh;background:var(--bg-base)">
   <app-navbar />
 
-  <div class="container" style="max-width:1000px;padding-top:88px;padding-bottom:60px">
+  <div class="container" style="max-width:1060px;padding-top:88px;padding-bottom:60px">
 
-    <!-- School nav tabs -->
+    <!-- Nav tabs -->
     <nav style="display:flex;gap:6px;margin-bottom:28px;background:var(--bg-card);padding:7px;border-radius:14px;border:1.5px solid rgba(244,120,138,.08)">
       <a routerLink="/school/dashboard" routerLinkActive="school-nav-active" [routerLinkActiveOptions]="{exact:true}"
-         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
-        🏠 لوحة المدرسة
-      </a>
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">🏠 لوحة المدرسة</a>
       <a routerLink="/school/teachers" routerLinkActive="school-nav-active"
-         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
-        👩‍🏫 المعلمون
-      </a>
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">👩‍🏫 المعلمون</a>
       <a routerLink="/school/classrooms" routerLinkActive="school-nav-active"
-         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
-        🏫 الفصول
-      </a>
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">🏫 الفصول</a>
       <a routerLink="/school/reports" routerLinkActive="school-nav-active"
-         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">
-        📊 التقارير
-      </a>
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">📊 التقارير</a>
+      <a routerLink="/school/subscription" routerLinkActive="school-nav-active"
+         style="flex:1;text-align:center;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;color:var(--text-muted);transition:.2s">💳 الاشتراك</a>
     </nav>
 
     <div style="margin-bottom:24px">
       <h2 style="font-size:24px;font-weight:900;margin:0">📊 تقارير المدرسة</h2>
-      <p style="color:var(--text-muted);font-size:13px;margin-top:4px">نظرة شاملة على أداء المدرسة</p>
+      <p style="color:var(--text-muted);font-size:13px;margin-top:4px">نظرة شاملة على أداء المدرسة مع تفاصيل كل فصل</p>
     </div>
 
     @if (isLoading()) {
       <div style="text-align:center;padding:60px;color:var(--text-muted)">جارٍ التحميل…</div>
-    } @else if (data()) {
+    } @else {
 
       <!-- KPI row -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:28px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:28px">
         @for (kpi of [
-          { icon:'👨‍🎓', val: data()!.totalStudents,  label:'إجمالي الطلاب',     color:'#F4788A' },
-          { icon:'👩‍🏫', val: data()!.totalTeachers,   label:'إجمالي المعلمين',   color:'#8B5CF6' },
-          { icon:'✅',   val: data()!.activeThisWeek,  label:'نشط هذا الأسبوع',  color:'#22C55E' },
-          { icon:'📊',   val: data()!.avgSchoolScore,    label:'متوسط درجات المدرسة %', color:'#F59E0B' }
+          { icon:'👨‍🎓', val: totalStudents(),  label:'إجمالي الطلاب',    color:'#F4788A' },
+          { icon:'👩‍🏫', val: totalTeachers(),  label:'إجمالي المعلمين',  color:'#8B5CF6' },
+          { icon:'✅',   val: activeThisWeek(), label:'نشط هذا الأسبوع', color:'#22C55E' },
+          { icon:'📊',   val: avgSchoolScore(),  label:'متوسط الدرجات %', color:'#F59E0B' },
+          { icon:'🏫',   val: classroomReport().length, label:'الفصول الدراسية', color:'#06B6D4' }
         ]; track kpi.label) {
-          <div style="background:var(--bg-card);border-radius:16px;padding:20px;text-align:center;border:1.5px solid rgba(244,120,138,.08)">
-            <div style="font-size:30px">{{ kpi.icon }}</div>
-            <div [style.color]="kpi.color" style="font-size:30px;font-weight:900">{{ kpi.val | number:'1.0-0' }}</div>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:4px">{{ kpi.label }}</div>
+          <div style="background:var(--bg-card);border-radius:16px;padding:18px;text-align:center;border:1.5px solid rgba(244,120,138,.08)">
+            <div style="font-size:26px">{{ kpi.icon }}</div>
+            <div [style.color]="kpi.color" style="font-size:28px;font-weight:900">{{ kpi.val | number:'1.0-0' }}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px">{{ kpi.label }}</div>
           </div>
         }
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
-
-        <!-- Performance bands chart -->
-        @if ((data()?.performanceBands?.length ?? 0) > 0) {
-          <div style="background:var(--bg-card);border-radius:18px;padding:22px;border:1.5px solid rgba(244,120,138,.08)">
-            <h5 style="font-weight:800;margin-bottom:18px">مستوى الأداء</h5>
-            @for (band of data()!.performanceBands; track band.band) {
-              <div style="margin-bottom:12px">
-                <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:4px">
+      <!-- Performance bands -->
+      @if (performanceBands().length > 0) {
+        <div style="background:var(--bg-card);border-radius:18px;padding:22px;margin-bottom:24px;border:1.5px solid rgba(244,120,138,.08)">
+          <h5 style="font-weight:800;margin-bottom:18px">📈 توزيع مستويات الأداء</h5>
+          <div style="display:flex;gap:16px;flex-wrap:wrap">
+            @for (band of performanceBands(); track band.band) {
+              <div style="flex:1;min-width:120px">
+                <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:6px">
                   <span>{{ band.band }}</span>
                   <span [style.color]="bandColor(band.band)">{{ band.count }} طالب</span>
                 </div>
                 <div style="height:10px;background:#F3F4F6;border-radius:99px;overflow:hidden">
                   <div [style.width.%]="barWidth(band.count)" [style.background]="bandColor(band.band)"
-                       style="height:100%;border-radius:99px;transition:.5s"></div>
+                       style="height:100%;border-radius:99px;transition:.6s"></div>
                 </div>
               </div>
             }
           </div>
-        }
+        </div>
+      }
 
-        <!-- Top content -->
-        @if ((data()?.topContent?.length ?? 0) > 0) {
-          <div style="background:var(--bg-card);border-radius:18px;padding:22px;border:1.5px solid rgba(244,120,138,.08)">
-            <h5 style="font-weight:800;margin-bottom:16px">🏆 أكثر المحتوى استخداماً</h5>
-            @for (c of data()!.topContent; track c.title) {
-              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6">
-                <span style="font-weight:700;font-size:13px">{{ c.title }}</span>
-                <div style="text-align:left">
-                  <div style="font-size:12px;font-weight:800;color:var(--primary)">{{ c.completionCount }} مرة</div>
-                  <div style="font-size:11px;color:var(--text-muted)">{{ c.avgScore | number:'1.0-0' }}%</div>
-                </div>
-              </div>
-            }
-          </div>
-        }
-
+      <!-- Per-classroom report -->
+      <div style="margin-bottom:12px">
+        <h4 style="font-size:18px;font-weight:900;margin:0">🏫 تقرير مفصّل بالفصول</h4>
       </div>
 
-      <!-- Recent activity -->
-      @if ((data()?.recentActivities?.length ?? 0) > 0) {
-        <div style="background:var(--bg-card);border-radius:18px;padding:22px;border:1.5px solid rgba(244,120,138,.08)">
-          <h5 style="font-weight:800;margin-bottom:16px">🕑 النشاط الأخير</h5>
-          @for (act of data()!.recentActivities; track act.occurredAt) {
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6;font-size:13px">
-              <div>
-                <span style="font-weight:800;color:var(--primary)">{{ act.childName }}</span>
-                <span style="font-weight:700"> — {{ act.title }}</span>
+      @if (classroomReport().length === 0) {
+        <div style="background:var(--bg-card);border-radius:18px;padding:40px;text-align:center;border:1.5px solid rgba(244,120,138,.08)">
+          <p style="color:var(--text-muted);font-size:14px;margin:0">لا توجد فصول دراسية بعد. أنشئ فصولاً من صفحة <a routerLink="/school/classrooms" style="color:var(--primary);font-weight:800">الفصول</a>.</p>
+        </div>
+      } @else {
+        <div style="display:flex;flex-direction:column;gap:14px">
+          @for (cls of classroomReport(); track cls.classroomId) {
+            <div style="background:var(--bg-card);border-radius:18px;border:1.5px solid rgba(244,120,138,.08);overflow:hidden">
+
+              <!-- Classroom summary row -->
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;cursor:pointer"
+                   (click)="toggleExpand(cls.classroomId)">
+                <div style="display:flex;align-items:center;gap:14px">
+                  <div style="width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0"
+                       [style.background]="levelColor(cls.level) + '22'">🏫</div>
+                  <div>
+                    <div style="font-weight:900;font-size:16px">{{ cls.classroomName }}</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:3px">
+                      <span style="padding:2px 8px;border-radius:99px;font-weight:800;font-size:11px;margin-left:6px"
+                            [style.background]="levelColor(cls.level)+'22'" [style.color]="levelColor(cls.level)">
+                        المستوى {{ cls.level }}
+                      </span>
+                      👩‍🏫 {{ cls.teacherName }}
+                    </div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:20px">
+                  <div style="text-align:center">
+                    <div style="font-size:22px;font-weight:900;color:var(--primary)">{{ cls.studentCount }}</div>
+                    <div style="font-size:11px;color:var(--text-muted)">طالب</div>
+                  </div>
+                  <div style="text-align:center">
+                    <div style="font-size:22px;font-weight:900" [style.color]="scoreColor(cls.avgScore)">{{ cls.avgScore | number:'1.0-0' }}%</div>
+                    <div style="font-size:11px;color:var(--text-muted)">متوسط الأداء</div>
+                  </div>
+                  <div style="width:120px">
+                    <div style="height:8px;background:#F3F4F6;border-radius:99px;overflow:hidden">
+                      <div [style.width.%]="cls.avgScore" [style.background]="scoreColor(cls.avgScore)"
+                           style="height:100%;border-radius:99px;transition:.5s"></div>
+                    </div>
+                  </div>
+                  <span style="color:var(--text-muted);font-size:14px">{{ cls.expanded ? '▲' : '▼' }}</span>
+                </div>
               </div>
-              <div style="display:flex;align-items:center;gap:12px">
-                @if (act.score != null) {
-                  <span style="font-weight:800" [style.color]="act.score >= 80 ? '#22C55E' : act.score >= 50 ? '#F59E0B' : '#EF4444'">
-                    {{ act.score | number:'1.0-0' }}%
-                  </span>
-                }
-                <span style="font-size:11px;color:var(--text-muted)">{{ formatDate(act.occurredAt) }}</span>
-              </div>
+
+              <!-- Expanded student table -->
+              @if (cls.expanded) {
+                <div style="border-top:1px solid rgba(244,120,138,.06)">
+                  @if (cls.students.length === 0) {
+                    <p style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">لا يوجد طلاب في هذا الفصل.</p>
+                  } @else {
+                    <div style="overflow-x:auto">
+                      <table style="width:100%;border-collapse:collapse;font-size:13px">
+                        <thead>
+                          <tr style="background:rgba(244,120,138,.04)">
+                            <th style="padding:12px 22px;text-align:right;font-weight:800;color:var(--text-muted)">#</th>
+                            <th style="padding:12px 16px;text-align:right;font-weight:800;color:var(--text-muted)">الطالب</th>
+                            <th style="padding:12px 16px;text-align:right;font-weight:800;color:var(--text-muted)">اسم المستخدم</th>
+                            <th style="padding:12px 16px;text-align:center;font-weight:800;color:var(--text-muted)">المستوى</th>
+                            <th style="padding:12px 16px;text-align:center;font-weight:800;color:var(--text-muted)">اختبار التحديد</th>
+                            <th style="padding:12px 16px;text-align:center;font-weight:800;color:var(--text-muted)">متوسط الدرجات</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (s of cls.students; track s.username; let i = $index) {
+                            <tr style="border-top:1px solid #F3F4F6">
+                              <td style="padding:12px 22px;color:var(--text-muted);font-weight:700">{{ i + 1 }}</td>
+                              <td style="padding:12px 16px;font-weight:800">
+                                <div style="display:flex;align-items:center;gap:8px">
+                                  <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0"
+                                       [style.background]="levelColor(s.level)+'22'" [style.color]="levelColor(s.level)">
+                                    {{ s.name.charAt(0) }}
+                                  </div>
+                                  {{ s.name }}
+                                </div>
+                              </td>
+                              <td style="padding:12px 16px;color:var(--text-muted)">&#64;{{ s.username }}</td>
+                              <td style="padding:12px 16px;text-align:center">
+                                <span style="padding:3px 10px;border-radius:99px;font-size:11px;font-weight:800"
+                                      [style.background]="levelColor(s.level)+'22'" [style.color]="levelColor(s.level)">
+                                  {{ s.level }}
+                                </span>
+                              </td>
+                              <td style="padding:12px 16px;text-align:center;font-size:16px">
+                                {{ s.placementDone ? '✅' : '⏳' }}
+                              </td>
+                              <td style="padding:12px 16px;text-align:center">
+                                @if (s.avgScore > 0) {
+                                  <span style="font-weight:900;font-size:15px" [style.color]="scoreColor(s.avgScore)">
+                                    {{ s.avgScore | number:'1.0-0' }}%
+                                  </span>
+                                } @else {
+                                  <span style="color:var(--text-muted);font-size:12px">لا يوجد بيانات</span>
+                                }
+                              </td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  }
+                </div>
+              }
+
             </div>
           }
         </div>

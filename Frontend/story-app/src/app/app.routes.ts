@@ -121,6 +121,22 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
+  // ── Quiz Result ──────────────────────────────────────────────────────────────
+  {
+    path: 'books/:id/quiz-result',
+    loadComponent: () =>
+      import('./features/quiz-result/quiz-result.component').then(m => m.QuizResultComponent),
+    canActivate: [authGuard]
+  },
+
+  // ── Story Generator ──────────────────────────────────────────────────────────
+  {
+    path: 'generate-story',
+    loadComponent: () =>
+      import('./features/story-generator/story-generator').then(m => m.StoryGeneratorComponent),
+    canActivate: [authGuard]
+  },
+
   // ── AI Story Wizard ──────────────────────────────────────────────────────────
   {
     path: 'ai-story',
@@ -211,6 +227,13 @@ export const routes: Routes = [
         .then(m => m.TeacherGroupsComponent),
     canActivate: [teacherGuard]
   },
+  {
+    path: 'teacher/classes',
+    loadComponent: () =>
+      import('./features/teacher/teacher-classes/teacher-classes.component')
+        .then(m => m.TeacherClassesComponent),
+    canActivate: [teacherGuard]
+  },
 
   // ── School ───────────────────────────────────────────────────────────────────
   {
@@ -236,6 +259,12 @@ export const routes: Routes = [
     path: 'school/reports',
     loadComponent: () =>
       import('./features/school/reports/school-reports.component').then(m => m.SchoolReportsComponent),
+    canActivate: [schoolGuard]
+  },
+  {
+    path: 'school/subscription',
+    loadComponent: () =>
+      import('./features/school/subscription/school-subscription.component').then(m => m.SchoolSubscriptionComponent),
     canActivate: [schoolGuard]
   },
 

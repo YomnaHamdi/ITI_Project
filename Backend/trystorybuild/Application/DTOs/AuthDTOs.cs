@@ -15,7 +15,8 @@ namespace Application.DTOs
         string UserId,
         string Name,
         string Role,
-        DateTime ExpiresAt);
+        DateTime ExpiresAt,
+        string? SchoolCode = null);
 
     // ── Student management ─────────────────────────────────────────────────────
     public record CreateStudentRequest(

@@ -63,7 +63,8 @@ namespace Application.DTOs
         int WritingAccepted,
         int WritingAttempts,
         string PerformanceLevel,
-        DateTime? LastActivity);
+        DateTime? LastActivity,
+        int Level = 1);
 
     // ── Parent Dashboard ──────────────────────────────────────────────────────
 

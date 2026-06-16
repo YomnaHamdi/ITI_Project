@@ -82,77 +82,142 @@
         </div>
       }
 
-      <!-- Search -->
-      <div style="max-width:340px">
-        <input class="form-control" type="text" placeholder="ابحث باسم الطالب..."
+      <!-- Search + level filter -->
+      <div class="d-flex gap-2 flex-wrap align-items-center">
+        <input class="form-control" type="text" placeholder="🔍 ابحث باسم الطالب..."
+          style="max-width:280px"
           [value]="searchTerm()"
           (input)="searchTerm.set($any($event.target).value)" />
+        <button class="btn rounded-pill fw-800 btn-sm" type="button" (click)="setLevel(null)"
+          [style.background]="activeLevel() === null ? 'var(--primary-gradient)' : '#F3F4F6'"
+          [style.color]="activeLevel() === null ? '#fff' : 'var(--text-muted)'">
+          الكل
+        </button>
+        @for (lv of [1,2,3]; track lv) {
+          <button class="btn rounded-pill fw-800 btn-sm" type="button" (click)="setLevel(lv)"
+            [style.background]="activeLevel() === lv ? levelNumColor(lv) : '#F3F4F6'"
+            [style.color]="activeLevel() === lv ? '#fff' : levelNumColor(lv)">
+            المستوى {{ lv }}
+          </button>
+        }
       </div>
 
-      <!-- Students table -->
-      <div class="card overflow-hidden p-0">
-        <div class="table-responsive">
-          <table class="table table-hover mb-0 align-middle" style="font-size:14px">
-            <thead>
-              <tr style="border-bottom:2px solid rgba(244,120,138,.12)">
-                <th class="fw-800 px-4 py-3" style="color:var(--primary);white-space:nowrap">الاسم</th>
-                <th class="fw-800 px-4 py-3" style="color:var(--primary);white-space:nowrap">المستوى</th>
-                <th class="fw-800 px-4 py-3" style="color:var(--primary);white-space:nowrap">التقدم</th>
-                <th class="fw-800 px-4 py-3" style="color:var(--primary);white-space:nowrap">آخر نشاط</th>
-                <th class="fw-800 px-4 py-3" style="color:var(--primary)">إجراءات</th>
-              </tr>
-            </thead>
-            <tbody>
-              @if (filteredStudents().length === 0) {
-                <tr>
-                  <td colspan="5" class="text-center text-muted py-5 fw-semibold">لا يوجد طلاب بعد.</td>
-                </tr>
-              }
-              @for (s of filteredStudents(); track s.childName) {
-                <tr>
-                  <td class="px-4 py-3">
-                    <div class="d-flex align-items-center gap-2 fw-800">
-                      <div class="d-flex align-items-center justify-content-center rounded-circle fw-800 flex-shrink-0"
-                           style="width:36px;height:36px;background:linear-gradient(135deg,#FFE4E8,#F3E8FF);font-size:16px">
-                        {{ s.childName.charAt(0) }}
-                      </div>
-                      {{ s.childName }}
-                    </div>
-                  </td>
-                  <td class="px-4 py-3">
-                    <span class="badge rounded-pill fw-800"
-                      [style.background]="levelColor(s.performanceLevel) + '18'"
-                      [style.color]="levelColor(s.performanceLevel)"
-                      style="font-size:12px;padding:5px 12px">
-                      {{ s.performanceLevel || 'مبتدئ' }}
+      <!-- Private teacher: grouped by level view -->
+      @if (!isSchoolTeacher()) {
+        <div class="d-flex flex-column gap-3">
+          @for (group of studentsByLevel(); track group.level) {
+            @if (group.students.length > 0 || activeLevel() === null) {
+              <div class="card p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle" style="width:12px;height:12px" [style.background]="group.color"></div>
+                    <h5 class="fw-800 mb-0">{{ group.label }}</h5>
+                    <span class="badge rounded-pill fw-800" style="font-size:12px"
+                          [style.background]="group.color + '22'" [style.color]="group.color">
+                      {{ group.students.length }} طالب
                     </span>
-                  </td>
-                  <td class="px-4 py-3">
-                    <div class="d-flex align-items-center gap-2">
-                      <div class="flex-grow-1 rounded-pill overflow-hidden" style="height:8px;background:#F3F4F6;max-width:120px">
-                        <div class="h-100 rounded-pill" style="transition:width .6s ease"
-                             [style.width.%]="s.avgScore"
-                             [style.background]="progressColor(s.avgScore)"></div>
+                  </div>
+                  <button class="btn btn-sm rounded-pill fw-800" type="button"
+                    (click)="assignLessonToLevel(group.level)"
+                    style="border:2px solid #6366F1;color:#6366F1;background:transparent">
+                    📤 تعيين درس للمستوى
+                  </button>
+                </div>
+                @if (group.students.length === 0) {
+                  <p class="text-muted small mb-0">لا يوجد طلاب في هذا المستوى.</p>
+                } @else {
+                  <div class="row g-2">
+                    @for (s of group.students; track s.childName) {
+                      <div class="col-md-6 col-lg-4">
+                        <div class="d-flex align-items-center gap-2 p-3 rounded-3"
+                             style="background:var(--bg-base);border:1.5px solid rgba(244,120,138,.06)">
+                          <div class="d-flex align-items-center justify-content-center rounded-circle fw-800 flex-shrink-0"
+                               style="width:38px;height:38px;font-size:15px"
+                               [style.background]="group.color + '22'" [style.color]="group.color">
+                            {{ s.childName.charAt(0) }}
+                          </div>
+                          <div class="flex-grow-1 min-w-0">
+                            <div class="fw-800" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.childName }}</div>
+                            <div style="font-size:11px" [style.color]="progressColor(s.avgScore)">{{ s.avgScore | number:'1.0-0' }}٪</div>
+                          </div>
+                          <button class="btn btn-sm rounded-pill fw-800 flex-shrink-0"
+                            style="border:1.5px solid rgba(244,120,138,.3);color:var(--primary);background:transparent;font-size:11px"
+                            type="button" (click)="viewStudent(s.childName)">عرض</button>
+                        </div>
                       </div>
-                      <span class="fw-800 small" [style.color]="progressColor(s.avgScore)">
-                        {{ s.avgScore | number:'1.0-0' }}٪
-                      </span>
-                    </div>
-                  </td>
-                  <td class="px-4 py-3 small fw-semibold text-muted">{{ lastActiveLabel(s.lastActivity) }}</td>
-                  <td class="px-4 py-3">
-                    <button class="btn btn-sm rounded-pill fw-800"
-                      style="border:2px solid rgba(244,120,138,.3);color:var(--primary);background:transparent"
-                      type="button" (click)="viewStudent(s.childName)">
-                      عرض
-                    </button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          }
         </div>
-      </div>
+      } @else {
+        <!-- School teacher: flat table view -->
+        <div class="card overflow-hidden p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle" style="font-size:14px">
+              <thead>
+                <tr style="border-bottom:2px solid rgba(244,120,138,.12)">
+                  <th class="fw-800 px-4 py-3" style="color:var(--primary);white-space:nowrap">الاسم</th>
+                  <th class="fw-800 px-4 py-3" style="color:var(--primary);white-space:nowrap">المستوى</th>
+                  <th class="fw-800 px-4 py-3" style="color:var(--primary);white-space:nowrap">التقدم</th>
+                  <th class="fw-800 px-4 py-3" style="color:var(--primary);white-space:nowrap">آخر نشاط</th>
+                  <th class="fw-800 px-4 py-3" style="color:var(--primary)">إجراءات</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (filteredStudents().length === 0) {
+                  <tr>
+                    <td colspan="5" class="text-center text-muted py-5 fw-semibold">لا يوجد طلاب بعد.</td>
+                  </tr>
+                }
+                @for (s of filteredStudents(); track s.childName) {
+                  <tr>
+                    <td class="px-4 py-3">
+                      <div class="d-flex align-items-center gap-2 fw-800">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle fw-800 flex-shrink-0"
+                             style="width:36px;height:36px;background:linear-gradient(135deg,#FFE4E8,#F3E8FF);font-size:16px">
+                          {{ s.childName.charAt(0) }}
+                        </div>
+                        {{ s.childName }}
+                      </div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="badge rounded-pill fw-800"
+                        [style.background]="levelNumColor(s.level || 1) + '22'"
+                        [style.color]="levelNumColor(s.level || 1)"
+                        style="font-size:12px;padding:5px 12px">
+                        المستوى {{ s.level || 1 }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <div class="d-flex align-items-center gap-2">
+                        <div class="flex-grow-1 rounded-pill overflow-hidden" style="height:8px;background:#F3F4F6;max-width:120px">
+                          <div class="h-100 rounded-pill" style="transition:width .6s ease"
+                               [style.width.%]="s.avgScore"
+                               [style.background]="progressColor(s.avgScore)"></div>
+                        </div>
+                        <span class="fw-800 small" [style.color]="progressColor(s.avgScore)">
+                          {{ s.avgScore | number:'1.0-0' }}٪
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 small fw-semibold text-muted">{{ lastActiveLabel(s.lastActivity) }}</td>
+                    <td class="px-4 py-3">
+                      <button class="btn btn-sm rounded-pill fw-800"
+                        style="border:2px solid rgba(244,120,138,.3);color:var(--primary);background:transparent"
+                        type="button" (click)="viewStudent(s.childName)">
+                        عرض
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
 
     }
 

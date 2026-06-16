@@ -34,6 +34,10 @@ namespace Infrastructure.Data
         public DbSet<StudentGroup> StudentGroups => Set<StudentGroup>();
         public DbSet<StudentGroupMember> StudentGroupMembers => Set<StudentGroupMember>();
 
+        // School classrooms
+        public DbSet<Classroom> Classrooms => Set<Classroom>();
+        public DbSet<ClassroomStudent> ClassroomStudents => Set<ClassroomStudent>();
+
         // Placement test
         public DbSet<PlacementQuestion> PlacementQuestions => Set<PlacementQuestion>();
 
@@ -48,6 +52,10 @@ namespace Infrastructure.Data
             // StudentGroupMember composite PK
             modelBuilder.Entity<StudentGroupMember>()
                 .HasKey(m => new { m.GroupId, m.StudentId });
+
+            // ClassroomStudent composite PK
+            modelBuilder.Entity<ClassroomStudent>()
+                .HasKey(cs => new { cs.ClassroomId, cs.StudentId });
 
             // LevelWordConfig PK = Level (int) — manually provided, not auto-increment
             modelBuilder.Entity<LevelWordConfig>()

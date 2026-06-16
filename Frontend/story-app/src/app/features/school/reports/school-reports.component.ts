@@ -1,46 +1,65 @@
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 import { StoryService } from '../../../services/story';
-import { SchoolDashboardDto } from '../../../models/story.models';
+
+interface ClassroomReport {
+  classroomId:   string;
+  classroomName: string;
+  level:         number;
+  teacherName:   string;
+  studentCount:  number;
+  avgScore:      number;
+  students:      { name: string; username: string; level: number; placementDone: boolean; avgScore: number }[];
+  expanded:      boolean;
+}
 
 @Component({
   selector: 'app-school-reports',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, NavbarComponent],
+  imports: [CommonModule, DecimalPipe, RouterLink, RouterLinkActive, NavbarComponent],
   templateUrl: './school-reports.component.html',
 })
 export class SchoolReportsComponent implements OnInit {
   private readonly svc = inject(StoryService);
 
-  readonly isLoading = signal(false);
-  readonly data      = signal<SchoolDashboardDto | null>(null);
+  readonly isLoading       = signal(false);
+  readonly dashboardData   = signal<any>(null);
+  readonly classroomReport = signal<ClassroomReport[]>([]);
 
+  readonly totalStudents    = computed(() => this.dashboardData()?.totalStudents  ?? 0);
+  readonly totalTeachers    = computed(() => this.dashboardData()?.totalTeachers  ?? 0);
+  readonly activeThisWeek   = computed(() => this.dashboardData()?.activeThisWeek ?? 0);
+  readonly avgSchoolScore   = computed(() => this.dashboardData()?.avgSchoolScore ?? 0);
+  readonly performanceBands = computed(() => this.dashboardData()?.performanceBands ?? []);
   readonly maxBand = computed(() => {
-    const bands = this.data()?.performanceBands ?? [];
-    return bands.length > 0 ? Math.max(...bands.map(b => b.count)) : 1;
+    const bands = this.performanceBands();
+    return bands.length ? Math.max(...bands.map((b: any) => b.count)) : 1;
   });
 
   ngOnInit(): void {
     this.isLoading.set(true);
     this.svc.getSchoolDashboard().subscribe({
-      next:  d => { this.data.set(d); this.isLoading.set(false); },
+      next:  d => { this.dashboardData.set(d); this.isLoading.set(false); },
       error: () => this.isLoading.set(false)
+    });
+    this.svc.getClassroomsReport().subscribe({
+      next:  list => this.classroomReport.set(list.map((c: any) => ({ ...c, expanded: false }))),
+      error: () => {}
     });
   }
 
+  toggleExpand(id: string): void {
+    this.classroomReport.update(list =>
+      list.map(c => c.classroomId === id ? { ...c, expanded: !c.expanded } : c)
+    );
+  }
+
   bandColor(band: string): string {
-    const m: Record<string,string> = { ممتاز: '#22C55E', جيد: '#F59E0B', ضعيف: '#EF4444' };
-    return m[band] ?? '#F4788A';
+    return band === 'ممتاز' ? '#22C55E' : band === 'جيد' ? '#F59E0B' : '#EF4444';
   }
-
-  barWidth(count: number): number {
-    return Math.round(count / this.maxBand() * 100);
-  }
-
-  formatDate(d: string): string {
-    if (!d) return '';
-    return new Date(d).toLocaleDateString('ar-SA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  }
+  barWidth(count: number): number { return Math.round(count / this.maxBand() * 100); }
+  levelColor(l: number): string   { return ['','#F4788A','#8B5CF6','#22C55E'][l] ?? '#F4788A'; }
+  scoreColor(s: number): string   { return s >= 80 ? '#22C55E' : s >= 50 ? '#F59E0B' : '#EF4444'; }
 }
