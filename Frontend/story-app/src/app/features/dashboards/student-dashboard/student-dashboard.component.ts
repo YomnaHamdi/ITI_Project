@@ -23,7 +23,7 @@ export class StudentDashboardComponent implements OnInit {
 
   readonly weekDays = ['الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت','الأحد'];
 
-  readonly weekActivity   = computed(() => this.data()?.weeklyActivity as number[] ?? [0,0,0,0,0,0,0]);
+  readonly weekActivity    = computed(() => this.data()?.weeklyActivity as number[] ?? [0,0,0,0,0,0,0]);
   readonly maxWeekActivity = computed(() => Math.max(...this.weekActivity(), 1));
   barHeight(v: number): number { return Math.round(v / this.maxWeekActivity() * 100); }
 
@@ -38,6 +38,29 @@ export class StudentDashboardComponent implements OnInit {
       { icon:'🎯', label:'علامة كاملة',   earned: (d.avgScore ?? 0) >= 90 },
       { icon:'🏆', label:'سيد المستوى',   earned: (d.lessonsCompleted ?? 0) >= 10 },
     ];
+  });
+
+  // ── Lesson progress: read from backend data, not computed locally ──────────
+  // inProgressLessons comes from the API and contains real completion percentages
+  readonly inProgressLessons = computed(() => {
+    const d = this.data();
+    if (!d?.inProgressLessons) return [];
+    // Sort: completed (100%) last so in-progress appear first
+    return [...d.inProgressLessons].sort((a: any, b: any) => {
+      const ap = a.scorePercentage ?? a.completionPercentage ?? 0;
+      const bp = b.scorePercentage ?? b.completionPercentage ?? 0;
+      return ap - bp;
+    });
+  });
+
+  // ── Overall level progress: average of all lesson percentages ─────────────
+  readonly levelProgress = computed(() => {
+    const lessons = this.inProgressLessons();
+    if (!lessons.length) return 0;
+    const total = lessons.reduce((sum: number, l: any) => {
+      return sum + (l.scorePercentage ?? l.completionPercentage ?? 0);
+    }, 0);
+    return Math.round(total / lessons.length);
   });
 
   readonly navItems = [
@@ -80,6 +103,19 @@ export class StudentDashboardComponent implements OnInit {
       next:  d => { this.data.set(d); this.isLoading.set(false); },
       error: () => { this.data.set(this.mockData(name.trim())); this.isLoading.set(false); }
     });
+  }
+
+  // ── Helper: lesson completion percentage (handles both field names) ─────────
+  lessonPercent(lesson: any): number {
+    return lesson.scorePercentage ?? lesson.completionPercentage ?? 0;
+  }
+
+  // ── Helper: progress bar colour ────────────────────────────────────────────
+  lessonProgressColor(lesson: any): string {
+    const p = this.lessonPercent(lesson);
+    if (p >= 100) return '#22C55E';   // green  – complete
+    if (p >= 50)  return '#F59E0B';   // amber  – halfway
+    return 'var(--primary)';           // pink   – just started
   }
 
   openBook(id: string): void { this.router.navigate(['/books', id, 'read']); }

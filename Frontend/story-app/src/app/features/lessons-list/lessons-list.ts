@@ -29,7 +29,6 @@ export class LessonsListComponent implements OnInit {
     { value: 1, label: 'المستوى 1' },
     { value: 2, label: 'المستوى 2' },
     { value: 3, label: 'المستوى 3' },
-    { value: 4, label: 'المستوى 4' }
   ];
 
   ngOnInit(): void { this.load(); }
